@@ -1,0 +1,77 @@
+# ============================================================
+#  EggChecker 
+# ============================================================
+
+# ─── Documentación interna del equipo ────────────────────────
+# Se comparte por Google Drive y WhatsApp, no por el repositorio
+supporting_documentation/
+AGENTS.md
+
+# ─── Entorno y dependencias de Python ────────────────────────
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# ─── Variables de entorno y credenciales ─────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# ─── Bases de datos ─────
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+*.sql
+
+# ─── Node.js / React ─────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json.timestamp
+dist/
+build/
+coverage/
+.vite/
+
+# ─── Configuración y archivos del editor ─────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs y temporales ───────────────────────────────────────
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ─── Archivos de documentación generada / binarios ───────────
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+!supporting_documentation/**/.gitkeep
