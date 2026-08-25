@@ -13,6 +13,7 @@ venv/
 env/
 ENV/
 __pycache__/
+*.pyc
 *.py[cod]
 *.pyo
 *.egg-info/
