@@ -50,6 +50,12 @@ build/
 coverage/
 .vite/
 
+# ─── Kotlin / Android (Gradle) ───────────────────────────────
+.gradle/
+*.apk
+*.aab
+local.properties
+
 # ─── Configuración y archivos del editor ─────────────────────
 .vscode/*
 !.vscode/extensions.json
