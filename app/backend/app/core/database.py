@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -16,7 +18,7 @@ engine = create_engine(settings.DATABASE_URL, connect_args=_connect_args)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
-def get_db() -> Session:
+def get_db() -> Iterator[Session]:
     """Provee una sesión de base de datos por request.
 
     Yields:
