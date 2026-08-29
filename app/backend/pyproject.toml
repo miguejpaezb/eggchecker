@@ -11,6 +11,10 @@ src = ["app"]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
 ignore = ["E203"]
 
+[tool.ruff.lint.flake8-bugbear]
+# Depends() es el mecanismo estándar de inyección de dependencias de FastAPI.
+extend-immutable-calls = ["fastapi.Depends"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
