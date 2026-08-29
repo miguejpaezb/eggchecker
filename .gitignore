@@ -40,6 +40,7 @@ dist/
 *.db-shm
 data/
 *.sql
+!app/backend/db/*.sql
 
 # ─── Node.js / React ─────────────────────────────────────────
 node_modules/
