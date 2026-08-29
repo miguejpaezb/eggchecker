@@ -24,10 +24,24 @@ Aplicación web para avicultores que centraliza la gestión de camadas, inventar
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Python 3 · FastAPI · SQLAlchemy · Pydantic · Uvicorn |
-| Base de datos | MySQL 8 (producción) · SQLite (desarrollo) |
-| Frontend | React · JavaScript (ES6+) |
-| Control de versiones | Git + GitHub |
+| Backend | Python 3.11 · FastAPI · SQLAlchemy · Pydantic · Uvicorn |
+| Base de datos | MySQL 8 (producción) · SQLite (desarrollo) · Alembic (migraciones) |
+| Frontend | React · JavaScript (ES6+) · Vite · Bootstrap 5 |
+| Calidad de código | Ruff + Black + pytest (Python) · ESLint (Airbnb) + Prettier (React) |
+| Móvil (fase final) | Kotlin + Jetpack Compose (consume la misma API) |
+| Control de versiones | Git + GitHub (GitHub Flow) |
+
+## 🗃️ Base de datos
+
+El modelo relacional (evidencia GA6-220501096-AA2-EV03) se materializa con **13 tablas** y **3 vistas**:
+
+- **Organización** — `usuario`, `camada`, `evento_sanitario`, `categoria_insumo`, `insumo`, `movimiento_insumo`.
+- **Producción** — `tipo_huevo`, `produccion_diaria`, `produccion_detalle`.
+- **Ventas** — `cliente`, `pedido`, `detalle_pedido`.
+- **IA** — `analisis_ia`.
+- **Vistas** — `v_produccion_detallada`, `v_alertas_insumo`, `v_pedidos_pendientes`.
+
+En desarrollo y QA la base se crea y se puebla con datos de prueba en SQLite mediante el script `cargar_seed.py` (idempotente). En producción se usa MySQL 8 gestionado con migraciones Alembic.
 
 ## 🚀 Primeros pasos
 
@@ -39,7 +53,8 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1        # Windows
 source .venv/bin/activate         # macOS/Linux
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+python scripts/cargar_seed.py     # crea eggchecker.db con esquema + datos de prueba
+uvicorn app.main:app --reload     # http://127.0.0.1:8000/docs
 ```
 
 ### Frontend
@@ -47,8 +62,30 @@ uvicorn app.main:app --reload
 ```bash
 cd app/frontend
 npm install
-npm run dev
+npm run dev                       # http://localhost:5173
 ```
+
+### Pruebas y calidad
+
+```bash
+# Backend (desde app/backend)
+pytest
+ruff check app/ scripts/ tests/
+black --check app/ scripts/ tests/
+
+# Frontend (desde app/frontend)
+npm run lint                      # ESLint (Airbnb) sobre src/
+npm run format:check              # Prettier sobre src/
+npm run build
+```
+
+## 🗺️ Estado del proyecto
+
+| Sprint | Estado |
+|---|---|
+| S0 — Fundaciones (estructura, API, BD con seed, linters, shell React) | ✅ Completado |
+| S1 — Autenticación y planes | ⏳ Pendiente |
+| S2+ — Módulos de negocio (ver backlog) | ⏳ Pendiente |
 
 ## 📚 Documentación
 
