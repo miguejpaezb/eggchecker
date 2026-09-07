@@ -108,7 +108,7 @@ def obtener_perfil(db: Session, usuario: Usuario) -> dict:
         "aves_max": limite_aves(usuario.plan_suscripcion),
         "clientes_max": limite_clientes(usuario.plan_suscripcion),
         "ia_incluida": ia_incluida(usuario.plan_suscripcion),
-        "aves_actuales": _contar_tabla(db, "camada", usuario.id_usuario),
+        "aves_actuales": _sumar_aves_activas(db, usuario.id_usuario),
         "clientes_actuales": _contar_tabla(db, "cliente", usuario.id_usuario),
     }
 
@@ -121,9 +121,24 @@ def _buscar_por_correo(db: Session, correo: str) -> Usuario | None:
 def _contar_tabla(db: Session, tabla: str, id_usuario: int) -> int:
     """Cuenta los registros de una tabla propiedad del usuario.
 
-    Se usa SQL crudo porque los modelos ORM de camada y cliente pertenecen
-    a otros módulos y aún no existen.
+    Se usa SQL crudo porque el modelo ORM de cliente aún no existe; el
+    conteo de aves activas se resuelve en _sumar_aves_activas.
     """
     consulta = text(f"SELECT COUNT(*) FROM {tabla} WHERE id_usuario = :uid")
+    resultado = db.execute(consulta, {"uid": id_usuario}).scalar()
+    return int(resultado or 0)
+
+
+def _sumar_aves_activas(db: Session, id_usuario: int) -> int:
+    """Suma las aves de las camadas activas del usuario.
+
+    Regla RF-06: aves_actuales = SUM(cantidad_actual) de las camadas con
+    estado 'activa'. Se usa SQL crudo porque el modelo ORM de camada aún
+    no existe.
+    """
+    consulta = text(
+        "SELECT COALESCE(SUM(cantidad_actual), 0) FROM camada "
+        "WHERE id_usuario = :uid AND estado = 'activa'"
+    )
     resultado = db.execute(consulta, {"uid": id_usuario}).scalar()
     return int(resultado or 0)
