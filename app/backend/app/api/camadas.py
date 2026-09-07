@@ -9,6 +9,7 @@ from app.schemas.camada import (
     CamadaDetalleResponse,
     CamadaResponse,
     CamadaUpdate,
+    MortalidadRequest,
 )
 from app.services import camada_service
 
@@ -106,3 +107,48 @@ def actualizar_camada(
         CamadaResponse: La camada actualizada.
     """
     return camada_service.actualizar_camada(db, usuario, id_camada, datos)
+
+
+@router.post("/camadas/{id_camada}/mortalidad", response_model=CamadaResponse)
+def registrar_mortalidad_camada(
+    id_camada: int,
+    datos: MortalidadRequest,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> CamadaResponse:
+    """Registra mortalidad y descuenta la cantidad actual de la camada.
+
+    Args:
+        id_camada: Identificador de la camada afectada.
+        datos: Cantidad de aves muertas a descontar.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        CamadaResponse: La camada con la cantidad actual descontada.
+    """
+    return camada_service.registrar_mortalidad(db, usuario, id_camada, datos)
+
+
+@router.get("/camadas/{id_camada}/edad")
+def consultar_edad_camada(
+    id_camada: int,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Consulta la edad en días y el retiro estimado de una camada.
+
+    Args:
+        id_camada: Identificador de la camada a consultar.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        dict: Edad en días, fecha de ingreso y fecha de retiro estimada.
+    """
+    camada = camada_service.obtener_camada(db, usuario, id_camada)
+    return {
+        "edad_dias": camada_service.calcular_edad_dias(camada),
+        "fecha_ingreso": camada.fecha_ingreso,
+        "fecha_retiro_estimada": camada_service.calcular_fecha_retiro(camada),
+    }
