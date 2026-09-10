@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 # El plan de suscripción hoy solo admite estos dos valores (DDL y seed).
 _PLANES_VALIDOS = ("gratuito", "premium")
+_PLAN_POR_DEFECTO = "gratuito"
 
 
 class RegistroRequest(BaseModel):
@@ -13,7 +14,7 @@ class RegistroRequest(BaseModel):
     correo_electronico: EmailStr
     contrasena: str = Field(min_length=8, max_length=72)
     telefono: str | None = None
-    plan_suscripcion: str = "gratuito"
+    plan_suscripcion: str = _PLAN_POR_DEFECTO
 
     @field_validator("contrasena")
     @classmethod
@@ -29,12 +30,23 @@ class RegistroRequest(BaseModel):
             raise ValueError("Debe contener al menos un símbolo")
         return valor
 
+    @field_validator("plan_suscripcion", mode="before")
+    @classmethod
+    def _normalizar_plan(cls, valor: object) -> object:
+        """Asigna el plan por defecto si el campo llega omitido o vacío."""
+        if valor is None:
+            return _PLAN_POR_DEFECTO
+        if isinstance(valor, str):
+            limpio = valor.strip()
+            return limpio if limpio else _PLAN_POR_DEFECTO
+        return valor
+
     @field_validator("plan_suscripcion")
     @classmethod
     def _plan_conocido(cls, valor: str) -> str:
         """Rechaza planes que la BD de hoy no soporta."""
         if valor not in _PLANES_VALIDOS:
-            raise ValueError(f"Plan no soportado: {valor}")
+            raise ValueError("Debe seleccionar un plan válido para poder registrarse")
         return valor
 
 

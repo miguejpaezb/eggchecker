@@ -119,6 +119,60 @@ def test_registro_con_espacios_en_contrasena_devuelve_422(
     assert respuesta.status_code == 422
 
 
+@pytest.mark.parametrize("plan", [None, "", "   "])
+def test_registro_sin_plan_o_vacio_usa_gratuito(cliente, plan) -> None:
+    """Si el plan llega omitido o vacío, se asigna gratuito."""
+    client, _ = cliente
+    cuerpo = {
+        "nombre_completo": "Ana Test",
+        "correo_electronico": "ana@test.com",
+        "contrasena": CLAVE_VALIDA,
+    }
+    if plan is not None:
+        cuerpo["plan_suscripcion"] = plan
+
+    respuesta = client.post("/api/auth/registro", json=cuerpo)
+
+    assert respuesta.status_code == 201
+    assert respuesta.json()["plan_suscripcion"] == "gratuito"
+
+
+def test_registro_con_plan_invalido_devuelve_422(cliente) -> None:
+    """Un plan que no coincide con los disponibles responde 422."""
+    client, _ = cliente
+
+    respuesta = client.post(
+        "/api/auth/registro",
+        json={
+            "nombre_completo": "Ana Test",
+            "correo_electronico": "ana@test.com",
+            "contrasena": CLAVE_VALIDA,
+            "plan_suscripcion": "oro",
+        },
+    )
+
+    assert respuesta.status_code == 422
+    assert "plan" in respuesta.text.lower()
+
+
+def test_registro_normaliza_plan_con_espacios(cliente) -> None:
+    """Un plan válido rodeado de espacios se recorta y se acepta."""
+    client, _ = cliente
+
+    respuesta = client.post(
+        "/api/auth/registro",
+        json={
+            "nombre_completo": "Ana Test",
+            "correo_electronico": "ana@test.com",
+            "contrasena": CLAVE_VALIDA,
+            "plan_suscripcion": " premium ",
+        },
+    )
+
+    assert respuesta.status_code == 201
+    assert respuesta.json()["plan_suscripcion"] == "premium"
+
+
 def test_login_correcto_devuelve_token(cliente) -> None:
     """Un login válido responde 200 con un access_token Bearer."""
     client, _ = cliente
