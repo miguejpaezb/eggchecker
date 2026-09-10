@@ -194,16 +194,79 @@ def test_login_de_usuario_inactivo_devuelve_401(cliente) -> None:
     assert respuesta.status_code == 401
 
 
-def test_recuperar_devuelve_token(cliente) -> None:
-    """La recuperación responde 200 con un token mock en v1."""
+def test_recuperar_correo_registrado_devuelve_mensaje_sin_token(cliente) -> None:
+    """La recuperación de un correo registrado responde 200 sin exponer token."""
     client, _ = cliente
 
     respuesta = client.post(
-        "/api/auth/recuperar", json={"correo_electronico": "ana@test.com"}
+        "/api/auth/recuperar",
+        json={"correo_electronico": "lucia.torres@gmail.com"},
     )
 
     assert respuesta.status_code == 200
-    assert "token_recuperacion" in respuesta.json()
+    cuerpo = respuesta.json()
+    assert "mensaje" in cuerpo
+    assert "token_recuperacion" not in cuerpo
+
+
+def test_recuperar_correo_inexistente_devuelve_404(cliente) -> None:
+    """Un correo no registrado responde 404 y corta el flujo."""
+    client, _ = cliente
+
+    respuesta = client.post(
+        "/api/auth/recuperar",
+        json={"correo_electronico": "noexiste@test.com"},
+    )
+
+    assert respuesta.status_code == 404
+
+
+def test_recuperar_guarda_token_hasheado(cliente) -> None:
+    """La solicitud guarda solo el hash del token (64 chars), no el crudo."""
+    client, db_path = cliente
+    client.post(
+        "/api/auth/recuperar",
+        json={"correo_electronico": "lucia.torres@gmail.com"},
+    )
+
+    motor = create_engine(f"sqlite:///{db_path}")
+    sesion_fabrica = sessionmaker(bind=motor)
+    with sesion_fabrica() as sesion:
+        id_esperado = sesion.execute(
+            text(
+                "SELECT id_usuario FROM usuario "
+                "WHERE correo_electronico = 'lucia.torres@gmail.com'"
+            )
+        ).scalar()
+        fila = sesion.execute(
+            text("SELECT id_usuario, token_hash, usado FROM token_recuperacion")
+        ).fetchone()
+    motor.dispose()
+
+    assert fila is not None
+    assert fila.id_usuario == id_esperado
+    assert len(fila.token_hash) == 64
+    assert fila.usado == 0
+
+
+def test_recuperar_invalida_token_previo(cliente) -> None:
+    """Pedir un segundo token invalida el anterior: solo queda uno vigente."""
+    client, db_path = cliente
+    datos = {"correo_electronico": "lucia.torres@gmail.com"}
+    client.post("/api/auth/recuperar", json=datos)
+    client.post("/api/auth/recuperar", json=datos)
+
+    motor = create_engine(f"sqlite:///{db_path}")
+    sesion_fabrica = sessionmaker(bind=motor)
+    with sesion_fabrica() as sesion:
+        total = sesion.execute(text("SELECT COUNT(*) FROM token_recuperacion")).scalar()
+        vigentes = sesion.execute(
+            text("SELECT COUNT(*) FROM token_recuperacion WHERE usado = 0")
+        ).scalar()
+    motor.dispose()
+
+    assert total == 2
+    assert vigentes == 1
 
 
 def test_perfil_sin_token_devuelve_401(cliente) -> None:

@@ -73,10 +73,12 @@ class UsuarioResponse(BaseModel):
 
 
 class RecuperarResponse(BaseModel):
-    """Respuesta del flujo de recuperación (mock en v1)."""
+    """Respuesta del flujo de recuperación de contraseña.
+
+    No expone el token: este viaja únicamente en el enlace del correo.
+    """
 
     mensaje: str
-    token_recuperacion: str
 
 
 class PerfilResponse(UsuarioResponse):

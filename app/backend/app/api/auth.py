@@ -52,17 +52,19 @@ def login(datos: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
 def recuperar(
     datos: RecuperarRequest, db: Session = Depends(get_db)
 ) -> RecuperarResponse:
-    """Solicita la recuperación de contraseña (mock en v1).
+    """Solicita el envío del enlace de recuperación de contraseña.
 
     Args:
         datos: Correo del usuario que solicita la recuperación.
         db: Sesión de base de datos.
 
     Returns:
-        RecuperarResponse: Mensaje y token de recuperación.
+        RecuperarResponse: Mensaje de confirmación (sin token).
+
+    Raises:
+        HTTPException: 404 si el correo no existe; 500 si falla el envío.
     """
-    token = auth_service.solicitar_recuperacion(db, datos)
+    auth_service.solicitar_recuperacion(db, datos)
     return RecuperarResponse(
-        mensaje="Si el correo existe, se enviará un enlace de recuperación",
-        token_recuperacion=token,
+        mensaje="Se ha enviado un enlace de recuperación a tu correo"
     )

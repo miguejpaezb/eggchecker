@@ -1,13 +1,23 @@
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 
+from app.core.config import get_settings
 from app.core.plans import ia_incluida, limite_aves, limite_clientes
-from app.core.security import crear_token_acceso, obtener_hash, verificar_hash
+from app.core.security import (
+    crear_token_acceso,
+    generar_token_recuperacion,
+    hash_token,
+    obtener_hash,
+    verificar_hash,
+)
+from app.models.token_recuperacion import TokenRecuperacion
 from app.models.usuario import Usuario
 from app.schemas.auth import LoginRequest, RecuperarRequest, RegistroRequest
 from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+settings = get_settings()
 
 
 def registrar_usuario(db: Session, datos: RegistroRequest) -> Usuario:
@@ -70,20 +80,78 @@ def autenticar_usuario(db: Session, datos: LoginRequest) -> str:
     return crear_token_acceso(sub=str(usuario.id_usuario))
 
 
-def solicitar_recuperacion(db: Session, datos: RecuperarRequest) -> str:
-    """Genera un token mock de recuperación de contraseña.
+def solicitar_recuperacion(db: Session, datos: RecuperarRequest) -> None:
+    """Registra una solicitud de recuperación y envía el enlace por correo.
+
+    Valida que el correo exista, invalida tokens previos, genera un token
+    opaco y guarda solo su hash. El token crudo nunca se devuelve al cliente.
 
     Args:
         db: Sesión de base de datos.
         datos: Correo del usuario que solicita la recuperación.
 
-    Returns:
-        str: Token de recuperación (sin envío real de correo en v1).
+    Raises:
+        HTTPException: 404 si el correo no está registrado; 500 si el
+            envío del correo falla.
     """
-    # No se revela si el correo existe: siempre se devuelve un token.
     usuario = _buscar_por_correo(db, datos.correo_electronico)
-    sub = str(usuario.id_usuario) if usuario else "no-registrado"
-    return crear_token_acceso(sub=sub)
+    if usuario is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "No encontramos una cuenta con ese correo. " "¿Deseas registrarte?"
+            ),
+        )
+
+    _invalidar_tokens_previos(db, usuario.id_usuario)
+
+    token = generar_token_recuperacion()
+    ahora = datetime.now(UTC).replace(tzinfo=None)
+    expira = ahora + timedelta(minutes=settings.RECOVERY_TOKEN_EXPIRE_MINUTES)
+    db.add(
+        TokenRecuperacion(
+            id_usuario=usuario.id_usuario,
+            token_hash=hash_token(token),
+            fecha_creacion=ahora,
+            fecha_expiracion=expira,
+        )
+    )
+
+    try:
+        _enviar_correo_recuperacion(usuario, token)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "No se pudo enviar el correo de recuperación. "
+                "Intenta de nuevo más tarde."
+            ),
+        ) from exc
+    db.commit()
+
+
+def _invalidar_tokens_previos(db: Session, id_usuario: int) -> None:
+    """Marca como usados los tokens de recuperación vigentes del usuario."""
+    db.query(TokenRecuperacion).filter(
+        TokenRecuperacion.id_usuario == id_usuario,
+        TokenRecuperacion.usado.is_(False),
+    ).update({TokenRecuperacion.usado: True})
+
+
+def _enviar_correo_recuperacion(usuario: Usuario, token: str) -> None:
+    """Envía el enlace de recuperación al correo del usuario (mock en v1).
+
+    En v1 no se envía correo real: el enlace se armará con `FRONTEND_URL`
+    y el token, y se enviará por SMTP cuando se configure el servidor.
+
+    Args:
+        usuario: Usuario que solicitó la recuperación.
+        token: Token crudo que debe viajar en el enlace.
+    """
+    # TODO(Miguel): construir el enlace con FRONTEND_URL y enviarlo por
+    # SMTP real. Por ahora es un no-op para no filtrar el token.
+    return None
 
 
 def obtener_perfil(db: Session, usuario: Usuario) -> dict:

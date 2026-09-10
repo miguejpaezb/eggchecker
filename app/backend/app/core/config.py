@@ -14,12 +14,18 @@ class Settings(BaseSettings):
         JWT_SECRET_KEY: Llave secreta para firmar los tokens JWT.
         JWT_ALGORITHM: Algoritmo de firma de los tokens.
         JWT_EXPIRE_MINUTES: Minutos de validez de los tokens.
+        RECOVERY_TOKEN_EXPIRE_MINUTES: Minutos de validez del token de
+            recuperación de contraseña.
+        FRONTEND_URL: URL base del frontend para armar el enlace de
+            restablecimiento.
     """
 
     DATABASE_URL: str = "sqlite:///./eggchecker.db"
     JWT_SECRET_KEY: str = "cambiar-esta-llave-en-produccion"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60
+    RECOVERY_TOKEN_EXPIRE_MINUTES: int = 30
+    FRONTEND_URL: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(
         env_file=".env",
