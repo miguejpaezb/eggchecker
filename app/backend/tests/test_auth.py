@@ -93,6 +93,32 @@ def test_registro_con_contrasena_debil_devuelve_422(cliente) -> None:
     assert respuesta.status_code == 422
 
 
+@pytest.mark.parametrize(
+    "contrasena",
+    [
+        " Test1234! ",  # espacios al inicio y al final
+        "        ",  # solo espacios
+        "Test 1234!",  # espacio interno
+    ],
+)
+def test_registro_con_espacios_en_contrasena_devuelve_422(
+    cliente, contrasena: str
+) -> None:
+    """Una contraseña con espacios (en cualquier posición) responde 422."""
+    client, _ = cliente
+
+    respuesta = client.post(
+        "/api/auth/registro",
+        json={
+            "nombre_completo": "Ana Test",
+            "correo_electronico": "ana@test.com",
+            "contrasena": contrasena,
+        },
+    )
+
+    assert respuesta.status_code == 422
+
+
 def test_login_correcto_devuelve_token(cliente) -> None:
     """Un login válido responde 200 con un access_token Bearer."""
     client, _ = cliente

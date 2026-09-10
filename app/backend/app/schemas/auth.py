@@ -18,7 +18,9 @@ class RegistroRequest(BaseModel):
     @field_validator("contrasena")
     @classmethod
     def _contrasena_segura(cls, valor: str) -> str:
-        """Exige una contraseña con mayúscula, número y símbolo."""
+        """Exige una contraseña sin espacios, con mayúscula, número y símbolo."""
+        if any(c.isspace() for c in valor):
+            raise ValueError("La contraseña no puede contener espacios en blanco")
         if not any(c.isupper() for c in valor):
             raise ValueError("Debe contener al menos una mayúscula")
         if not any(c.isdigit() for c in valor):
