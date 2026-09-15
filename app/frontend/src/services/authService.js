@@ -46,3 +46,13 @@ export function obtenerToken() {
 export function cerrarSesion() {
   localStorage.removeItem(TOKEN_KEY);
 }
+
+/**
+ * Consulta el perfil del usuario autenticado.
+ * @returns {Promise<Object>} Perfil con nombre, plan y uso actual.
+ */
+export function obtenerPerfil() {
+  return peticion('/usuarios/me', {
+    headers: { Authorization: `Bearer ${obtenerToken()}` },
+  });
+}

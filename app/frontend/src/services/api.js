@@ -29,11 +29,12 @@ async function extraerMensaje(respuesta) {
  * @throws {Error} Con el mensaje de error devuelto por la API.
  */
 export async function peticion(ruta, opciones = {}) {
+  const { headers, ...resto } = opciones;
   let respuesta;
   try {
     respuesta = await fetch(`${BASE_URL}${ruta}`, {
-      headers: { 'Content-Type': 'application/json' },
-      ...opciones,
+      headers: { 'Content-Type': 'application/json', ...headers },
+      ...resto,
     });
   } catch {
     throw new Error('No se pudo conectar con el servidor');
