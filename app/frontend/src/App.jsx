@@ -1,8 +1,18 @@
+import { Navigate, Route, Routes } from 'react-router-dom';
+
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
 function App() {
   return (
-    <div className="container py-5 text-center">
-      <h1 className="display-4 fw-bold">EggChecker</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 
