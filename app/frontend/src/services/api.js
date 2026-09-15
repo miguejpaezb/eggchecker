@@ -41,7 +41,9 @@ export async function peticion(ruta, opciones = {}) {
   }
 
   if (!respuesta.ok) {
-    throw new Error(await extraerMensaje(respuesta));
+    const error = new Error(await extraerMensaje(respuesta));
+    error.status = respuesta.status;
+    throw error;
   }
   if (respuesta.status === 204) {
     return null;

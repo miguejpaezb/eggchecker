@@ -56,16 +56,28 @@ function Auth({ mode }) {
         </div>
       </AuthCard>
       <div className="ec-auth__footer">
-        <p>
-          {pregunta}
-          <button
-            type="button"
-            className="ec-auth__switch"
-            onClick={() => irA(destinoToggle)}
-          >
-            {etiquetaToggle}
-          </button>
-        </p>
+        {esRecuperar ? (
+          <p>
+            <button
+              type="button"
+              className="ec-auth__switch"
+              onClick={() => irA('/login')}
+            >
+              Volver a iniciar sesión
+            </button>
+          </p>
+        ) : (
+          <p>
+            {pregunta}
+            <button
+              type="button"
+              className="ec-auth__switch"
+              onClick={() => irA(destinoToggle)}
+            >
+              {etiquetaToggle}
+            </button>
+          </p>
+        )}
       </div>
     </AuthLayout>
   );
