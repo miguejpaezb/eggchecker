@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 import { guardarToken, iniciarSesion } from '../services/authService';
 import AuthInput from './AuthInput';
@@ -72,7 +72,7 @@ function LoginForm({ correoInicial, mensajeExito }) {
           {enviando ? 'Ingresando…' : 'Iniciar sesión'}
         </button>
         <div className="ec-auth__forgot">
-          <a href="#recuperar">Olvidé mi contraseña</a>
+          <Link to="/recuperar">Olvidé mi contraseña</Link>
         </div>
       </form>
     </>

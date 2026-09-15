@@ -27,6 +27,18 @@ export function iniciarSesion(credenciales) {
 }
 
 /**
+ * Solicita la recuperación de contraseña para un correo.
+ * @param {Object} datos - correo_electronico del usuario.
+ * @returns {Promise<Object>} Mensaje y token de recuperación.
+ */
+export function recuperar(datos) {
+  return peticion('/auth/recuperar', {
+    method: 'POST',
+    body: JSON.stringify(datos),
+  });
+}
+
+/**
  * Guarda el token de acceso en el almacenamiento local.
  * @param {string} token - Token JWT devuelto por el login.
  */

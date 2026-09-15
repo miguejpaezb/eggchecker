@@ -10,6 +10,7 @@ function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Auth mode="login" />} />
       <Route path="/register" element={<Auth mode="register" />} />
+      <Route path="/recuperar" element={<Auth mode="recuperar" />} />
 
       <Route element={<AppLayout />}>
         <Route
