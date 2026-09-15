@@ -4,22 +4,25 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 
 function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
-  const [perfilAbierto, setPerfilAbierto] = useState(false);
+  const [menuActivo, setMenuActivo] = useState(null);
   const perfilRef = useRef(null);
+  const notifRef = useRef(null);
 
   useEffect(() => {
-    if (!perfilAbierto) {
+    if (!menuActivo) {
       return undefined;
     }
 
     const cerrarSiFuera = (event) => {
-      if (perfilRef.current && !perfilRef.current.contains(event.target)) {
-        setPerfilAbierto(false);
+      const enPerfil = perfilRef.current?.contains(event.target);
+      const enNotif = notifRef.current?.contains(event.target);
+      if (!enPerfil && !enNotif) {
+        setMenuActivo(null);
       }
     };
     const cerrarConEscape = (event) => {
       if (event.key === 'Escape') {
-        setPerfilAbierto(false);
+        setMenuActivo(null);
       }
     };
 
@@ -31,7 +34,10 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
       document.removeEventListener('touchstart', cerrarSiFuera);
       document.removeEventListener('keydown', cerrarConEscape);
     };
-  }, [perfilAbierto]);
+  }, [menuActivo]);
+
+  const alternar = (nombre) =>
+    setMenuActivo((prev) => (prev === nombre ? null : nombre));
 
   const nombre = perfil?.nombre_completo ?? 'Invitado';
   const plan = perfil?.plan_suscripcion ?? 'gratuito';
@@ -71,26 +77,45 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
         </div>
       </div>
       <div className="ec-topbar__actions">
-        <button
-          type="button"
-          className="ec-topbar__icon-btn"
-          aria-label="Notificaciones"
-        >
-          <img
-            src="/assets/icons/notifications-icon.svg"
-            alt=""
-            aria-hidden="true"
-            className="ec-topbar__icon"
-          />
-        </button>
+        <div className="ec-topbar__notif" ref={notifRef}>
+          <button
+            type="button"
+            className="ec-topbar__icon-btn"
+            aria-label="Notificaciones"
+            aria-haspopup="true"
+            aria-expanded={menuActivo === 'notificaciones'}
+            onClick={() => alternar('notificaciones')}
+          >
+            <img
+              src="/assets/icons/notifications-icon.svg"
+              alt=""
+              aria-hidden="true"
+              className="ec-topbar__icon"
+            />
+          </button>
+          {menuActivo === 'notificaciones' && (
+            <div className="ec-notif-menu">
+              <h3 className="ec-notif-menu__title">Notificaciones</h3>
+              <div className="ec-notif-menu__empty">
+                <Icon
+                  src="/assets/icons/notifications-icon.svg"
+                  className="ec-notif-menu__empty-icon"
+                />
+                <p className="ec-notif-menu__empty-text">
+                  No tienes notificaciones
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="ec-topbar__profile" ref={perfilRef}>
           <button
             type="button"
             className="ec-topbar__avatar-btn"
             aria-label="Perfil de usuario"
             aria-haspopup="true"
-            aria-expanded={perfilAbierto}
-            onClick={() => setPerfilAbierto((prev) => !prev)}
+            aria-expanded={menuActivo === 'perfil'}
+            onClick={() => alternar('perfil')}
           >
             <span className="ec-topbar__avatar">
               <Icon
@@ -99,7 +124,7 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
               />
             </span>
           </button>
-          {perfilAbierto && (
+          {menuActivo === 'perfil' && (
             <div className="ec-profile-menu">
               <div className="ec-profile-menu__avatar">
                 <Icon
