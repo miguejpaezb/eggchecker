@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
-import { cerrarSesion } from '../services/authService';
 import Icon from './Icon';
 
 const MENU = [
@@ -36,20 +35,16 @@ const MENU = [
   { to: '/perfil', label: 'Perfil', icon: '/assets/icons/user-icon.svg' },
 ];
 
-function Sidebar({ perfil }) {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    cerrarSesion();
-    navigate('/login', { replace: true });
-  };
-
+function Sidebar({ perfil, abierto, onCerrar, onLogout }) {
   const nombre = perfil?.nombre_completo ?? 'Invitado';
   const plan = perfil?.plan_suscripcion ?? 'gratuito';
   const planTexto = `Plan ${plan.charAt(0).toUpperCase()}${plan.slice(1)}`;
 
   return (
-    <aside className="ec-sidebar" aria-label="Navegación principal">
+    <aside
+      className={`ec-sidebar${abierto ? ' ec-sidebar--abierto' : ''}`}
+      aria-label="Navegación principal"
+    >
       <nav className="ec-sidebar__nav">
         <ul className="ec-sidebar__list">
           {MENU.map((item) => (
@@ -61,6 +56,7 @@ function Sidebar({ perfil }) {
                     isActive ? ' ec-sidebar__link--active' : ''
                   }`
                 }
+                onClick={onCerrar}
               >
                 <Icon src={item.icon} className="ec-sidebar__icon" />
                 <span className="ec-sidebar__label">{item.label}</span>
@@ -84,7 +80,7 @@ function Sidebar({ perfil }) {
           <button
             type="button"
             className="ec-sidebar__logout"
-            onClick={handleLogout}
+            onClick={onLogout}
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
           >
@@ -104,10 +100,14 @@ Sidebar.propTypes = {
     nombre_completo: PropTypes.string,
     plan_suscripcion: PropTypes.string,
   }),
+  abierto: PropTypes.bool,
+  onCerrar: PropTypes.func.isRequired,
+  onLogout: PropTypes.func.isRequired,
 };
 
 Sidebar.defaultProps = {
   perfil: null,
+  abierto: false,
 };
 
 export default Sidebar;

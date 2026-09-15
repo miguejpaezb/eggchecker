@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 
 import {
@@ -13,6 +13,7 @@ function AppLayout() {
   const navigate = useNavigate();
   const [perfil, setPerfil] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   useEffect(() => {
     if (!obtenerToken()) {
@@ -42,15 +43,40 @@ function AppLayout() {
     };
   }, [navigate]);
 
+  const abrirMenu = useCallback(() => setMenuAbierto(true), []);
+  const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
+  const handleLogout = useCallback(() => {
+    cerrarSesion();
+    navigate('/login', { replace: true });
+  }, [navigate]);
+
   if (cargando) {
     return <div className="ec-app-loading">Cargando…</div>;
   }
 
   return (
     <div className="ec-app">
-      <Topbar />
+      <Topbar
+        perfil={perfil}
+        menuAbierto={menuAbierto}
+        onAbrirMenu={abrirMenu}
+        onLogout={handleLogout}
+      />
       <div className="ec-app__body">
-        <Sidebar perfil={perfil} />
+        <Sidebar
+          perfil={perfil}
+          abierto={menuAbierto}
+          onCerrar={cerrarMenu}
+          onLogout={handleLogout}
+        />
+        {menuAbierto && (
+          <button
+            type="button"
+            className="ec-sidebar-backdrop"
+            aria-label="Cerrar menú"
+            onClick={cerrarMenu}
+          />
+        )}
         <main className="ec-main">
           <Outlet context={perfil} />
         </main>

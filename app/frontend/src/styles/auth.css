@@ -190,17 +190,25 @@
 
 .ec-input__toggle {
   position: absolute;
-  right: 1rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
   background: none;
   border: none;
   padding: 0;
   line-height: 0;
   color: var(--ec-placeholder);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
-.ec-input__toggle:hover {
-  color: var(--ec-brown);
+@media (hover: hover) {
+  .ec-input__toggle:hover {
+    color: var(--ec-brown);
+  }
 }
 
 .ec-input__toggle svg {
@@ -228,15 +236,19 @@
     0 4px 6px -1px rgb(0 0 0 / 0.1),
     0 2px 4px -2px rgb(0 0 0 / 0.1);
   margin-top: 1rem;
+  min-height: 48px;
   cursor: pointer;
+  touch-action: manipulation;
   transition:
     transform 0.15s ease,
     background-color 0.15s ease;
 }
 
-.ec-auth__submit:hover:not(:disabled) {
-  background-color: var(--ec-yellow-hover);
-  transform: translateY(-0.125rem);
+@media (hover: hover) {
+  .ec-auth__submit:hover:not(:disabled) {
+    background-color: var(--ec-yellow-hover);
+    transform: translateY(-0.125rem);
+  }
 }
 
 .ec-auth__submit:disabled {
@@ -311,11 +323,14 @@
   font-weight: 700;
   color: var(--ec-brown);
   cursor: pointer;
+  touch-action: manipulation;
   transition: color 0.15s ease;
 }
 
-.ec-auth__switch:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .ec-auth__switch:hover {
+    text-decoration: underline;
+  }
 }
 
 @media (min-width: 768px) {
