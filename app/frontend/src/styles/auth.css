@@ -366,3 +366,28 @@
     animation: none;
   }
 }
+
+/* Móvil: marca compacta y con menos aire entre logo y título. */
+@media (max-width: 767px) {
+  .ec-auth__logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 0.25rem;
+  }
+
+  .ec-auth__title {
+    font-size: 2rem;
+  }
+
+  .ec-auth__tagline {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Tablets: formulario más angosto para dar aire a la marca. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .ec-auth__panel {
+    max-width: 24rem;
+  }
+}
