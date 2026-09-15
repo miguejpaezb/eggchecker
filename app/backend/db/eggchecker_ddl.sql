@@ -38,6 +38,30 @@ CREATE TABLE usuario (
 
 
 -- ─────────────────────────────────────────────────────────────
+-- Table token_recuperacion
+-- Tokens de recuperación de contraseña (uno por solicitud).
+-- El token crudo nunca se guarda: solo su hash SHA-256.
+-- FK: id_usuario → usuario
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE token_recuperacion (
+  id_token         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  id_usuario       INTEGER NOT NULL,
+  token_hash       TEXT    NOT NULL,
+  fecha_creacion   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_expiracion TEXT    NOT NULL,
+  usado            INTEGER NOT NULL DEFAULT 0,
+  CONSTRAINT fk_token_usuario
+    FOREIGN KEY (id_usuario)
+    REFERENCES usuario (id_usuario)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX idx_token_usuario ON token_recuperacion (id_usuario);
+CREATE INDEX idx_token_hash    ON token_recuperacion (token_hash);
+
+
+-- ─────────────────────────────────────────────────────────────
 -- Table categoria_insumo
 -- Catálogo normalizado de tipos de insumo (3FN).
 -- ─────────────────────────────────────────────────────────────

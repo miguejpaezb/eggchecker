@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -75,3 +77,24 @@ def verificar_token(token: str) -> dict[str, Any]:
         raise HTTPException(
             status_code=401, detail="Token inválido o expirado"
         ) from exc
+
+
+def generar_token_recuperacion() -> str:
+    """Genera un token opaco de alta entropía para recuperar contraseña.
+
+    Returns:
+        str: Token aleatorio seguro que viaja en el enlace del correo.
+    """
+    return secrets.token_urlsafe(32)
+
+
+def hash_token(token: str) -> str:
+    """Calcula el hash SHA-256 de un token de recuperación.
+
+    Args:
+        token: Token crudo, que nunca se persiste en la base de datos.
+
+    Returns:
+        str: Hash hexadecimal de 64 caracteres para guardar en la BD.
+    """
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()

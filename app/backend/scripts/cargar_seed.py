@@ -20,6 +20,7 @@ from pathlib import Path
 # evidencia; el script de seed las inserta todas por nombre.
 _TABLAS = (
     "usuario",
+    "token_recuperacion",
     "categoria_insumo",
     "insumo",
     "movimiento_insumo",

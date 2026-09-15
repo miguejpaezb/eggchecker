@@ -11,6 +11,7 @@ from scripts.cargar_seed import cargar_seed
 
 _CONTEOS_ESPERADOS = {
     "usuario": 10,
+    "token_recuperacion": 0,
     "categoria_insumo": 6,
     "insumo": 14,
     "movimiento_insumo": 14,
@@ -32,8 +33,8 @@ _VISTAS_ESPERADAS = {
 }
 
 
-def test_carga_crea_las_13_tablas(tmp_path: Path) -> None:
-    """El esquema se crea completo con las 13 tablas del modelo."""
+def test_carga_crea_las_14_tablas(tmp_path: Path) -> None:
+    """El esquema se crea completo con las 14 tablas del modelo."""
     db_path = tmp_path / "seed.db"
     cargar_seed(db_path)
 
@@ -46,7 +47,7 @@ def test_carga_crea_las_13_tablas(tmp_path: Path) -> None:
             if not fila[0].startswith("sqlite_")
         ]
 
-    assert len(tablas) == 13
+    assert len(tablas) == 14
 
 
 def test_carga_inserta_registros_esperados(tmp_path: Path) -> None:
