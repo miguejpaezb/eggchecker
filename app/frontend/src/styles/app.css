@@ -40,7 +40,7 @@
   justify-content: space-between;
   padding: 0 0.75rem;
   position: relative;
-  z-index: 30;
+  z-index: 45;
 }
 
 .ec-topbar__left {
@@ -572,5 +572,18 @@
 @media (max-width: 380px) {
   .ec-topbar__title {
     display: none;
+  }
+}
+
+/* ─── Móviles pequeños (<=375px): ventanas a ancho completo ─ */
+@media (max-width: 375px) {
+  .ec-notif-menu,
+  .ec-profile-menu {
+    position: fixed;
+    top: calc(60px + 0.5rem);
+    left: 0.5rem;
+    right: 0.5rem;
+    width: auto;
+    max-width: none;
   }
 }
