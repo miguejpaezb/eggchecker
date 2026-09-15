@@ -83,8 +83,11 @@
   background-color: #ffffff;
   border-radius: 25px;
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  padding: 1.25rem 2.5rem;
   width: 100%;
+}
+
+.ec-auth__card-inner {
+  padding: 1.25rem 2.5rem;
 }
 
 .ec-auth__card--animated {

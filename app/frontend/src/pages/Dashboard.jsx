@@ -22,16 +22,18 @@ function Dashboard() {
       <div className="ec-auth__pattern" aria-hidden="true" />
       <div className="ec-auth__content">
         <div className="ec-auth__panel">
-          <div className="ec-auth__card text-center">
-            <h2 className="ec-auth__heading">Bienvenido a EggChecker</h2>
-            <p className="mb-0">Tu sesión se inició correctamente.</p>
-            <button
-              type="button"
-              className="ec-auth__submit"
-              onClick={handleLogout}
-            >
-              Cerrar sesión
-            </button>
+          <div className="ec-auth__card">
+            <div className="ec-auth__card-inner text-center">
+              <h2 className="ec-auth__heading">Bienvenido a EggChecker</h2>
+              <p className="mb-0">Tu sesión se inició correctamente.</p>
+              <button
+                type="button"
+                className="ec-auth__submit"
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
       </div>
