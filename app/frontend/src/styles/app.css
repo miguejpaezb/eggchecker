@@ -326,6 +326,7 @@
 }
 
 .ec-sidebar__footer {
+  display: none;
   padding: 1rem;
   margin-top: auto;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -488,8 +489,8 @@
   }
 }
 
-/* ─── Escritorio / tablet horizontal grande (>=1200px) ───── */
-@media (min-width: 1200px) {
+/* ─── Escritorio / laptop (>=1024px) ─────────────────────── */
+@media (min-width: 1024px) {
   .ec-topbar {
     padding: 0 1.5rem;
   }
@@ -507,6 +508,10 @@
     height: 100%;
     transform: none;
     z-index: 20;
+  }
+
+  .ec-sidebar__footer {
+    display: block;
   }
 
   .ec-sidebar-backdrop {
