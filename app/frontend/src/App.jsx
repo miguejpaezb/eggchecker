@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import AppLayout from './components/AppLayout';
 import Auth from './pages/Auth';
-import Dashboard from './pages/Dashboard';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -13,7 +12,10 @@ function App() {
       <Route path="/register" element={<Auth mode="register" />} />
 
       <Route element={<AppLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/dashboard"
+          element={<ModulePlaceholder title="Dashboard" />}
+        />
         <Route
           path="/produccion"
           element={<ModulePlaceholder title="Producción" />}
