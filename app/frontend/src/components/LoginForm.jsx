@@ -53,7 +53,7 @@ function LoginForm({ correoInicial, mensajeExito }) {
           label="Correo electrónico"
           icon="/assets/icons/mail-icon.svg"
           placeholder="tucorreo@email.com"
-          autoComplete="email"
+          autoComplete="username"
           value={form.correo_electronico}
           onChange={handleChange}
         />

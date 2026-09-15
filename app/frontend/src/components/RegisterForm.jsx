@@ -98,7 +98,7 @@ function RegisterForm({ onRegistrado }) {
           label="Correo electrónico"
           icon="/assets/icons/mail-icon.svg"
           placeholder="tucorreo@email.com"
-          autoComplete="email"
+          autoComplete="username"
           value={form.correo_electronico}
           error={errores.correo_electronico}
           onChange={handleChange}
