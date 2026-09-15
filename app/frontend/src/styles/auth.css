@@ -87,6 +87,27 @@
   width: 100%;
 }
 
+.ec-auth__card--animated {
+  overflow: hidden;
+  transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ec-auth__form-swap {
+  animation: ec-auth-enter 0.35s ease;
+}
+
+@keyframes ec-auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .ec-auth__heading {
   font-size: 2.25rem;
   font-family: var(--ec-font-heading);
@@ -278,6 +299,22 @@
   text-decoration: underline;
 }
 
+.ec-auth__switch {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--ec-font-body);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ec-brown);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ec-auth__switch:hover {
+  text-decoration: underline;
+}
+
 @media (min-width: 768px) {
   .ec-auth__row {
     flex-direction: row;
@@ -299,5 +336,15 @@
 
   .ec-auth__title {
     font-size: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-auth__card--animated {
+    transition: none;
+  }
+
+  .ec-auth__form-swap {
+    animation: none;
   }
 }
