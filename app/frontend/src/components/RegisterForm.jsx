@@ -84,7 +84,7 @@ function RegisterForm({ onRegistrado }) {
           name="nombre_completo"
           type="text"
           label="Nombre Completo"
-          icon="/assets/icons/user-icon.svg"
+          icon="/assets/icons/icon_usuario.svg"
           placeholder="Juan Pérez"
           autoComplete="name"
           value={form.nombre_completo}
@@ -96,7 +96,7 @@ function RegisterForm({ onRegistrado }) {
           name="correo_electronico"
           type="email"
           label="Correo electrónico"
-          icon="/assets/icons/mail-icon.svg"
+          icon="/assets/icons/icon_mail.svg"
           placeholder="tucorreo@email.com"
           autoComplete="username"
           value={form.correo_electronico}
@@ -108,7 +108,7 @@ function RegisterForm({ onRegistrado }) {
           name="contrasena"
           type="password"
           label="Contraseña"
-          icon="/assets/icons/lock-icon.svg"
+          icon="/assets/icons/icon_password.svg"
           placeholder="••••••••"
           autoComplete="new-password"
           value={form.contrasena}
@@ -120,7 +120,7 @@ function RegisterForm({ onRegistrado }) {
           name="confirmar"
           type="password"
           label="Confirmar contraseña"
-          icon="/assets/icons/lock-icon.svg"
+          icon="/assets/icons/icon_password.svg"
           placeholder="••••••••"
           autoComplete="new-password"
           value={form.confirmar}

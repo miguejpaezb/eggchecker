@@ -51,7 +51,7 @@ function LoginForm({ correoInicial, mensajeExito }) {
           name="correo_electronico"
           type="email"
           label="Correo electrónico"
-          icon="/assets/icons/mail-icon.svg"
+          icon="/assets/icons/icon_mail.svg"
           placeholder="tucorreo@email.com"
           autoComplete="username"
           value={form.correo_electronico}
@@ -62,7 +62,7 @@ function LoginForm({ correoInicial, mensajeExito }) {
           name="contrasena"
           type="password"
           label="Contraseña"
-          icon="/assets/icons/lock-icon.svg"
+          icon="/assets/icons/icon_password.svg"
           placeholder="••••••••"
           autoComplete="current-password"
           value={form.contrasena}

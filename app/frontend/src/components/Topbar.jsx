@@ -140,7 +140,7 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
                 onClick={onLogout}
               >
                 <Icon
-                  src="/assets/icons/logout-icon.svg"
+                  src="/assets/icons/icon_logout.svg"
                   className="ec-profile-menu__logout-icon"
                 />
                 Cerrar Sesión

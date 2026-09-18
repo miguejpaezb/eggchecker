@@ -4,35 +4,39 @@ import { NavLink } from 'react-router-dom';
 import Icon from './Icon';
 
 const MENU = [
-  { to: '/dashboard', label: 'Dashboard', icon: '/assets/icons/home-icon.svg' },
+  {
+    to: '/dashboard',
+    label: 'Dashboard',
+    icon: '/assets/icons/icon_dashboard.svg',
+  },
   {
     to: '/produccion',
     label: 'Producción',
-    icon: '/assets/icons/icono-produccion.svg',
+    icon: '/assets/icons/icon_produccion.svg',
   },
-  { to: '/camadas', label: 'Camadas', icon: '/assets/icons/egg-icon.svg' },
+  { to: '/camadas', label: 'Camadas', icon: '/assets/icons/icon_camadas.svg' },
   {
     to: '/inventario',
     label: 'Inventario',
-    icon: '/assets/icons/assignment-icon.svg',
+    icon: '/assets/icons/icon_inventario.svg',
   },
   {
     to: '/clientes',
     label: 'Clientes',
-    icon: '/assets/icons/clients-icon.svg',
+    icon: '/assets/icons/icon_clientes.svg',
   },
   {
     to: '/ventas',
     label: 'Ventas',
-    icon: '/assets/icons/shopping_cart-icon.svg',
+    icon: '/assets/icons/icon_ventas.svg',
   },
-  { to: '/analisis', label: 'Análisis IA', icon: '/assets/icons/icono-ia.svg' },
+  { to: '/analisis', label: 'Análisis IA', icon: '/assets/icons/icon_ia.svg' },
   {
     to: '/reportes',
     label: 'Reportes',
     icon: '/assets/icons/reports-icon.svg',
   },
-  { to: '/perfil', label: 'Perfil', icon: '/assets/icons/user-icon.svg' },
+  { to: '/perfil', label: 'Perfil', icon: '/assets/icons/icon_usuario.svg' },
 ];
 
 function Sidebar({ perfil, abierto, onCerrar, onLogout }) {
@@ -69,7 +73,7 @@ function Sidebar({ perfil, abierto, onCerrar, onLogout }) {
         <div className="ec-sidebar__user">
           <div className="ec-sidebar__avatar">
             <Icon
-              src="/assets/icons/user-icon.svg"
+              src="/assets/icons/icon_usuario.svg"
               className="ec-sidebar__avatar-icon"
             />
           </div>
@@ -85,7 +89,7 @@ function Sidebar({ perfil, abierto, onCerrar, onLogout }) {
             title="Cerrar sesión"
           >
             <Icon
-              src="/assets/icons/logout-icon.svg"
+              src="/assets/icons/icon_logout.svg"
               className="ec-sidebar__logout-icon"
             />
           </button>

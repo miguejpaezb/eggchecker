@@ -61,7 +61,7 @@ function RecoverForm() {
           name="correo_electronico"
           type="email"
           label="Correo electrónico"
-          icon="/assets/icons/mail-icon.svg"
+          icon="/assets/icons/icon_mail.svg"
           placeholder="tucorreo@email.com"
           autoComplete="email"
           value={correo}
