@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -8,7 +8,11 @@ _ESTADOS_CAMADA = Literal["activa", "retirada"]
 
 
 class CamadaCreate(BaseModel):
-    """Datos de entrada para registrar una camada nueva."""
+    """Datos de entrada para registrar una camada nueva.
+
+    La edad inicial no se recibe: el servidor siempre la fija en 16
+    semanas (regla de negocio RF-12).
+    """
 
     nombre_camada: str = Field(min_length=1, max_length=60)
     fecha_ingreso: date
@@ -17,13 +21,17 @@ class CamadaCreate(BaseModel):
 
 
 class CamadaUpdate(BaseModel):
-    """Datos parciales para actualizar una camada existente."""
+    """Datos editables de una camada activa.
+
+    Solo se puede cambiar el nombre y, dentro de las primeras 24 horas, la
+    cantidad inicial. La fecha de ingreso, la edad, la cantidad actual y el
+    estado se gestionan con acciones específicas.
+    """
 
     nombre_camada: str | None = Field(default=None, min_length=1, max_length=60)
-    fecha_ingreso: date | None = None
     cantidad_inicial: int | None = Field(default=None, gt=0)
-    cantidad_actual: int | None = Field(default=None, ge=0)
-    estado: _ESTADOS_CAMADA | None = None
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class MortalidadRequest(BaseModel):
@@ -42,6 +50,11 @@ class CamadaResponse(BaseModel):
     cantidad_inicial: int
     cantidad_actual: int
     estado: str
+    edad_semanas: int
+    fecha_proximo_aviso: date | None
+    fecha_creacion: datetime
+    requiere_decision: bool
+    puede_editar_inicial: bool
 
     model_config = ConfigDict(from_attributes=True)
 
