@@ -148,6 +148,9 @@ CREATE TABLE camada (
   cantidad_inicial INTEGER NOT NULL,
   cantidad_actual  INTEGER NOT NULL,
   estado           TEXT    NOT NULL DEFAULT 'activa',
+  edad_semanas     INTEGER NOT NULL DEFAULT 16,
+  fecha_proximo_aviso TEXT NULL,
+  fecha_creacion   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_camada_usuario
     FOREIGN KEY (id_usuario)
     REFERENCES usuario (id_usuario)
@@ -159,7 +162,9 @@ CREATE TABLE camada (
   CONSTRAINT chk_camada_cant_act
     CHECK (cantidad_actual >= 0),
   CONSTRAINT chk_camada_cant_lte
-    CHECK (cantidad_actual <= cantidad_inicial)
+    CHECK (cantidad_actual <= cantidad_inicial),
+  CONSTRAINT chk_camada_edad
+    CHECK (edad_semanas >= 16)
 );
 
 CREATE INDEX idx_camada_usuario ON camada (id_usuario);

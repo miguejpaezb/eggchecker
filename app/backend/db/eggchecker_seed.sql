@@ -67,6 +67,10 @@ VALUES
   (9,  'Lote Los Naranjos',      '2026-02-15', 55,  55, 'activa'),
   (10, 'Camada La Primavera',    '2026-03-01', 40,  40, 'activa');
 
+-- Los registros existentes se consideran creados en su fecha de ingreso
+-- (a medianoche), de modo que no queden dentro de la ventana de edición.
+UPDATE camada SET fecha_creacion = fecha_ingreso || ' 00:00:00';
+
 
 -- ─────────────────────────────────────────────────────────────
 -- INSUMOS (14 registros)
