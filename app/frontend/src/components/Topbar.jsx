@@ -1,12 +1,39 @@
 import PropTypes from 'prop-types';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  descartarCamada,
+  listarAlertas,
+  seguirActiva,
+} from '../services/camadaService';
+import ConfirmDialog from './ConfirmDialog';
 import Icon from './Icon';
+
+const INTERVALO_ALERTAS = 60000;
 
 function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
   const [menuActivo, setMenuActivo] = useState(null);
+  const [alertas, setAlertas] = useState([]);
+  const [errorAlerta, setErrorAlerta] = useState('');
+  const [alertaADescartar, setAlertaADescartar] = useState(null);
+  const [descartando, setDescartando] = useState(false);
+  const [errorDescartar, setErrorDescartar] = useState('');
   const perfilRef = useRef(null);
   const notifRef = useRef(null);
+
+  const cargarAlertas = useCallback(async () => {
+    try {
+      setAlertas(await listarAlertas());
+    } catch {
+      setAlertas([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarAlertas();
+    const intervalo = setInterval(cargarAlertas, INTERVALO_ALERTAS);
+    return () => clearInterval(intervalo);
+  }, [cargarAlertas]);
 
   useEffect(() => {
     if (!menuActivo) {
@@ -38,6 +65,39 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
 
   const alternar = (nombre) =>
     setMenuActivo((prev) => (prev === nombre ? null : nombre));
+
+  const manejarNotificaciones = () => {
+    const abrir = menuActivo !== 'notificaciones';
+    setMenuActivo(abrir ? 'notificaciones' : null);
+    if (abrir) {
+      setErrorAlerta('');
+      cargarAlertas();
+    }
+  };
+
+  const manejarSeguirActiva = async (camada) => {
+    setErrorAlerta('');
+    try {
+      await seguirActiva(camada.id_camada);
+      await cargarAlertas();
+    } catch (err) {
+      setErrorAlerta(err.message);
+    }
+  };
+
+  const confirmarDescartar = async () => {
+    setErrorDescartar('');
+    setDescartando(true);
+    try {
+      await descartarCamada(alertaADescartar.id_camada);
+      setAlertaADescartar(null);
+      await cargarAlertas();
+    } catch (err) {
+      setErrorDescartar(err.message);
+    } finally {
+      setDescartando(false);
+    }
+  };
 
   const nombre = perfil?.nombre_completo ?? 'Invitado';
   const plan = perfil?.plan_suscripcion ?? 'gratuito';
@@ -84,7 +144,7 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
             aria-label="Notificaciones"
             aria-haspopup="true"
             aria-expanded={menuActivo === 'notificaciones'}
-            onClick={() => alternar('notificaciones')}
+            onClick={manejarNotificaciones}
           >
             <img
               src="/assets/icons/notifications-icon.svg"
@@ -92,19 +152,55 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
               aria-hidden="true"
               className="ec-topbar__icon"
             />
+            {alertas.length > 0 && (
+              <span className="ec-topbar__badge">{alertas.length}</span>
+            )}
           </button>
           {menuActivo === 'notificaciones' && (
             <div className="ec-notif-menu">
               <h3 className="ec-notif-menu__title">Notificaciones</h3>
-              <div className="ec-notif-menu__empty">
-                <Icon
-                  src="/assets/icons/notifications-icon.svg"
-                  className="ec-notif-menu__empty-icon"
-                />
-                <p className="ec-notif-menu__empty-text">
-                  No tienes notificaciones
-                </p>
-              </div>
+              {errorAlerta && <p className="ec-form__error">{errorAlerta}</p>}
+              {alertas.length === 0 ? (
+                <div className="ec-notif-menu__empty">
+                  <Icon
+                    src="/assets/icons/notifications-icon.svg"
+                    className="ec-notif-menu__empty-icon"
+                  />
+                  <p className="ec-notif-menu__empty-text">
+                    No tienes notificaciones
+                  </p>
+                </div>
+              ) : (
+                <ul className="ec-notif-menu__lista">
+                  {alertas.map((camada) => (
+                    <li key={camada.id_camada} className="ec-notif-item">
+                      <p className="ec-notif-item__texto">
+                        <strong>{camada.nombre_camada}</strong> cumplió 72
+                        semanas. ¿Descartar o seguir activa?
+                      </p>
+                      <div className="ec-notif-item__acciones">
+                        <button
+                          type="button"
+                          className="ec-notif-item__btn"
+                          onClick={() => manejarSeguirActiva(camada)}
+                        >
+                          Seguir activa
+                        </button>
+                        <button
+                          type="button"
+                          className="ec-notif-item__btn ec-notif-item__btn--danger"
+                          onClick={() => {
+                            setErrorDescartar('');
+                            setAlertaADescartar(camada);
+                          }}
+                        >
+                          Descartar
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>
@@ -149,6 +245,22 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        abierto={alertaADescartar !== null}
+        titulo="Descartar camada"
+        mensaje={
+          alertaADescartar
+            ? `¿Descartar "${alertaADescartar.nombre_camada}"? Esta acción no se puede revertir.`
+            : ''
+        }
+        textoConfirmar="Descartar"
+        peligro
+        cargando={descartando}
+        error={errorDescartar}
+        onConfirmar={confirmarDescartar}
+        onCerrar={() => setAlertaADescartar(null)}
+      />
     </header>
   );
 }
