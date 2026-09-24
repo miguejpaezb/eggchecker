@@ -1,6 +1,6 @@
 -- ============================================================
 --  EggChecker — Modelo Físico para SQLite (desarrollo / QA)
---  Origen: "7. eggchecker_script_ev03.sql" (GA6-220501096-AA2-EV03)
+--  Origen: modelo relacional canónico de EggChecker
 --  Adaptación del dialecto MySQL/MariaDB a SQLite:
 --    * AUTO_INCREMENT  -> INTEGER PRIMARY KEY AUTOINCREMENT
 --    * ENUM            -> TEXT + CHECK (columna IN (...))

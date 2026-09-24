@@ -1,9 +1,9 @@
 -- ============================================================
 --  EggChecker — Datos de Prueba (SEED) para SQLite
---  Origen: "7. eggchecker_script_ev03_seed.sql" (GA6-220501096-AA2-EV03)
+--  Origen: datos de prueba canónicos de EggChecker
 --  Adaptación: se eliminan USE, backticks y SET FOREIGN_KEY_CHECKS
---  (sentencias que SQLite no acepta). Los datos son idénticos a la
---  evidencia. Ejecutar SIEMPRE después de eggchecker_ddl.sql.
+--  (sentencias que SQLite no acepta). Ejecutar SIEMPRE después de
+--  eggchecker_ddl.sql.
 -- ============================================================
 
 -- ─────────────────────────────────────────────────────────────

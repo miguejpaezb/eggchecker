@@ -51,7 +51,7 @@ def test_carga_crea_las_14_tablas(tmp_path: Path) -> None:
 
 
 def test_carga_inserta_registros_esperados(tmp_path: Path) -> None:
-    """Los datos del seed coinciden con la evidencia por cada tabla."""
+    """Los datos del seed coinciden con los conteos esperados por tabla."""
     db_path = tmp_path / "seed.db"
     conteos = cargar_seed(db_path)
 

@@ -14,6 +14,7 @@ Aplicación web para avicultores que centraliza la gestión de camadas, inventar
 
 ## ✨ Características
 
+- **Autenticación** — registro, inicio de sesión con JWT, recuperación de contraseña y perfil con límites por plan de suscripción.
 - **Organización** — camadas de postura, inventario de insumos y seguimiento de movimientos.
 - **Producción** — recolección diaria de huevos clasificados por tipo (AA, A, B, No apto).
 - **Ventas** — clientes, pedidos y detalle de pedidos.
@@ -33,9 +34,10 @@ Aplicación web para avicultores que centraliza la gestión de camadas, inventar
 
 ## 🗃️ Base de datos
 
-El modelo relacional (evidencia GA6-220501096-AA2-EV03) se materializa con **13 tablas** y **3 vistas**:
+El modelo relacional se materializa con **14 tablas** y **3 vistas**:
 
-- **Organización** — `usuario`, `camada`, `evento_sanitario`, `categoria_insumo`, `insumo`, `movimiento_insumo`.
+- **Autenticación** — `usuario`, `token_recuperacion`.
+- **Organización** — `camada`, `evento_sanitario`, `categoria_insumo`, `insumo`, `movimiento_insumo`.
 - **Producción** — `tipo_huevo`, `produccion_diaria`, `produccion_detalle`.
 - **Ventas** — `cliente`, `pedido`, `detalle_pedido`.
 - **IA** — `analisis_ia`.
@@ -79,13 +81,19 @@ npm run format:check              # Prettier sobre src/
 npm run build
 ```
 
-## 🗺️ Estado del proyecto
+## 🗺️ Estado de los módulos
 
-| Sprint | Estado |
-|---|---|
-| S0 — Fundaciones (estructura, API, BD con seed, linters, shell React) | ✅ Completado |
-| S1 — Autenticación y planes | ⏳ Pendiente |
-| S2+ — Módulos de negocio (ver backlog) | ⏳ Pendiente |
+| Módulo | Estado | Detalle |
+|---|---|---|
+| Infraestructura | ✅ Implementado | Monorepo, API base, base de datos con seed, linters y shell React |
+| Autenticación y usuarios | ✅ Implementado | Registro, login JWT, recuperación de contraseña y perfil con planes (backend + frontend) |
+| Camadas | ✅ Implementado | CRUD, mortalidad, edad y retiro estimado (backend) |
+| Inventario | ✅ Implementado | Categorías, insumos, movimientos y alertas de umbral (backend) |
+| Producción | ⬜ Pendiente | Recolección diaria clasificada por tipo de huevo (AA, A, B, No apto) |
+| Ventas | ⬜ Pendiente | Clientes, pedidos y detalle de pedidos |
+| Reportes | ⬜ Pendiente | Reportes de producción, ventas e inventario |
+| Inteligencia Premium (IA) | ⬜ Pendiente | Análisis de imágenes de huevos con IA |
+| App móvil Android | ⬜ Pendiente | Kotlin + Jetpack Compose sobre la misma API REST |
 
 ## 📚 Documentación
 

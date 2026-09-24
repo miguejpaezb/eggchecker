@@ -1,9 +1,9 @@
 """Carga el esquema y los datos de prueba de EggChecker en SQLite.
 
-Script de bootstrap para desarrollo y QA: crea las 13 tablas (con sus
-indices y vistas) y las llena con los registros de la evidencia
-GA6-220501096-AA2-EV03. La recarga es idempotente: si la base ya tiene
-tablas, las elimina y vuelve a crearlas desde cero.
+Script de bootstrap para desarrollo y QA: crea las 14 tablas (con sus
+índices y vistas) y las llena con datos de prueba. La recarga es
+idempotente: si la base ya tiene tablas, las elimina y vuelve a
+crearlas desde cero.
 
 Uso (desde app/backend):
     python scripts/cargar_seed.py [--db RUTA]
@@ -16,8 +16,8 @@ import argparse
 import sqlite3
 from pathlib import Path
 
-# Las tablas se listan en el mismo orden del modelo relacional de la
-# evidencia; el script de seed las inserta todas por nombre.
+# Las tablas se listan en el mismo orden del modelo relacional; el
+# script de seed las inserta todas por nombre.
 _TABLAS = (
     "usuario",
     "token_recuperacion",
