@@ -1,0 +1,400 @@
+.ec-auth {
+  position: relative;
+  min-height: 100vh;
+}
+
+.ec-auth__pattern {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/img/patron-fondo-eggchecker.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ec-auth__content {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.ec-auth__content--register {
+  padding: 1rem;
+}
+
+.ec-auth__row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 72rem;
+}
+
+.ec-auth__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.ec-auth__logo {
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.1))
+    drop-shadow(0 4px 3px rgb(0 0 0 / 0.08));
+}
+
+.ec-auth__title {
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  color: var(--ec-brown);
+  line-height: 1;
+  font-size: 3rem;
+  margin: 0;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05));
+}
+
+.ec-auth__tagline {
+  font-family: var(--ec-font-body);
+  color: var(--ec-green);
+  margin: 0.5rem 0 0;
+  font-size: 1.5rem;
+}
+
+.ec-auth__panel {
+  width: 100%;
+  max-width: 28rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.ec-auth__card {
+  background-color: #ffffff;
+  border-radius: 25px;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  width: 100%;
+}
+
+.ec-auth__card-inner {
+  padding: 1.25rem 2.5rem;
+}
+
+.ec-auth__card--animated {
+  overflow: hidden;
+  transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ec-auth__form-swap {
+  animation: ec-auth-enter 0.35s ease;
+}
+
+@keyframes ec-auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ec-auth__heading {
+  font-size: 2.25rem;
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  color: var(--ec-brown);
+  margin: 0 0 1.25rem;
+  text-align: center;
+}
+
+.ec-auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ec-auth__form--register {
+  gap: 0.75rem;
+}
+
+.ec-field__label {
+  display: block;
+  color: var(--ec-dark);
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+}
+
+.ec-auth__form--register .ec-field__label {
+  margin-bottom: 0.25rem;
+}
+
+.ec-input {
+  display: flex;
+  align-items: center;
+  background-color: var(--ec-input-bg);
+  border: 1px solid var(--ec-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  position: relative;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.ec-auth__form--register .ec-input {
+  padding: 0.625rem 1rem;
+}
+
+.ec-input:focus-within {
+  border-color: var(--ec-brown);
+}
+
+.ec-input--invalid {
+  border-color: #dc3545;
+}
+
+.ec-input__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.ec-input__control {
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  margin-left: 0.75rem;
+  color: var(--ec-dark);
+  font-family: var(--ec-font-body);
+  font-size: 0.875rem;
+}
+
+.ec-input__control::placeholder {
+  color: var(--ec-placeholder);
+}
+
+.ec-input__toggle {
+  position: absolute;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 0;
+  color: var(--ec-placeholder);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+@media (hover: hover) {
+  .ec-input__toggle:hover {
+    color: var(--ec-brown);
+  }
+}
+
+.ec-input__toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.ec-field__error {
+  color: #dc3545;
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0 0.25rem;
+}
+
+.ec-auth__submit {
+  width: 100%;
+  background-color: var(--ec-yellow);
+  color: var(--ec-brown);
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  margin-top: 1rem;
+  min-height: 48px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .ec-auth__submit:hover:not(:disabled) {
+    background-color: var(--ec-yellow-hover);
+    transform: translateY(-0.125rem);
+  }
+}
+
+.ec-auth__submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ec-auth__alert {
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.ec-auth__alert--error {
+  color: #b3261e;
+  background-color: #fdecea;
+  border: 1px solid #f5c2c0;
+}
+
+.ec-auth__alert--success {
+  color: #1e6b3a;
+  background-color: #e7f6ec;
+  border: 1px solid #b7e3c6;
+}
+
+.ec-auth__alert a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ec-auth__forgot {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.ec-auth__forgot a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ec-brown);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.ec-auth__forgot a:hover {
+  text-decoration: underline;
+}
+
+.ec-auth__footer {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.ec-auth__footer p {
+  font-size: 1.1rem;
+  color: var(--ec-dark);
+  margin: 0;
+}
+
+.ec-auth__footer a {
+  font-weight: 700;
+  color: var(--ec-brown);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.ec-auth__footer a:hover {
+  text-decoration: underline;
+}
+
+.ec-auth__switch {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--ec-font-body);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ec-brown);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .ec-auth__switch:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (min-width: 768px) {
+  .ec-auth__row {
+    flex-direction: row;
+  }
+}
+
+@media (max-height: 860px) {
+  .ec-auth__logo {
+    width: 220px;
+    height: 220px;
+  }
+}
+
+@media (max-height: 720px) {
+  .ec-auth__logo {
+    width: 160px;
+    height: 160px;
+  }
+
+  .ec-auth__title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-auth__card--animated {
+    transition: none;
+  }
+
+  .ec-auth__form-swap {
+    animation: none;
+  }
+}
+
+/* Móvil: marca compacta y con menos aire entre logo y título. */
+@media (max-width: 767px) {
+  .ec-auth__logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 0.25rem;
+  }
+
+  .ec-auth__title {
+    font-size: 2rem;
+  }
+
+  .ec-auth__tagline {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Tablets: formulario más angosto para dar aire a la marca. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .ec-auth__panel {
+    max-width: 24rem;
+  }
+}
