@@ -79,23 +79,6 @@ def listar_camadas(
     return camada_service.listar_camadas(db, usuario, estado)
 
 
-@router.get("/camadas/alertas", response_model=list[CamadaResponse])
-def listar_alertas(
-    usuario: Usuario = Depends(get_current_usuario),
-    db: Session = Depends(get_db),
-) -> list[CamadaResponse]:
-    """Lista las camadas activas que piden decisión (aviso semanal).
-
-    Args:
-        usuario: Usuario autenticado mediante JWT.
-        db: Sesión de base de datos.
-
-    Returns:
-        list[CamadaResponse]: Camadas con decisión pendiente.
-    """
-    return camada_service.listar_alertas(db, usuario)
-
-
 @router.get("/camadas/{id_camada}", response_model=CamadaDetalleResponse)
 def obtener_camada(
     id_camada: int,

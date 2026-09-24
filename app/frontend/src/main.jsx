@@ -3,6 +3,7 @@ import './index.css';
 import './styles/auth.css';
 import './styles/app.css';
 import './styles/camadas.css';
+import './styles/notificaciones.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

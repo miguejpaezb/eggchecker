@@ -4,7 +4,6 @@ from app.core.plans import limite_aves, validar_limite
 from app.models.camada import (
     DIAS_AVISO,
     DIAS_VIDA_PRODUCTIVA,
-    EDAD_DECISION_SEMANAS,
     EDAD_INICIAL_SEMANAS,
     Camada,
 )
@@ -12,7 +11,7 @@ from app.models.evento_sanitario import EventoSanitario
 from app.models.usuario import Usuario
 from app.schemas.camada import CamadaCreate, CamadaUpdate, MortalidadRequest
 from fastapi import HTTPException
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 
@@ -71,35 +70,6 @@ def listar_camadas(db: Session, usuario: Usuario, estado: str | None) -> list[Ca
     if estado is not None:
         consulta = consulta.filter(Camada.estado == estado)
     return consulta.all()
-
-
-def listar_alertas(db: Session, usuario: Usuario) -> list[Camada]:
-    """Lista las camadas activas que piden decisión al avicultor.
-
-    Una camada pide decisión cuando alcanzó la vida productiva y ya venció
-    (o no tiene) su próximo aviso semanal.
-
-    Args:
-        db: Sesión de base de datos.
-        usuario: Usuario dueño de las camadas.
-
-    Returns:
-        list[Camada]: Camadas activas con decisión pendiente.
-    """
-    hoy = date.today()
-    return (
-        db.query(Camada)
-        .filter(
-            Camada.id_usuario == usuario.id_usuario,
-            Camada.estado == "activa",
-            Camada.edad_semanas >= EDAD_DECISION_SEMANAS,
-            or_(
-                Camada.fecha_proximo_aviso.is_(None),
-                Camada.fecha_proximo_aviso <= hoy,
-            ),
-        )
-        .all()
-    )
 
 
 def obtener_camada(db: Session, usuario: Usuario, id_camada: int) -> Camada:

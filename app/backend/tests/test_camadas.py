@@ -537,25 +537,20 @@ def test_camada_no_se_retira_sola_al_llegar_a_72_semanas(cliente) -> None:
     assert cuerpo["requiere_decision"] is True
 
 
-def test_alertas_y_seguir_activa_pospone_aviso(cliente) -> None:
-    """La alerta aparece a las 72 semanas y seguir-activa la pospone 7 días."""
+def test_seguir_activa_pospone_aviso(cliente) -> None:
+    """Seguir-activa agenda el próximo aviso a 7 días."""
     headers = _registrar_usuario(cliente, "camada19@test.com")
     camada = _crear_camada(cliente, headers)
     _avanzar_hasta(cliente, headers, camada["id_camada"], EDAD_DECISION)
 
-    alertas = cliente.get("/api/camadas/alertas", headers=headers).json()
-    assert [c["id_camada"] for c in alertas] == [camada["id_camada"]]
-
     seguir = cliente.post(
         f"/api/camadas/{camada['id_camada']}/seguir-activa", headers=headers
     )
+
     assert seguir.status_code == 200
     esperado = (date.today() + timedelta(days=7)).isoformat()
     assert seguir.json()["fecha_proximo_aviso"] == esperado
     assert seguir.json()["requiere_decision"] is False
-
-    alertas = cliente.get("/api/camadas/alertas", headers=headers).json()
-    assert alertas == []
 
 
 def test_seguir_activa_sin_decision_devuelve_400(cliente) -> None:

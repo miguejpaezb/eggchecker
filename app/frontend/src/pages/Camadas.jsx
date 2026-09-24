@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import CamadaCard from '../components/CamadaCard';
 import CamadaDetalleModal from '../components/CamadaDetalleModal';
@@ -8,6 +9,7 @@ import Icon from '../components/Icon';
 import MortalidadModal from '../components/MortalidadModal';
 import NuevaCamadaModal from '../components/NuevaCamadaModal';
 import useCamadas from '../hooks/useCamadas';
+import { obtenerCamada } from '../services/camadaService';
 
 const FILTROS = [
   { valor: 'activa', label: 'Activas' },
@@ -41,6 +43,45 @@ function Camadas() {
   const [descartando, setDescartando] = useState(false);
   const [errorDescartar, setErrorDescartar] = useState('');
   const [errorAccion, setErrorAccion] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const idObjetivo = location.state?.camadaId;
+    if (!idObjetivo || cargando) {
+      return undefined;
+    }
+
+    const limpiar = () =>
+      navigate(location.pathname, { replace: true, state: null });
+
+    const encontrada = camadas.find(
+      (camada) => camada.id_camada === idObjetivo
+    );
+    if (encontrada) {
+      setSeleccionada(encontrada);
+      limpiar();
+      return undefined;
+    }
+
+    let activo = true;
+    obtenerCamada(idObjetivo)
+      .then((detalle) => {
+        if (activo) {
+          setSeleccionada(detalle);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (activo) {
+          limpiar();
+        }
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [location, camadas, cargando, navigate]);
 
   const abrirNueva = useCallback(() => setNuevaAbierta(true), []);
   const cerrarNueva = useCallback(() => setNuevaAbierta(false), []);

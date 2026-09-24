@@ -386,6 +386,41 @@ CREATE INDEX idx_analisis_fecha   ON analisis_ia (fecha_analisis DESC);
 
 
 -- ─────────────────────────────────────────────────────────────
+-- Table notificacion
+-- Avisos al avicultor (ej. camada que supera las 72 semanas).
+-- FK: id_usuario → usuario, id_camada → camada
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE notificacion (
+  id_notificacion INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  id_usuario      INTEGER NOT NULL,
+  id_camada       INTEGER NULL,
+  tipo            TEXT    NOT NULL,
+  titulo          TEXT    NOT NULL,
+  mensaje         TEXT    NOT NULL,
+  leida           INTEGER NOT NULL DEFAULT 0,
+  eliminada       INTEGER NOT NULL DEFAULT 0,
+  fecha_creacion  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_notificacion_usuario
+    FOREIGN KEY (id_usuario)
+    REFERENCES usuario (id_usuario)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_notificacion_camada
+    FOREIGN KEY (id_camada)
+    REFERENCES camada (id_camada)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT chk_notificacion_leida
+    CHECK (leida IN (0,1)),
+  CONSTRAINT chk_notificacion_eliminada
+    CHECK (eliminada IN (0,1)),
+  CONSTRAINT uq_notificacion_usuario_camada_tipo
+    UNIQUE (id_usuario, id_camada, tipo)
+);
+
+CREATE INDEX idx_notificacion_usuario ON notificacion (id_usuario, leida);
+
+
+-- ─────────────────────────────────────────────────────────────
 -- VISTAS
 -- ─────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 """Carga el esquema y los datos de prueba de EggChecker en SQLite.
 
-Script de bootstrap para desarrollo y QA: crea las 14 tablas (con sus
+Script de bootstrap para desarrollo y QA: crea las 15 tablas (con sus
 índices y vistas) y las llena con datos de prueba. La recarga es
 idempotente: si la base ya tiene tablas, las elimina y vuelve a
 crearlas desde cero.
@@ -33,6 +33,7 @@ _TABLAS = (
     "pedido",
     "detalle_pedido",
     "analisis_ia",
+    "notificacion",
 )
 
 _BASE_DIR = Path(__file__).resolve().parents[1]
@@ -56,7 +57,7 @@ def _eliminar_tablas(conn: sqlite3.Connection) -> None:
 
 
 def _contar_registros(conn: sqlite3.Connection) -> dict[str, int]:
-    """Cuenta los registros de las 13 tablas del esquema."""
+    """Cuenta los registros de las tablas del esquema."""
     conteos: dict[str, int] = {}
     for tabla in _TABLAS:
         conteos[tabla] = conn.execute(f"SELECT COUNT(*) FROM {tabla}").fetchone()[0]

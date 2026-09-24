@@ -1,39 +1,43 @@
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
-  descartarCamada,
-  listarAlertas,
-  seguirActiva,
-} from '../services/camadaService';
-import ConfirmDialog from './ConfirmDialog';
+  eliminarNotificacion,
+  listarNotificaciones,
+  marcarLeida,
+  marcarTodasLeidas,
+} from '../services/notificacionService';
 import Icon from './Icon';
+import NotificacionesPanel from './NotificacionesPanel';
 
-const INTERVALO_ALERTAS = 60000;
+const INTERVALO_NOTIFICACIONES = 60000;
 
 function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
+  const navigate = useNavigate();
   const [menuActivo, setMenuActivo] = useState(null);
-  const [alertas, setAlertas] = useState([]);
-  const [errorAlerta, setErrorAlerta] = useState('');
-  const [alertaADescartar, setAlertaADescartar] = useState(null);
-  const [descartando, setDescartando] = useState(false);
-  const [errorDescartar, setErrorDescartar] = useState('');
+  const [notificaciones, setNotificaciones] = useState([]);
+  const [cargandoNotif, setCargandoNotif] = useState(false);
+  const [errorNotif, setErrorNotif] = useState('');
   const perfilRef = useRef(null);
   const notifRef = useRef(null);
 
-  const cargarAlertas = useCallback(async () => {
+  const cargarNotificaciones = useCallback(async () => {
     try {
-      setAlertas(await listarAlertas());
+      setNotificaciones(await listarNotificaciones());
     } catch {
-      setAlertas([]);
+      setNotificaciones([]);
     }
   }, []);
 
   useEffect(() => {
-    cargarAlertas();
-    const intervalo = setInterval(cargarAlertas, INTERVALO_ALERTAS);
+    cargarNotificaciones();
+    const intervalo = setInterval(
+      cargarNotificaciones,
+      INTERVALO_NOTIFICACIONES
+    );
     return () => clearInterval(intervalo);
-  }, [cargarAlertas]);
+  }, [cargarNotificaciones]);
 
   useEffect(() => {
     if (!menuActivo) {
@@ -63,45 +67,63 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
     };
   }, [menuActivo]);
 
-  const alternar = (nombre) =>
-    setMenuActivo((prev) => (prev === nombre ? null : nombre));
+  const alternarPerfil = () =>
+    setMenuActivo((prev) => (prev === 'perfil' ? null : 'perfil'));
 
-  const manejarNotificaciones = () => {
+  const manejarNotificaciones = async () => {
     const abrir = menuActivo !== 'notificaciones';
     setMenuActivo(abrir ? 'notificaciones' : null);
-    if (abrir) {
-      setErrorAlerta('');
-      cargarAlertas();
+    if (!abrir) {
+      return;
     }
-  };
-
-  const manejarSeguirActiva = async (camada) => {
-    setErrorAlerta('');
+    setErrorNotif('');
+    setCargandoNotif(true);
     try {
-      await seguirActiva(camada.id_camada);
-      await cargarAlertas();
-    } catch (err) {
-      setErrorAlerta(err.message);
-    }
-  };
-
-  const confirmarDescartar = async () => {
-    setErrorDescartar('');
-    setDescartando(true);
-    try {
-      await descartarCamada(alertaADescartar.id_camada);
-      setAlertaADescartar(null);
-      await cargarAlertas();
-    } catch (err) {
-      setErrorDescartar(err.message);
+      await cargarNotificaciones();
     } finally {
-      setDescartando(false);
+      setCargandoNotif(false);
     }
+  };
+
+  const manejarMarcarLeida = async (idNotificacion) => {
+    setErrorNotif('');
+    try {
+      await marcarLeida(idNotificacion);
+      await cargarNotificaciones();
+    } catch (err) {
+      setErrorNotif(err.message);
+    }
+  };
+
+  const manejarMarcarTodas = async () => {
+    setErrorNotif('');
+    try {
+      await marcarTodasLeidas();
+      await cargarNotificaciones();
+    } catch (err) {
+      setErrorNotif(err.message);
+    }
+  };
+
+  const manejarEliminar = async (idNotificacion) => {
+    setErrorNotif('');
+    try {
+      await eliminarNotificacion(idNotificacion);
+      await cargarNotificaciones();
+    } catch (err) {
+      setErrorNotif(err.message);
+    }
+  };
+
+  const manejarVer = (aviso) => {
+    setMenuActivo(null);
+    navigate('/camadas', { state: { camadaId: aviso.id_camada } });
   };
 
   const nombre = perfil?.nombre_completo ?? 'Invitado';
   const plan = perfil?.plan_suscripcion ?? 'gratuito';
   const planTexto = `Plan ${plan.charAt(0).toUpperCase()}${plan.slice(1)}`;
+  const hayNoLeidas = notificaciones.some((aviso) => !aviso.leida);
 
   return (
     <header className="ec-topbar">
@@ -152,56 +174,18 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
               aria-hidden="true"
               className="ec-topbar__icon"
             />
-            {alertas.length > 0 && (
-              <span className="ec-topbar__badge">{alertas.length}</span>
-            )}
+            {hayNoLeidas && <span className="ec-topbar__dot" />}
           </button>
           {menuActivo === 'notificaciones' && (
-            <div className="ec-notif-menu">
-              <h3 className="ec-notif-menu__title">Notificaciones</h3>
-              {errorAlerta && <p className="ec-form__error">{errorAlerta}</p>}
-              {alertas.length === 0 ? (
-                <div className="ec-notif-menu__empty">
-                  <Icon
-                    src="/assets/icons/notifications-icon.svg"
-                    className="ec-notif-menu__empty-icon"
-                  />
-                  <p className="ec-notif-menu__empty-text">
-                    No tienes notificaciones
-                  </p>
-                </div>
-              ) : (
-                <ul className="ec-notif-menu__lista">
-                  {alertas.map((camada) => (
-                    <li key={camada.id_camada} className="ec-notif-item">
-                      <p className="ec-notif-item__texto">
-                        <strong>{camada.nombre_camada}</strong> cumplió 72
-                        semanas. ¿Descartar o seguir activa?
-                      </p>
-                      <div className="ec-notif-item__acciones">
-                        <button
-                          type="button"
-                          className="ec-notif-item__btn"
-                          onClick={() => manejarSeguirActiva(camada)}
-                        >
-                          Seguir activa
-                        </button>
-                        <button
-                          type="button"
-                          className="ec-notif-item__btn ec-notif-item__btn--danger"
-                          onClick={() => {
-                            setErrorDescartar('');
-                            setAlertaADescartar(camada);
-                          }}
-                        >
-                          Descartar
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <NotificacionesPanel
+              notificaciones={notificaciones}
+              cargando={cargandoNotif}
+              error={errorNotif}
+              onMarcarLeida={manejarMarcarLeida}
+              onMarcarTodas={manejarMarcarTodas}
+              onEliminar={manejarEliminar}
+              onVer={manejarVer}
+            />
           )}
         </div>
         <div className="ec-topbar__profile" ref={perfilRef}>
@@ -211,7 +195,7 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
             aria-label="Perfil de usuario"
             aria-haspopup="true"
             aria-expanded={menuActivo === 'perfil'}
-            onClick={() => alternar('perfil')}
+            onClick={alternarPerfil}
           >
             <span className="ec-topbar__avatar">
               <Icon
@@ -245,22 +229,6 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
           )}
         </div>
       </div>
-
-      <ConfirmDialog
-        abierto={alertaADescartar !== null}
-        titulo="Descartar camada"
-        mensaje={
-          alertaADescartar
-            ? `¿Descartar "${alertaADescartar.nombre_camada}"? Esta acción no se puede revertir.`
-            : ''
-        }
-        textoConfirmar="Descartar"
-        peligro
-        cargando={descartando}
-        error={errorDescartar}
-        onConfirmar={confirmarDescartar}
-        onCerrar={() => setAlertaADescartar(null)}
-      />
     </header>
   );
 }

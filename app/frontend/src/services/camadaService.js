@@ -17,14 +17,6 @@ export function listarCamadas(estado) {
 }
 
 /**
- * Lista las camadas activas que piden decisión (aviso semanal).
- * @returns {Promise<Array<Object>>} Camadas con decisión pendiente.
- */
-export function listarAlertas() {
-  return peticion('/camadas/alertas', { headers: conAutenticacion() });
-}
-
-/**
  * Obtiene una camada con su edad y fecha de retiro estimada.
  * @param {number} idCamada - Identificador de la camada a consultar.
  * @returns {Promise<Object>} Camada con campos calculados por el servidor.
