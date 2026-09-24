@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
+from app.api.camadas import router as camadas_router
+from app.api.categorias_insumo import router as categorias_insumo_router
 from app.api.health import router as health_router
+from app.api.insumos import router as insumos_router
 from app.api.usuarios import router as usuarios_router
 
 
@@ -29,6 +32,9 @@ def create_app() -> FastAPI:
     app.include_router(health_router, prefix="/api")
     app.include_router(auth_router, prefix="/api")
     app.include_router(usuarios_router, prefix="/api")
+    app.include_router(camadas_router, prefix="/api")
+    app.include_router(categorias_insumo_router, prefix="/api")
+    app.include_router(insumos_router, prefix="/api")
 
     return app
 
