@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import AppLayout from './components/AppLayout';
 import Auth from './pages/Auth';
+import Camadas from './pages/Camadas';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -21,10 +22,7 @@ function App() {
           path="/produccion"
           element={<ModulePlaceholder title="Producción" />}
         />
-        <Route
-          path="/camadas"
-          element={<ModulePlaceholder title="Camadas" />}
-        />
+        <Route path="/camadas" element={<Camadas />} />
         <Route
           path="/inventario"
           element={<ModulePlaceholder title="Inventario" />}

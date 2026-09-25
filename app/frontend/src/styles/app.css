@@ -156,51 +156,6 @@
   color: var(--ec-brown);
 }
 
-/* ─── Ventana flotante de notificaciones ─────────────────── */
-.ec-notif-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  width: 15rem;
-  z-index: 50;
-  background-color: #ffffff;
-  border-radius: 1rem;
-  box-shadow:
-    0 20px 25px -5px rgb(0 0 0 / 0.2),
-    0 8px 10px -6px rgb(0 0 0 / 0.2);
-  padding: 1rem;
-  animation: ec-profile-enter 0.2s ease;
-}
-
-.ec-notif-menu__title {
-  margin: 0 0 0.75rem;
-  font-family: var(--ec-font-heading);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--ec-brown);
-}
-
-.ec-notif-menu__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem 0.5rem;
-  text-align: center;
-}
-
-.ec-notif-menu__empty-icon {
-  width: 2rem;
-  height: 2rem;
-  color: #9ca3af;
-}
-
-.ec-notif-menu__empty-text {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
 /* ─── Ventana flotante de perfil ─────────────────────────── */
 .ec-profile-menu {
   position: absolute;
@@ -577,7 +532,6 @@
 
 /* ─── Móviles pequeños (<=375px): ventanas a ancho completo ─ */
 @media (max-width: 375px) {
-  .ec-notif-menu,
   .ec-profile-menu {
     position: fixed;
     top: calc(60px + 0.5rem);

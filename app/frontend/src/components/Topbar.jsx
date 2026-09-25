@@ -1,12 +1,43 @@
 import PropTypes from 'prop-types';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+import {
+  eliminarNotificacion,
+  listarNotificaciones,
+  marcarLeida,
+  marcarTodasLeidas,
+} from '../services/notificacionService';
 import Icon from './Icon';
+import NotificacionesPanel from './NotificacionesPanel';
+
+const INTERVALO_NOTIFICACIONES = 60000;
 
 function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
+  const navigate = useNavigate();
   const [menuActivo, setMenuActivo] = useState(null);
+  const [notificaciones, setNotificaciones] = useState([]);
+  const [cargandoNotif, setCargandoNotif] = useState(false);
+  const [errorNotif, setErrorNotif] = useState('');
   const perfilRef = useRef(null);
   const notifRef = useRef(null);
+
+  const cargarNotificaciones = useCallback(async () => {
+    try {
+      setNotificaciones(await listarNotificaciones());
+    } catch {
+      setNotificaciones([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarNotificaciones();
+    const intervalo = setInterval(
+      cargarNotificaciones,
+      INTERVALO_NOTIFICACIONES
+    );
+    return () => clearInterval(intervalo);
+  }, [cargarNotificaciones]);
 
   useEffect(() => {
     if (!menuActivo) {
@@ -36,12 +67,63 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
     };
   }, [menuActivo]);
 
-  const alternar = (nombre) =>
-    setMenuActivo((prev) => (prev === nombre ? null : nombre));
+  const alternarPerfil = () =>
+    setMenuActivo((prev) => (prev === 'perfil' ? null : 'perfil'));
+
+  const manejarNotificaciones = async () => {
+    const abrir = menuActivo !== 'notificaciones';
+    setMenuActivo(abrir ? 'notificaciones' : null);
+    if (!abrir) {
+      return;
+    }
+    setErrorNotif('');
+    setCargandoNotif(true);
+    try {
+      await cargarNotificaciones();
+    } finally {
+      setCargandoNotif(false);
+    }
+  };
+
+  const manejarMarcarLeida = async (idNotificacion) => {
+    setErrorNotif('');
+    try {
+      await marcarLeida(idNotificacion);
+      await cargarNotificaciones();
+    } catch (err) {
+      setErrorNotif(err.message);
+    }
+  };
+
+  const manejarMarcarTodas = async () => {
+    setErrorNotif('');
+    try {
+      await marcarTodasLeidas();
+      await cargarNotificaciones();
+    } catch (err) {
+      setErrorNotif(err.message);
+    }
+  };
+
+  const manejarEliminar = async (idNotificacion) => {
+    setErrorNotif('');
+    try {
+      await eliminarNotificacion(idNotificacion);
+      await cargarNotificaciones();
+    } catch (err) {
+      setErrorNotif(err.message);
+    }
+  };
+
+  const manejarVer = (aviso) => {
+    setMenuActivo(null);
+    navigate('/camadas', { state: { camadaId: aviso.id_camada } });
+  };
 
   const nombre = perfil?.nombre_completo ?? 'Invitado';
   const plan = perfil?.plan_suscripcion ?? 'gratuito';
   const planTexto = `Plan ${plan.charAt(0).toUpperCase()}${plan.slice(1)}`;
+  const hayNoLeidas = notificaciones.some((aviso) => !aviso.leida);
 
   return (
     <header className="ec-topbar">
@@ -84,7 +166,7 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
             aria-label="Notificaciones"
             aria-haspopup="true"
             aria-expanded={menuActivo === 'notificaciones'}
-            onClick={() => alternar('notificaciones')}
+            onClick={manejarNotificaciones}
           >
             <img
               src="/assets/icons/notifications-icon.svg"
@@ -92,20 +174,18 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
               aria-hidden="true"
               className="ec-topbar__icon"
             />
+            {hayNoLeidas && <span className="ec-topbar__dot" />}
           </button>
           {menuActivo === 'notificaciones' && (
-            <div className="ec-notif-menu">
-              <h3 className="ec-notif-menu__title">Notificaciones</h3>
-              <div className="ec-notif-menu__empty">
-                <Icon
-                  src="/assets/icons/notifications-icon.svg"
-                  className="ec-notif-menu__empty-icon"
-                />
-                <p className="ec-notif-menu__empty-text">
-                  No tienes notificaciones
-                </p>
-              </div>
-            </div>
+            <NotificacionesPanel
+              notificaciones={notificaciones}
+              cargando={cargandoNotif}
+              error={errorNotif}
+              onMarcarLeida={manejarMarcarLeida}
+              onMarcarTodas={manejarMarcarTodas}
+              onEliminar={manejarEliminar}
+              onVer={manejarVer}
+            />
           )}
         </div>
         <div className="ec-topbar__profile" ref={perfilRef}>
@@ -115,7 +195,7 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
             aria-label="Perfil de usuario"
             aria-haspopup="true"
             aria-expanded={menuActivo === 'perfil'}
-            onClick={() => alternar('perfil')}
+            onClick={alternarPerfil}
           >
             <span className="ec-topbar__avatar">
               <Icon
