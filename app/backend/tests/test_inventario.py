@@ -212,12 +212,84 @@ def test_crear_insumo_con_categoria_inexistente_devuelve_404(cliente) -> None:
             "id_categoria": 9999,
             "nombre_insumo": "Insumo Huérfano",
             "unidad_medida": "kg",
+            "stock_actual": 10,
+            "umbral_minimo": 5,
         },
         headers=headers,
     )
 
     assert respuesta.status_code == 404
     assert respuesta.json()["detail"] == "Categoría no encontrada"
+
+
+def test_crear_insumo_con_stock_o_umbral_cero_devuelve_422(cliente) -> None:
+    """Ni el stock actual ni el umbral mínimo pueden ser cero."""
+    headers = _registrar_usuario(cliente, "ins0")
+    categoria = _crear_categoria(cliente, headers)
+
+    sin_stock = cliente.post(
+        "/api/insumos",
+        json={
+            "id_categoria": categoria["id_categoria"],
+            "nombre_insumo": "Sin stock",
+            "unidad_medida": "kg",
+            "stock_actual": 0,
+            "umbral_minimo": 5,
+        },
+        headers=headers,
+    )
+    sin_umbral = cliente.post(
+        "/api/insumos",
+        json={
+            "id_categoria": categoria["id_categoria"],
+            "nombre_insumo": "Sin umbral",
+            "unidad_medida": "kg",
+            "stock_actual": 5,
+            "umbral_minimo": 0,
+        },
+        headers=headers,
+    )
+
+    assert sin_stock.status_code == 422
+    assert sin_umbral.status_code == 422
+
+
+def test_editar_insumo_con_campo_prohibido_devuelve_422(cliente) -> None:
+    """Editar no permite cambiar categoría, stock ni activo."""
+    headers = _registrar_usuario(cliente, "ins0b")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(cliente, headers, categoria["id_categoria"])
+
+    respuesta = cliente.patch(
+        f"/api/insumos/{insumo['id_insumo']}",
+        json={"stock_actual": 999},
+        headers=headers,
+    )
+
+    assert respuesta.status_code == 422
+
+
+def test_editar_insumo_nombre_unidad_y_umbral(cliente) -> None:
+    """PATCH actualiza nombre, unidad de medida y umbral mínimo."""
+    headers = _registrar_usuario(cliente, "ins0c")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(cliente, headers, categoria["id_categoria"])
+
+    respuesta = cliente.patch(
+        f"/api/insumos/{insumo['id_insumo']}",
+        json={
+            "nombre_insumo": "Renombrado",
+            "unidad_medida": "litro",
+            "umbral_minimo": 7,
+        },
+        headers=headers,
+    )
+
+    assert respuesta.status_code == 200
+    cuerpo = respuesta.json()
+    assert cuerpo["nombre_insumo"] == "Renombrado"
+    assert cuerpo["unidad_medida"] == "litro"
+    assert Decimal(cuerpo["umbral_minimo"]) == Decimal("7.00")
 
 
 def test_listar_insumos_aisla_por_usuario(cliente) -> None:
@@ -376,16 +448,19 @@ def test_alertas_incluyen_insumo_bajo_umbral_con_deficit(cliente) -> None:
     assert Decimal(alertas[0]["deficit"]) == Decimal("5.00")
 
 
-def test_alertas_excluyen_insumo_desactivado(cliente) -> None:
-    """Un insumo bajo umbral pero desactivado no aparece en alertas."""
+def test_alertas_excluyen_insumo_suspendido(cliente) -> None:
+    """Un insumo bajo umbral pero suspendido no aparece en alertas."""
     headers = _registrar_usuario(cliente, "ins12")
     categoria = _crear_categoria(cliente, headers)
     insumo = _crear_insumo(
         cliente, headers, categoria["id_categoria"], stock_actual=5, umbral_minimo=10
     )
 
-    borrado = cliente.delete(f"/api/insumos/{insumo['id_insumo']}", headers=headers)
-    assert borrado.status_code == 204
+    suspendido = cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/suspender", headers=headers
+    )
+    assert suspendido.status_code == 200
+    assert suspendido.json()["activo"] is False
 
     respuesta = cliente.get("/api/insumos/alertas", headers=headers)
 
@@ -393,17 +468,64 @@ def test_alertas_excluyen_insumo_desactivado(cliente) -> None:
     assert respuesta.json() == []
 
 
-def test_eliminar_insumo_lo_desactiva_logicamente(cliente) -> None:
-    """DELETE /insumos/{id} responde 204 y deja el insumo inactivo."""
+def test_suspender_y_activar_insumo(cliente) -> None:
+    """Suspender lo deja inactivo y activar lo reactiva."""
     headers = _registrar_usuario(cliente, "ins13")
     categoria = _crear_categoria(cliente, headers)
     insumo = _crear_insumo(cliente, headers, categoria["id_categoria"])
 
-    respuesta = cliente.delete(f"/api/insumos/{insumo['id_insumo']}", headers=headers)
+    cliente.post(f"/api/insumos/{insumo['id_insumo']}/suspender", headers=headers)
+    activos = cliente.get("/api/insumos", headers=headers).json()
+    con_suspendidos = cliente.get("/api/insumos?activo=false", headers=headers).json()
+    assert [i["id_insumo"] for i in activos] == []
+    assert [i["id_insumo"] for i in con_suspendidos] == [insumo["id_insumo"]]
 
-    assert respuesta.status_code == 204
-    lista_activos = cliente.get("/api/insumos", headers=headers).json()
-    lista_completa = cliente.get("/api/insumos?activo=false", headers=headers).json()
-    assert [i["id_insumo"] for i in lista_activos] == []
-    assert [i["id_insumo"] for i in lista_completa] == [insumo["id_insumo"]]
-    assert lista_completa[0]["activo"] is False
+    reactivar = cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/activar", headers=headers
+    )
+    assert reactivar.status_code == 200
+    assert reactivar.json()["activo"] is True
+
+
+def test_suspendido_no_permite_movimiento_ni_edicion(cliente) -> None:
+    """Un insumo suspendido no se puede usar ni manipular."""
+    headers = _registrar_usuario(cliente, "ins14")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(cliente, headers, categoria["id_categoria"])
+    cliente.post(f"/api/insumos/{insumo['id_insumo']}/suspender", headers=headers)
+
+    movimiento = cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/movimientos",
+        json={"tipo_movimiento": "entrada", "cantidad": 5},
+        headers=headers,
+    )
+    edicion = cliente.patch(
+        f"/api/insumos/{insumo['id_insumo']}",
+        json={"nombre_insumo": "No editable"},
+        headers=headers,
+    )
+
+    assert movimiento.status_code == 400
+    assert edicion.status_code == 400
+
+
+def test_descontinuar_oculta_el_insumo_y_no_se_reactiva(cliente) -> None:
+    """Descontinuar lo oculta del listado y no se puede activar."""
+    headers = _registrar_usuario(cliente, "ins15")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(cliente, headers, categoria["id_categoria"])
+
+    respuesta = cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/descontinuar", headers=headers
+    )
+    assert respuesta.status_code == 200
+    assert respuesta.json()["descontinuado"] is True
+    assert respuesta.json()["activo"] is False
+
+    lista = cliente.get("/api/insumos?activo=false", headers=headers).json()
+    assert lista == []
+
+    reactivar = cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/activar", headers=headers
+    )
+    assert reactivar.status_code == 400

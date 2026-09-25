@@ -1,5 +1,6 @@
 from datetime import date
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from app.core.database import get_db
@@ -195,3 +196,151 @@ def test_listar_notificaciones_sin_token_devuelve_401(cliente) -> None:
     respuesta = cliente.get("/api/notificaciones")
 
     assert respuesta.status_code == 401
+
+
+def _crear_categoria(cliente, headers) -> dict:
+    """Crea una categoría de insumo y devuelve su cuerpo."""
+    respuesta = cliente.post(
+        "/api/categorias-insumo",
+        json={"nombre_categ": f"cat_{uuid4().hex[:6]}"},
+        headers=headers,
+    )
+    assert respuesta.status_code == 201
+    return respuesta.json()
+
+
+def _crear_insumo(cliente, headers, id_categoria: int, stock, umbral) -> dict:
+    """Crea un insumo con el stock y umbral indicados."""
+    respuesta = cliente.post(
+        "/api/insumos",
+        json={
+            "id_categoria": id_categoria,
+            "nombre_insumo": f"insumo_{uuid4().hex[:6]}",
+            "unidad_medida": "kg",
+            "stock_actual": stock,
+            "umbral_minimo": umbral,
+        },
+        headers=headers,
+    )
+    assert respuesta.status_code == 201
+    return respuesta.json()
+
+
+def _avisos_stock(cliente, headers) -> list:
+    """Devuelve los avisos de stock del usuario."""
+    avisos = cliente.get("/api/notificaciones", headers=headers).json()
+    return [a for a in avisos if a["id_insumo"] is not None]
+
+
+def test_insumo_optimo_no_genera_aviso(cliente) -> None:
+    """Un insumo con stock muy por encima del mínimo no genera aviso."""
+    headers = _registrar_usuario(cliente, "notifstock1@test.com")
+    categoria = _crear_categoria(cliente, headers)
+    _crear_insumo(cliente, headers, categoria["id_categoria"], stock=50, umbral=10)
+
+    assert _avisos_stock(cliente, headers) == []
+
+
+def test_insumo_al_llegar_al_minimo_genera_aviso(cliente) -> None:
+    """Llegar justo al mínimo genera el aviso de stock mínimo."""
+    headers = _registrar_usuario(cliente, "notifstock2@test.com")
+    categoria = _crear_categoria(cliente, headers)
+    _crear_insumo(cliente, headers, categoria["id_categoria"], stock=10, umbral=10)
+
+    avisos = _avisos_stock(cliente, headers)
+
+    assert len(avisos) == 1
+    assert avisos[0]["tipo"] == "stock_minimo"
+    assert avisos[0]["titulo"] == "Stock mínimo"
+
+
+def test_aviso_bajo_reemplaza_al_de_minimo(cliente) -> None:
+    """Bajar por debajo del mínimo reemplaza el aviso de stock mínimo."""
+    headers = _registrar_usuario(cliente, "notifstock3@test.com")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(
+        cliente, headers, categoria["id_categoria"], stock=10, umbral=10
+    )
+
+    cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/movimientos",
+        json={"tipo_movimiento": "salida", "cantidad": 1},
+        headers=headers,
+    )
+    avisos = _avisos_stock(cliente, headers)
+
+    assert len(avisos) == 1
+    assert avisos[0]["tipo"] == "stock_bajo"
+
+
+def test_aviso_sin_stock_reemplaza_a_los_anteriores(cliente) -> None:
+    """Quedarse sin stock deja un único aviso de sin stock."""
+    headers = _registrar_usuario(cliente, "notifstock4@test.com")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(
+        cliente, headers, categoria["id_categoria"], stock=10, umbral=10
+    )
+
+    cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/movimientos",
+        json={"tipo_movimiento": "salida", "cantidad": 10},
+        headers=headers,
+    )
+    avisos = _avisos_stock(cliente, headers)
+
+    assert len(avisos) == 1
+    assert avisos[0]["tipo"] == "sin_stock"
+
+
+def test_aviso_se_cierra_al_volver_a_optimo(cliente) -> None:
+    """Reabastecer hasta un nivel óptimo cierra el aviso de stock."""
+    headers = _registrar_usuario(cliente, "notifstock5@test.com")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(
+        cliente, headers, categoria["id_categoria"], stock=10, umbral=10
+    )
+
+    cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/movimientos",
+        json={"tipo_movimiento": "entrada", "cantidad": 30},
+        headers=headers,
+    )
+
+    assert _avisos_stock(cliente, headers) == []
+
+
+def test_aviso_eliminado_no_reaparece_hasta_cambiar_stock(cliente) -> None:
+    """Un aviso eliminado no se recrea hasta que cambie el stock."""
+    headers = _registrar_usuario(cliente, "notifstock6@test.com")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(
+        cliente, headers, categoria["id_categoria"], stock=10, umbral=10
+    )
+    aviso = _avisos_stock(cliente, headers)[0]
+
+    cliente.delete(f"/api/notificaciones/{aviso['id_notificacion']}", headers=headers)
+    assert _avisos_stock(cliente, headers) == []
+
+    cliente.post(
+        f"/api/insumos/{insumo['id_insumo']}/movimientos",
+        json={"tipo_movimiento": "salida", "cantidad": 1},
+        headers=headers,
+    )
+    avisos = _avisos_stock(cliente, headers)
+
+    assert len(avisos) == 1
+    assert avisos[0]["tipo"] == "stock_bajo"
+
+
+def test_suspender_insumo_cierra_su_aviso(cliente) -> None:
+    """Suspender un insumo cierra su aviso de stock."""
+    headers = _registrar_usuario(cliente, "notifstock7@test.com")
+    categoria = _crear_categoria(cliente, headers)
+    insumo = _crear_insumo(
+        cliente, headers, categoria["id_categoria"], stock=10, umbral=10
+    )
+    assert len(_avisos_stock(cliente, headers)) == 1
+
+    cliente.post(f"/api/insumos/{insumo['id_insumo']}/suspender", headers=headers)
+
+    assert _avisos_stock(cliente, headers) == []
