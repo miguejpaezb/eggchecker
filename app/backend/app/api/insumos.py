@@ -125,23 +125,61 @@ def actualizar_insumo(
     return insumo_service.actualizar_insumo(db, usuario, id_insumo, datos)
 
 
-@router.delete(
-    "/insumos/{id_insumo}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-def eliminar_insumo(
+@router.post("/insumos/{id_insumo}/suspender", response_model=InsumoResponse)
+def suspender_insumo(
     id_insumo: int,
     usuario: Usuario = Depends(get_current_usuario),
     db: Session = Depends(get_db),
-) -> None:
-    """Desactiva un insumo del usuario (eliminación lógica).
+) -> InsumoResponse:
+    """Suspende un insumo (reversible) para dejar de usarlo temporalmente.
 
     Args:
-        id_insumo: Identificador del insumo a desactivar.
+        id_insumo: Identificador del insumo a suspender.
         usuario: Usuario autenticado mediante JWT.
         db: Sesión de base de datos.
+
+    Returns:
+        InsumoResponse: El insumo suspendido.
     """
-    insumo_service.eliminar_insumo(db, usuario, id_insumo)
+    return insumo_service.suspender_insumo(db, usuario, id_insumo)
+
+
+@router.post("/insumos/{id_insumo}/activar", response_model=InsumoResponse)
+def activar_insumo(
+    id_insumo: int,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> InsumoResponse:
+    """Reactiva un insumo previamente suspendido.
+
+    Args:
+        id_insumo: Identificador del insumo a activar.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        InsumoResponse: El insumo reactivado.
+    """
+    return insumo_service.activar_insumo(db, usuario, id_insumo)
+
+
+@router.post("/insumos/{id_insumo}/descontinuar", response_model=InsumoResponse)
+def descontinuar_insumo(
+    id_insumo: int,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> InsumoResponse:
+    """Descontinúa un insumo de forma permanente (irreversible).
+
+    Args:
+        id_insumo: Identificador del insumo a descontinuar.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        InsumoResponse: El insumo descontinuado.
+    """
+    return insumo_service.descontinuar_insumo(db, usuario, id_insumo)
 
 
 @router.post(

@@ -10,6 +10,7 @@ from app.schemas.inventario import (
     InsumoUpdate,
     MovimientoCreate,
 )
+from app.services import notificacion_service
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -41,6 +42,7 @@ def crear_insumo(db: Session, usuario: Usuario, datos: InsumoCreate) -> Insumo:
     db.add(insumo)
     db.commit()
     db.refresh(insumo)
+    notificacion_service.sincronizar_aviso_stock(db, insumo)
     return insumo
 
 
@@ -61,7 +63,10 @@ def listar_insumos(
     Returns:
         list[Insumo]: Insumos del usuario que cumplen los filtros.
     """
-    consulta = db.query(Insumo).filter(Insumo.id_usuario == usuario.id_usuario)
+    consulta = db.query(Insumo).filter(
+        Insumo.id_usuario == usuario.id_usuario,
+        Insumo.descontinuado.is_(False),
+    )
     if categoria_id is not None:
         consulta = consulta.filter(Insumo.id_categoria == categoria_id)
     if solo_activos:
@@ -92,6 +97,9 @@ def actualizar_insumo(
 ) -> Insumo:
     """Aplica los cambios enviados a un insumo del usuario.
 
+    Solo se editan nombre, unidad de medida y umbral mínimo; el insumo no
+    puede estar suspendido ni descontinuado.
+
     Args:
         db: Sesión de base de datos.
         usuario: Usuario dueño del insumo.
@@ -102,42 +110,108 @@ def actualizar_insumo(
         Insumo: El insumo con los cambios aplicados.
 
     Raises:
-        HTTPException: 404 si el insumo no existe o no es del usuario,
-            o si la categoría indicada no existe.
+        HTTPException: 404 si el insumo no existe o no es del usuario;
+            400 si está suspendido o descontinuado.
     """
     insumo = _obtener_insumo_de_usuario(db, usuario, id_insumo)
+    _validar_insumo_operable(insumo)
     campos = datos.model_dump(exclude_unset=True)
-    if "id_categoria" in campos:
-        _validar_categoria_existe(db, campos["id_categoria"])
     for campo, valor in campos.items():
-        setattr(insumo, campo, valor)
+        if valor is not None:
+            setattr(insumo, campo, valor)
     db.commit()
     db.refresh(insumo)
+    if "umbral_minimo" in campos:
+        notificacion_service.sincronizar_aviso_stock(db, insumo)
     return insumo
 
 
-def eliminar_insumo(db: Session, usuario: Usuario, id_insumo: int) -> Insumo:
-    """Desactiva un insumo del usuario (eliminación lógica).
+def suspender_insumo(db: Session, usuario: Usuario, id_insumo: int) -> Insumo:
+    """Suspende un insumo (activo = False) de forma reversible.
 
-    El insumo no se borra físicamente: los movimientos históricos deben
-    conservar la trazabilidad. Al desactivarlo deja de aparecer en los
-    listados y en las alertas por defecto.
+    Un insumo suspendido no se puede usar ni manipular hasta reactivarlo.
 
     Args:
         db: Sesión de base de datos.
         usuario: Usuario dueño del insumo.
-        id_insumo: Identificador del insumo a desactivar.
+        id_insumo: Identificador del insumo a suspender.
 
     Returns:
         Insumo: El insumo con activo en False.
 
     Raises:
-        HTTPException: 404 si el insumo no existe o no es del usuario.
+        HTTPException: 404 si el insumo no existe o no es del usuario;
+            400 si ya está descontinuado.
     """
     insumo = _obtener_insumo_de_usuario(db, usuario, id_insumo)
+    if insumo.descontinuado:
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede suspender un insumo descontinuado",
+        )
     insumo.activo = False
     db.commit()
     db.refresh(insumo)
+    return insumo
+
+
+def activar_insumo(db: Session, usuario: Usuario, id_insumo: int) -> Insumo:
+    """Reactiva un insumo suspendido.
+
+    Args:
+        db: Sesión de base de datos.
+        usuario: Usuario dueño del insumo.
+        id_insumo: Identificador del insumo a activar.
+
+    Returns:
+        Insumo: El insumo con activo en True.
+
+    Raises:
+        HTTPException: 404 si el insumo no existe o no es del usuario;
+            400 si está descontinuado (no se puede reactivar).
+    """
+    insumo = _obtener_insumo_de_usuario(db, usuario, id_insumo)
+    if insumo.descontinuado:
+        raise HTTPException(
+            status_code=400,
+            detail="Un insumo descontinuado no se puede reactivar",
+        )
+    insumo.activo = True
+    db.commit()
+    db.refresh(insumo)
+    notificacion_service.sincronizar_aviso_stock(db, insumo)
+    return insumo
+
+
+def descontinuar_insumo(db: Session, usuario: Usuario, id_insumo: int) -> Insumo:
+    """Descontinúa un insumo de forma permanente.
+
+    El insumo deja de listarse y no puede usarse ni reactivarse, pero sus
+    movimientos históricos se conservan.
+
+    Args:
+        db: Sesión de base de datos.
+        usuario: Usuario dueño del insumo.
+        id_insumo: Identificador del insumo a descontinuar.
+
+    Returns:
+        Insumo: El insumo con descontinuado en True.
+
+    Raises:
+        HTTPException: 404 si el insumo no existe o no es del usuario;
+            400 si ya estaba descontinuado.
+    """
+    insumo = _obtener_insumo_de_usuario(db, usuario, id_insumo)
+    if insumo.descontinuado:
+        raise HTTPException(
+            status_code=400,
+            detail="El insumo ya está descontinuado",
+        )
+    insumo.descontinuado = True
+    insumo.activo = False
+    db.commit()
+    db.refresh(insumo)
+    notificacion_service.descartar_avisos_stock(db, insumo)
     return insumo
 
 
@@ -167,9 +241,11 @@ def registrar_movimiento(
 
     Raises:
         HTTPException: 404 si el insumo no existe o no es del usuario;
-            400 si una salida supera el stock actual.
+            400 si el insumo está suspendido/descontinuado o si una salida
+            supera el stock actual.
     """
     insumo = _obtener_insumo_de_usuario(db, usuario, id_insumo)
+    _validar_insumo_operable(insumo)
     if datos.tipo_movimiento == "salida" and insumo.stock_actual < datos.cantidad:
         raise HTTPException(
             status_code=400,
@@ -200,6 +276,7 @@ def registrar_movimiento(
             detail="No se pudo registrar el movimiento: stock inconsistente",
         ) from exc
     db.refresh(movimiento)
+    notificacion_service.sincronizar_aviso_stock(db, insumo)
     return movimiento, stock_resultante
 
 
@@ -256,6 +333,7 @@ def listar_alertas(db: Session, usuario: Usuario) -> list[AlertaInsumoResponse]:
         .filter(
             Insumo.id_usuario == usuario.id_usuario,
             Insumo.activo.is_(True),
+            Insumo.descontinuado.is_(False),
             Insumo.stock_actual < Insumo.umbral_minimo,
         )
         .order_by((Insumo.umbral_minimo - Insumo.stock_actual).desc())
@@ -287,6 +365,20 @@ def _obtener_insumo_de_usuario(db: Session, usuario: Usuario, id_insumo: int) ->
     if insumo is None:
         raise HTTPException(status_code=404, detail="Insumo no encontrado")
     return insumo
+
+
+def _validar_insumo_operable(insumo: Insumo) -> None:
+    """Impide operar sobre insumos suspendidos o descontinuados."""
+    if insumo.descontinuado:
+        raise HTTPException(
+            status_code=400,
+            detail="El insumo está descontinuado y no se puede manipular",
+        )
+    if not insumo.activo:
+        raise HTTPException(
+            status_code=400,
+            detail="El insumo está suspendido; actívalo para poder usarlo",
+        )
 
 
 def _validar_categoria_existe(db: Session, id_categoria: int) -> None:

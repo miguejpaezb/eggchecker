@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './components/AppLayout';
 import Auth from './pages/Auth';
 import Camadas from './pages/Camadas';
+import Inventario from './pages/Inventario';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -23,10 +24,7 @@ function App() {
           element={<ModulePlaceholder title="Producción" />}
         />
         <Route path="/camadas" element={<Camadas />} />
-        <Route
-          path="/inventario"
-          element={<ModulePlaceholder title="Inventario" />}
-        />
+        <Route path="/inventario" element={<Inventario />} />
         <Route
           path="/clientes"
           element={<ModulePlaceholder title="Clientes" />}

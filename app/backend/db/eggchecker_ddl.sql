@@ -89,6 +89,7 @@ CREATE TABLE insumo (
   stock_actual  DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
   umbral_minimo DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
   activo        INTEGER        NOT NULL DEFAULT 1,
+  descontinuado INTEGER        NOT NULL DEFAULT 0,
   CONSTRAINT fk_insumo_usuario
     FOREIGN KEY (id_usuario)
     REFERENCES usuario (id_usuario)
@@ -100,7 +101,9 @@ CREATE TABLE insumo (
   CONSTRAINT chk_insumo_stock
     CHECK (stock_actual  >= 0),
   CONSTRAINT chk_insumo_umbral
-    CHECK (umbral_minimo >= 0)
+    CHECK (umbral_minimo >= 0),
+  CONSTRAINT chk_insumo_descontinuado
+    CHECK (descontinuado IN (0,1))
 );
 
 CREATE INDEX idx_insumo_usuario   ON insumo (id_usuario);
@@ -395,11 +398,13 @@ CREATE TABLE notificacion (
   id_notificacion INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   id_usuario      INTEGER NOT NULL,
   id_camada       INTEGER NULL,
+  id_insumo       INTEGER NULL,
   tipo            TEXT    NOT NULL,
   titulo          TEXT    NOT NULL,
   mensaje         TEXT    NOT NULL,
   leida           INTEGER NOT NULL DEFAULT 0,
   eliminada       INTEGER NOT NULL DEFAULT 0,
+  stock_referencia DECIMAL(10,2) NULL,
   fecha_creacion  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_notificacion_usuario
     FOREIGN KEY (id_usuario)
@@ -408,6 +413,10 @@ CREATE TABLE notificacion (
   CONSTRAINT fk_notificacion_camada
     FOREIGN KEY (id_camada)
     REFERENCES camada (id_camada)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_notificacion_insumo
+    FOREIGN KEY (id_insumo)
+    REFERENCES insumo (id_insumo)
     ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT chk_notificacion_leida
     CHECK (leida IN (0,1)),

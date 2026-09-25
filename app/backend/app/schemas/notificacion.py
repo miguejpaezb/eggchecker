@@ -8,6 +8,7 @@ class NotificacionResponse(BaseModel):
 
     id_notificacion: int
     id_camada: int | None
+    id_insumo: int | None
     tipo: str
     titulo: str
     mensaje: str
