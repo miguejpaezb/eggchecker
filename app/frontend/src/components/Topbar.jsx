@@ -117,6 +117,12 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
 
   const manejarVer = (aviso) => {
     setMenuActivo(null);
+    if (aviso.id_insumo) {
+      navigate('/inventario', {
+        state: { insumoId: aviso.id_insumo, abrirStock: true },
+      });
+      return;
+    }
     navigate('/camadas', { state: { camadaId: aviso.id_camada } });
   };
 
