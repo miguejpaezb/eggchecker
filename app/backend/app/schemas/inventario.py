@@ -33,26 +33,31 @@ class CategoriaResponse(BaseModel):
 
 
 class InsumoCreate(BaseModel):
-    """Datos de entrada para registrar un insumo nuevo del usuario."""
+    """Datos de entrada para registrar un insumo nuevo del usuario.
+
+    El stock actual y el umbral mínimo deben ser mayores que cero; los
+    decimales se envían con punto.
+    """
 
     id_categoria: int
     nombre_insumo: str = Field(min_length=1, max_length=80)
     unidad_medida: str = Field(min_length=1, max_length=20)
-    stock_actual: Decimal = Field(default=0, ge=0)
-    umbral_minimo: Decimal = Field(default=0, ge=0)
+    stock_actual: Decimal = Field(gt=0)
+    umbral_minimo: Decimal = Field(gt=0)
 
 
 class InsumoUpdate(BaseModel):
-    """Datos parciales para actualizar un insumo existente.
+    """Datos editables de un insumo existente.
 
-    El stock nunca se modifica aquí: solo cambia vía movimientos.
+    Solo se puede cambiar el nombre, la unidad de medida y el umbral
+    mínimo. El stock nunca se modifica aquí: solo cambia vía movimientos.
     """
 
-    id_categoria: int | None = None
     nombre_insumo: str | None = Field(default=None, min_length=1, max_length=80)
     unidad_medida: str | None = Field(default=None, min_length=1, max_length=20)
-    umbral_minimo: Decimal | None = Field(default=None, ge=0)
-    activo: bool | None = None
+    umbral_minimo: Decimal | None = Field(default=None, gt=0)
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class InsumoResponse(BaseModel):
@@ -66,6 +71,7 @@ class InsumoResponse(BaseModel):
     stock_actual: Decimal
     umbral_minimo: Decimal
     activo: bool
+    descontinuado: bool
 
     model_config = ConfigDict(from_attributes=True)
 

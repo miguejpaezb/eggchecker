@@ -20,6 +20,7 @@ class Insumo(Base):
     __table_args__ = (
         CheckConstraint("stock_actual >= 0", name="chk_insumo_stock"),
         CheckConstraint("umbral_minimo >= 0", name="chk_insumo_umbral"),
+        CheckConstraint("descontinuado IN (0,1)", name="chk_insumo_descontinuado"),
     )
 
     id_insumo: Mapped[int] = mapped_column(
@@ -40,3 +41,4 @@ class Insumo(Base):
         Numeric(10, 2), nullable=False, default=0
     )
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    descontinuado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
