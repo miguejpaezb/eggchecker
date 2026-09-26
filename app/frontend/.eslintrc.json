@@ -20,7 +20,11 @@
       {
         "labelComponents": [],
         "labelAttributes": [],
-        "controlComponents": ["InputDecimal", "CategoriaAutocomplete"],
+        "controlComponents": [
+          "InputDecimal",
+          "CategoriaAutocomplete",
+          "CamadaAutocomplete"
+        ],
         "assert": "both",
         "depth": 3
       }

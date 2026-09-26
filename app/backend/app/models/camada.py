@@ -12,6 +12,9 @@ EDAD_INICIAL_SEMANAS = 16
 # edad la camada deja de retirarse sola: pasa a pedir decisión semanal.
 DIAS_VIDA_PRODUCTIVA = 504
 
+# Edad mínima, en semanas, para que una camada entre en etapa de producción.
+EDAD_PRODUCCION_SEMANAS = 28
+
 # Edad, en semanas, a partir de la cual se solicita decisión al avicultor.
 EDAD_DECISION_SEMANAS = DIAS_VIDA_PRODUCTIVA // 7
 
