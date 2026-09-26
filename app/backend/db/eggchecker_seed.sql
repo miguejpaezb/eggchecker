@@ -51,21 +51,23 @@ VALUES
 -- ─────────────────────────────────────────────────────────────
 -- CAMADAS (12 registros)
 -- ─────────────────────────────────────────────────────────────
+-- edad_semanas: las camadas con producción quedan en etapa productiva
+-- (>=28 semanas); las jóvenes sirven para probar el filtro de Producción.
 INSERT INTO camada
-  (id_usuario, nombre_camada, fecha_ingreso, cantidad_inicial, cantidad_actual, estado)
+  (id_usuario, nombre_camada, fecha_ingreso, cantidad_inicial, cantidad_actual, estado, edad_semanas)
 VALUES
-  (1,  'Camada La Esperanza',    '2025-07-10', 50,  48, 'activa'),
-  (2,  'Camada Villa Nueva',     '2025-08-20', 80,  77, 'activa'),
-  (2,  'Camada San José',        '2025-12-01', 60,  58, 'activa'),
-  (3,  'Lote El Paraíso',        '2025-09-05', 100, 95, 'activa'),
-  (4,  'Camada Las Palmas',      '2025-10-15', 70,  70, 'activa'),
-  (4,  'Camada Retirada 2025',   '2025-03-01', 50,  42, 'retirada'),
-  (5,  'Lote Río Verde',         '2025-11-25', 120, 118, 'activa'),
-  (6,  'Camada La Colina',       '2026-01-10', 90,  88, 'activa'),
-  (7,  'Lote El Porvenir',       '2026-01-20', 45,  45, 'activa'),
-  (8,  'Camada Santa Rosa',      '2026-02-01', 75,  73, 'activa'),
-  (9,  'Lote Los Naranjos',      '2026-02-15', 55,  55, 'activa'),
-  (10, 'Camada La Primavera',    '2026-03-01', 40,  40, 'activa');
+  (1,  'Camada La Esperanza',    '2025-07-10', 50,  48, 'activa',   40),
+  (2,  'Camada Villa Nueva',     '2025-08-20', 80,  77, 'activa',   38),
+  (2,  'Camada San José',        '2025-12-01', 60,  58, 'activa',   30),
+  (3,  'Lote El Paraíso',        '2025-09-05', 100, 95, 'activa',   34),
+  (4,  'Camada Las Palmas',      '2025-10-15', 70,  70, 'activa',   28),
+  (4,  'Camada Retirada 2025',   '2025-03-01', 50,  42, 'retirada', 16),
+  (5,  'Lote Río Verde',         '2025-11-25', 120, 118, 'activa',  44),
+  (6,  'Camada La Colina',       '2026-01-10', 90,  88, 'activa',   32),
+  (7,  'Lote El Porvenir',       '2026-01-20', 45,  45, 'activa',   20),
+  (8,  'Camada Santa Rosa',      '2026-02-01', 75,  73, 'activa',   29),
+  (9,  'Lote Los Naranjos',      '2026-02-15', 55,  55, 'activa',   18),
+  (10, 'Camada La Primavera',    '2026-03-01', 40,  40, 'activa',   28);
 
 -- Los registros existentes se consideran creados en su fecha de ingreso
 -- (a medianoche), de modo que no queden dentro de la ventana de edición.

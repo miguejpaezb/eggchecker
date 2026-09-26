@@ -5,6 +5,7 @@ import Auth from './pages/Auth';
 import Camadas from './pages/Camadas';
 import Inventario from './pages/Inventario';
 import ModulePlaceholder from './pages/ModulePlaceholder';
+import Produccion from './pages/Produccion';
 
 function App() {
   return (
@@ -19,10 +20,7 @@ function App() {
           path="/dashboard"
           element={<ModulePlaceholder title="Dashboard" />}
         />
-        <Route
-          path="/produccion"
-          element={<ModulePlaceholder title="Producción" />}
-        />
+        <Route path="/produccion" element={<Produccion />} />
         <Route path="/camadas" element={<Camadas />} />
         <Route path="/inventario" element={<Inventario />} />
         <Route
