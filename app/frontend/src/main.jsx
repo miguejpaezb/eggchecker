@@ -6,6 +6,7 @@ import './styles/camadas.css';
 import './styles/notificaciones.css';
 import './styles/inventario.css';
 import './styles/produccion.css';
+import './styles/clientes.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
