@@ -6,6 +6,7 @@ from app.models.produccion_diaria import ProduccionDiaria
 from app.models.tipo_huevo import TipoHuevo
 from app.models.usuario import Usuario
 from app.schemas.produccion import DisponibleTipoResponse, ProduccionCreate
+from app.services import stock_service
 from fastapi import HTTPException
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
@@ -81,7 +82,13 @@ def registrar_produccion(
 
     produccion.total_huevos = total
     produccion.observaciones = datos.observaciones
+    detalle_previo = {
+        detalle.id_tipo: detalle.cantidad for detalle in produccion.detalles
+    }
     _sincronizar_detalle(produccion, tipos, cantidades)
+    # El stock físico de huevos sube (o baja) por la diferencia de la
+    # recolección guardada respecto a la anterior del mismo día.
+    _aplicar_stock(db, usuario, tipos, cantidades, detalle_previo)
 
     try:
         db.commit()
@@ -281,6 +288,20 @@ def _sincronizar_detalle(
             detalle.cantidad = cantidad
         elif detalle is not None:
             produccion.detalles.remove(detalle)
+
+
+def _aplicar_stock(
+    db: Session,
+    usuario: Usuario,
+    tipos: dict[str, TipoHuevo],
+    cantidades: dict[str, int],
+    detalle_previo: dict[int, int],
+) -> None:
+    """Aplica al stock el delta de la recolección por tipo de huevo."""
+    for nombre, tipo in tipos.items():
+        delta = cantidades[nombre] - detalle_previo.get(tipo.id_tipo, 0)
+        if delta != 0:
+            stock_service.aplicar_delta(db, usuario.id_usuario, tipo.id_tipo, delta)
 
 
 def _cantidades_por_tipo(datos: ProduccionCreate) -> dict[str, int]:
