@@ -75,14 +75,16 @@ function ClienteAccionesMenu({
 
       {abierto && (
         <div className="ec-menu__lista" role="menu">
-          <button
-            type="button"
-            role="menuitem"
-            className="ec-menu__item"
-            onClick={() => ejecutar(() => onRegistrarVenta(cliente))}
-          >
-            Registrar venta
-          </button>
+          {cliente.activo && (
+            <button
+              type="button"
+              role="menuitem"
+              className="ec-menu__item"
+              onClick={() => ejecutar(() => onRegistrarVenta(cliente))}
+            >
+              Registrar venta
+            </button>
+          )}
           <button
             type="button"
             role="menuitem"
