@@ -275,6 +275,41 @@ CREATE INDEX idx_prodet_tipo       ON produccion_detalle (id_tipo);
 
 
 -- ─────────────────────────────────────────────────────────────
+-- Table stock_produccion
+-- Existencias disponibles de huevos del avicultor, por tipo.
+-- Se actualiza (upsert) al registrar producción (suma) y ventas (resta);
+-- nunca se crean filas duplicadas por usuario y tipo.
+-- FK: id_usuario → usuario, id_tipo → tipo_huevo
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE stock_produccion (
+  id_stock            INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
+  id_usuario          INTEGER       NOT NULL,
+  id_tipo             INTEGER       NOT NULL,
+  cantidad_actual     INTEGER       NOT NULL DEFAULT 0,
+  valor_unidad        DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  ultima_modificacion TEXT          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_stock_usuario
+    FOREIGN KEY (id_usuario)
+    REFERENCES usuario (id_usuario)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_stock_tipo
+    FOREIGN KEY (id_tipo)
+    REFERENCES tipo_huevo (id_tipo)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT uq_stock_usuario_tipo
+    UNIQUE (id_usuario, id_tipo),
+  CONSTRAINT chk_stock_cantidad
+    CHECK (cantidad_actual >= 0),
+  CONSTRAINT chk_stock_valor
+    CHECK (valor_unidad >= 0)
+);
+
+CREATE INDEX idx_stock_usuario ON stock_produccion (id_usuario);
+CREATE INDEX idx_stock_tipo    ON stock_produccion (id_tipo);
+
+
+-- ─────────────────────────────────────────────────────────────
 -- Table cliente
 -- Compradores del avicultor.
 -- FK: id_usuario → usuario
@@ -320,7 +355,7 @@ CREATE TABLE pedido (
     REFERENCES usuario (id_usuario)
     ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT chk_pedido_estado
-    CHECK (estado_pedido IN ('pendiente','entregado','cancelado')),
+    CHECK (estado_pedido IN ('pendiente','enviado','recibido','cancelado')),
   CONSTRAINT chk_pedido_valor
     CHECK (valor_total >= 0)
 );
