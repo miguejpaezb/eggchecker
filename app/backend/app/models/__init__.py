@@ -1,5 +1,6 @@
 from app.models.camada import Camada
 from app.models.categoria_insumo import CategoriaInsumo
+from app.models.cliente import Cliente
 from app.models.evento_sanitario import EventoSanitario
 from app.models.insumo import Insumo
 from app.models.movimiento_insumo import MovimientoInsumo
@@ -13,6 +14,7 @@ from app.models.usuario import Usuario
 __all__ = [
     "Camada",
     "CategoriaInsumo",
+    "Cliente",
     "EventoSanitario",
     "Insumo",
     "MovimientoInsumo",

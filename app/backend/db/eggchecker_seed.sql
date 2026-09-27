@@ -181,20 +181,20 @@ VALUES
 -- CLIENTES (12 registros)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO cliente
-  (id_usuario, nombre_cliente, telefono, direccion, latitud, longitud, fecha_ultima_compra)
+  (id_usuario, nombre_cliente, telefono, direccion, fecha_ultima_compra)
 VALUES
-  (1,  'Tienda La Cosecha',          '3204440011', 'Cra 3 # 8-15, Bogotá',           4.7110,  -74.0721, '2026-02-28'),
-  (1,  'Supermercado El Trigal',     '3158881122', 'Av 68 # 22-10, Bogotá',           4.6800,  -74.0900, '2026-03-01'),
-  (2,  'Tienda Don Ramón',           '3204441122', 'Cra 5 # 12-34, Pereira',          4.8133,  -75.6961, '2026-02-28'),
-  (2,  'Supermercado La 14',         '3154449988', 'Av Circunvalar # 45-10, Pereira', 4.8050,  -75.7200, '2026-03-01'),
-  (3,  'Restaurante El Buen Sabor',  '3118887766', 'Cl 10 # 8-20, Armenia',           4.5340,  -75.6812, '2026-02-20'),
-  (3,  'Minimercado Los Andes',      '3002223344', 'Cr 15 # 22-05, Armenia',          4.5280,  -75.6750, '2026-03-01'),
-  (4,  'Fonda Campesina Yuly',       '3135556677', 'Vereda El Rosal, Manizales',      5.0680,  -75.5174, NULL),
-  (5,  'Distribuidora HuevoFresh',   '3209990011', 'Cl 30 # 40-15, Medellín',         6.2442,  -75.5812, '2026-03-02'),
-  (6,  'Asadero La Brasa Viva',      '3001234568', 'Av El Poblado # 55-30, Medellín', 6.2100,  -75.5650, '2026-02-15'),
-  (7,  'Tienda La Hormiga',          '3117778899', 'Cra 8 # 5-60, Montería',          8.7575,  -75.8844, '2026-03-01'),
-  (8,  'Minimercado Don Félix',      '3144445566', 'Cl 12 # 9-40, Bucaramanga',       7.1193,  -73.1227, NULL),
-  (10, 'Tienda El Vecino',           '3056667788', 'Cra 6 # 3-20, Valledupar',       10.4631,  -73.2532, NULL);
+  (1,  'Tienda La Cosecha',          '3204440011', 'Cra 3 # 8-15, Bogotá',           '2026-02-28'),
+  (1,  'Supermercado El Trigal',     '3158881122', 'Av 68 # 22-10, Bogotá',           '2026-03-01'),
+  (2,  'Tienda Don Ramón',           '3204441122', 'Cra 5 # 12-34, Pereira',          '2026-02-28'),
+  (2,  'Supermercado La 14',         '3154449988', 'Av Circunvalar # 45-10, Pereira', '2026-03-01'),
+  (3,  'Restaurante El Buen Sabor',  '3118887766', 'Cl 10 # 8-20, Armenia',           '2026-02-20'),
+  (3,  'Minimercado Los Andes',      '3002223344', 'Cr 15 # 22-05, Armenia',          '2026-03-01'),
+  (4,  'Fonda Campesina Yuly',       '3135556677', 'Vereda El Rosal, Manizales',      NULL),
+  (5,  'Distribuidora HuevoFresh',   '3209990011', 'Cl 30 # 40-15, Medellín',         '2026-03-02'),
+  (6,  'Asadero La Brasa Viva',      '3001234568', 'Av El Poblado # 55-30, Medellín', '2026-02-15'),
+  (7,  'Tienda La Hormiga',          '3117778899', 'Cra 8 # 5-60, Montería',          '2026-03-01'),
+  (8,  'Minimercado Don Félix',      '3144445566', 'Cl 12 # 9-40, Bucaramanga',       NULL),
+  (10, 'Tienda El Vecino',           '3056667788', 'Cra 6 # 3-20, Valledupar',        NULL);
 
 
 -- ─────────────────────────────────────────────────────────────

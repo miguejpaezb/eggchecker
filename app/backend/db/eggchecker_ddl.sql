@@ -286,8 +286,6 @@ CREATE TABLE cliente (
   nombre_cliente      TEXT          NOT NULL,
   telefono            TEXT          NULL,
   direccion           TEXT          NULL,
-  latitud             DECIMAL(10,7) NULL,
-  longitud            DECIMAL(10,7) NULL,
   fecha_ultima_compra TEXT          NULL,
   activo              INTEGER       NOT NULL DEFAULT 1,
   CONSTRAINT fk_cliente_usuario
