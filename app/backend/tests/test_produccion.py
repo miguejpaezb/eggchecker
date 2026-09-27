@@ -473,7 +473,7 @@ def test_disponibles_resta_lo_vendido(cliente) -> None:
     _registrar_produccion(
         cliente, headers, camada["id_camada"], aa=40, a=0, b=0, no_apto=0
     )
-    _insertar_venta(cliente, id_usuario, id_tipo=1, cantidad=10, estado="entregado")
+    _insertar_venta(cliente, id_usuario, id_tipo=1, cantidad=10, estado="recibido")
 
     respuesta = cliente.get("/api/huevos/disponibles", headers=headers)
 
