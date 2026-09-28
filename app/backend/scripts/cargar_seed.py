@@ -1,6 +1,6 @@
 """Carga el esquema y los datos de prueba de EggChecker en SQLite.
 
-Script de bootstrap para desarrollo y QA: crea las 15 tablas (con sus
+Script de bootstrap para desarrollo y QA: crea las 16 tablas (con sus
 índices y vistas) y las llena con datos de prueba. La recarga es
 idempotente: si la base ya tiene tablas, las elimina y vuelve a
 crearlas desde cero.
@@ -29,6 +29,7 @@ _TABLAS = (
     "tipo_huevo",
     "produccion_diaria",
     "produccion_detalle",
+    "stock_produccion",
     "cliente",
     "pedido",
     "detalle_pedido",

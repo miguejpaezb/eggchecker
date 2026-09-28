@@ -22,8 +22,10 @@
         "labelAttributes": [],
         "controlComponents": [
           "InputDecimal",
+          "InputTelefono",
           "CategoriaAutocomplete",
-          "CamadaAutocomplete"
+          "CamadaAutocomplete",
+          "ClienteAutocomplete"
         ],
         "assert": "both",
         "depth": 3

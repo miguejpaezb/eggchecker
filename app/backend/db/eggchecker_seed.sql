@@ -178,23 +178,43 @@ VALUES
 
 
 -- ─────────────────────────────────────────────────────────────
+-- STOCK DE PRODUCCIÓN (32 registros)
+-- Una fila por usuario y tipo de huevo. La cantidad es el disponible
+-- coherente con el seed: producido menos vendido (sin cancelados),
+-- acotado a cero. valor_unidad: AA=400, A=280, B=160, No_apto=100.
+-- id_tipo: 1=AA  2=A  3=B  4=No_apto
+-- ─────────────────────────────────────────────────────────────
+INSERT INTO stock_produccion
+  (id_usuario, id_tipo, cantidad_actual, valor_unidad)
+VALUES
+  (1,  1,  0, 400.00), (1,  2,  0, 280.00), (1,  3, 10, 160.00), (1,  4,  4, 100.00),
+  (2,  1,  0, 400.00), (2,  2,  0, 280.00), (2,  3, 24, 160.00), (2,  4,  6, 100.00),
+  (3,  1,  0, 400.00), (3,  2,  0, 280.00), (3,  3,  0, 160.00), (3,  4,  3, 100.00),
+  (4,  1, 25, 400.00), (4,  2, 22, 280.00), (4,  3, 10, 160.00), (4,  4,  3, 100.00),
+  (5,  1,  0, 400.00), (5,  2,  0, 280.00), (5,  3,  0, 160.00), (5,  4,  6, 100.00),
+  (6,  1,  0, 400.00), (6,  2,  0, 280.00), (6,  3, 10, 160.00), (6,  4,  3, 100.00),
+  (8,  1, 35, 400.00), (8,  2, 22, 280.00), (8,  3,  8, 160.00), (8,  4,  3, 100.00),
+  (10, 1, 12, 400.00), (10, 2, 13, 280.00), (10, 3,  5, 160.00), (10, 4,  2, 100.00);
+
+
+-- ─────────────────────────────────────────────────────────────
 -- CLIENTES (12 registros)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO cliente
-  (id_usuario, nombre_cliente, telefono, direccion, latitud, longitud, fecha_ultima_compra)
+  (id_usuario, nombre_cliente, telefono, direccion, fecha_ultima_compra)
 VALUES
-  (1,  'Tienda La Cosecha',          '3204440011', 'Cra 3 # 8-15, Bogotá',           4.7110,  -74.0721, '2026-02-28'),
-  (1,  'Supermercado El Trigal',     '3158881122', 'Av 68 # 22-10, Bogotá',           4.6800,  -74.0900, '2026-03-01'),
-  (2,  'Tienda Don Ramón',           '3204441122', 'Cra 5 # 12-34, Pereira',          4.8133,  -75.6961, '2026-02-28'),
-  (2,  'Supermercado La 14',         '3154449988', 'Av Circunvalar # 45-10, Pereira', 4.8050,  -75.7200, '2026-03-01'),
-  (3,  'Restaurante El Buen Sabor',  '3118887766', 'Cl 10 # 8-20, Armenia',           4.5340,  -75.6812, '2026-02-20'),
-  (3,  'Minimercado Los Andes',      '3002223344', 'Cr 15 # 22-05, Armenia',          4.5280,  -75.6750, '2026-03-01'),
-  (4,  'Fonda Campesina Yuly',       '3135556677', 'Vereda El Rosal, Manizales',      5.0680,  -75.5174, NULL),
-  (5,  'Distribuidora HuevoFresh',   '3209990011', 'Cl 30 # 40-15, Medellín',         6.2442,  -75.5812, '2026-03-02'),
-  (6,  'Asadero La Brasa Viva',      '3001234568', 'Av El Poblado # 55-30, Medellín', 6.2100,  -75.5650, '2026-02-15'),
-  (7,  'Tienda La Hormiga',          '3117778899', 'Cra 8 # 5-60, Montería',          8.7575,  -75.8844, '2026-03-01'),
-  (8,  'Minimercado Don Félix',      '3144445566', 'Cl 12 # 9-40, Bucaramanga',       7.1193,  -73.1227, NULL),
-  (10, 'Tienda El Vecino',           '3056667788', 'Cra 6 # 3-20, Valledupar',       10.4631,  -73.2532, NULL);
+  (1,  'Tienda La Cosecha',          '3204440011', 'Cra 3 # 8-15, Bogotá',           '2026-02-28'),
+  (1,  'Supermercado El Trigal',     '3158881122', 'Av 68 # 22-10, Bogotá',           '2026-03-01'),
+  (2,  'Tienda Don Ramón',           '3204441122', 'Cra 5 # 12-34, Pereira',          '2026-02-28'),
+  (2,  'Supermercado La 14',         '3154449988', 'Av Circunvalar # 45-10, Pereira', '2026-03-01'),
+  (3,  'Restaurante El Buen Sabor',  '3118887766', 'Cl 10 # 8-20, Armenia',           '2026-02-20'),
+  (3,  'Minimercado Los Andes',      '3002223344', 'Cr 15 # 22-05, Armenia',          '2026-03-01'),
+  (4,  'Fonda Campesina Yuly',       '3135556677', 'Vereda El Rosal, Manizales',      NULL),
+  (5,  'Distribuidora HuevoFresh',   '3209990011', 'Cl 30 # 40-15, Medellín',         '2026-03-02'),
+  (6,  'Asadero La Brasa Viva',      '3001234568', 'Av El Poblado # 55-30, Medellín', '2026-02-15'),
+  (7,  'Tienda La Hormiga',          '3117778899', 'Cra 8 # 5-60, Montería',          '2026-03-01'),
+  (8,  'Minimercado Don Félix',      '3144445566', 'Cl 12 # 9-40, Bucaramanga',       NULL),
+  (10, 'Tienda El Vecino',           '3056667788', 'Cra 6 # 3-20, Valledupar',        NULL);
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -203,16 +223,16 @@ VALUES
 INSERT INTO pedido
   (id_cliente, id_usuario, fecha_pedido, estado_pedido, valor_total)
 VALUES
-  (1,  1,  '2026-02-20', 'entregado',  62400.00),
+  (1,  1,  '2026-02-20', 'recibido',  62400.00),
   (2,  1,  '2026-03-01', 'pendiente',  48000.00),
-  (3,  2,  '2026-02-25', 'entregado',  78000.00),
+  (3,  2,  '2026-02-25', 'recibido',  78000.00),
   (4,  2,  '2026-03-01', 'pendiente',  52000.00),
-  (5,  3,  '2026-02-20', 'entregado',  96000.00),
+  (5,  3,  '2026-02-20', 'recibido',  96000.00),
   (6,  3,  '2026-03-01', 'pendiente',  48000.00),
   (7,  4,  '2026-02-28', 'cancelado',  36000.00),
-  (8,  5,  '2026-03-01', 'entregado', 130000.00),
+  (8,  5,  '2026-03-01', 'recibido', 130000.00),
   (9,  6,  '2026-03-02', 'pendiente',  65000.00),
-  (10, 7,  '2026-03-01', 'entregado',  84000.00),
+  (10, 7,  '2026-03-01', 'recibido',  84000.00),
   (11, 8,  '2026-03-01', 'pendiente',  54000.00),
   (12, 10, '2026-03-02', 'pendiente',  28000.00);
 

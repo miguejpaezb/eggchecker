@@ -3,9 +3,11 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './components/AppLayout';
 import Auth from './pages/Auth';
 import Camadas from './pages/Camadas';
+import Clientes from './pages/Clientes';
 import Inventario from './pages/Inventario';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 import Produccion from './pages/Produccion';
+import Ventas from './pages/Ventas';
 
 function App() {
   return (
@@ -23,11 +25,8 @@ function App() {
         <Route path="/produccion" element={<Produccion />} />
         <Route path="/camadas" element={<Camadas />} />
         <Route path="/inventario" element={<Inventario />} />
-        <Route
-          path="/clientes"
-          element={<ModulePlaceholder title="Clientes" />}
-        />
-        <Route path="/ventas" element={<ModulePlaceholder title="Ventas" />} />
+        <Route path="/clientes" element={<Clientes />} />
+        <Route path="/ventas" element={<Ventas />} />
         <Route
           path="/analisis"
           element={<ModulePlaceholder title="Análisis IA" />}
