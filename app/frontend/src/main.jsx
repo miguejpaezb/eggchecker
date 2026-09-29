@@ -8,6 +8,7 @@ import './styles/inventario.css';
 import './styles/produccion.css';
 import './styles/clientes.css';
 import './styles/ventas.css';
+import './styles/reportes.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
