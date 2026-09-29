@@ -88,6 +88,7 @@ CREATE TABLE insumo (
   unidad_medida TEXT           NOT NULL,
   stock_actual  DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
   umbral_minimo DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
+  costo_unitario DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   activo        INTEGER        NOT NULL DEFAULT 1,
   descontinuado INTEGER        NOT NULL DEFAULT 0,
   CONSTRAINT fk_insumo_usuario
@@ -102,6 +103,8 @@ CREATE TABLE insumo (
     CHECK (stock_actual  >= 0),
   CONSTRAINT chk_insumo_umbral
     CHECK (umbral_minimo >= 0),
+  CONSTRAINT chk_insumo_costo
+    CHECK (costo_unitario >= 0),
   CONSTRAINT chk_insumo_descontinuado
     CHECK (descontinuado IN (0,1))
 );
@@ -121,6 +124,7 @@ CREATE TABLE movimiento_insumo (
   id_insumo        INTEGER       NOT NULL,
   tipo_movimiento  TEXT          NOT NULL,
   cantidad         DECIMAL(10,2) NOT NULL,
+  costo_unitario   DECIMAL(12,2) NULL,
   fecha_movimiento TEXT          NOT NULL DEFAULT CURRENT_TIMESTAMP,
   observaciones    TEXT          NULL,
   CONSTRAINT fk_movimiento_insumo
@@ -130,7 +134,9 @@ CREATE TABLE movimiento_insumo (
   CONSTRAINT chk_movimiento_tipo
     CHECK (tipo_movimiento IN ('entrada','salida')),
   CONSTRAINT chk_movimiento_cantidad
-    CHECK (cantidad > 0)
+    CHECK (cantidad > 0),
+  CONSTRAINT chk_movimiento_costo
+    CHECK (costo_unitario IS NULL OR costo_unitario >= 0)
 );
 
 CREATE INDEX idx_movimiento_insumo ON movimiento_insumo (id_insumo);
