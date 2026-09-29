@@ -12,14 +12,17 @@ class Insumo(Base):
     Mapea la tabla `insumo` del DDL. Cada insumo pertenece a un usuario
     (`id_usuario`) y a una categoría del catálogo global. El stock nunca
     baja de cero (`chk_insumo_stock`) y la alerta de umbral se dispara
-    cuando el stock cae por debajo de `umbral_minimo`. Los insumos no se
-    borran físicamente: se desactivan con `activo = False`.
+    cuando el stock cae por debajo de `umbral_minimo`. `costo_unitario` es
+    el costo de referencia vigente por unidad y alimenta el costo de
+    insumos de los reportes de rentabilidad. Los insumos no se borran
+    físicamente: se desactivan con `activo = False`.
     """
 
     __tablename__ = "insumo"
     __table_args__ = (
         CheckConstraint("stock_actual >= 0", name="chk_insumo_stock"),
         CheckConstraint("umbral_minimo >= 0", name="chk_insumo_umbral"),
+        CheckConstraint("costo_unitario >= 0", name="chk_insumo_costo"),
         CheckConstraint("descontinuado IN (0,1)", name="chk_insumo_descontinuado"),
     )
 
@@ -39,6 +42,9 @@ class Insumo(Base):
     )
     umbral_minimo: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False, default=0
+    )
+    costo_unitario: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2), nullable=False, default=0
     )
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     descontinuado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

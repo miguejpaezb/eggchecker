@@ -212,6 +212,7 @@ def registrar_movimiento(
         id_insumo=movimiento.id_insumo,
         tipo_movimiento=movimiento.tipo_movimiento,
         cantidad=movimiento.cantidad,
+        costo_unitario=movimiento.costo_unitario,
         fecha_movimiento=movimiento.fecha_movimiento,
         observaciones=movimiento.observaciones,
         stock_resultante=stock_resultante,

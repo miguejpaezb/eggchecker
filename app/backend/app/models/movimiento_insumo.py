@@ -31,6 +31,10 @@ class MovimientoInsumo(Base):
             name="chk_movimiento_tipo",
         ),
         CheckConstraint("cantidad > 0", name="chk_movimiento_cantidad"),
+        CheckConstraint(
+            "costo_unitario IS NULL OR costo_unitario >= 0",
+            name="chk_movimiento_costo",
+        ),
     )
 
     id_movimiento: Mapped[int] = mapped_column(
@@ -41,6 +45,9 @@ class MovimientoInsumo(Base):
     )
     tipo_movimiento: Mapped[str] = mapped_column(String(10), nullable=False)
     cantidad: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    costo_unitario: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
     fecha_movimiento: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.now
     )

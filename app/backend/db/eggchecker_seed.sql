@@ -78,44 +78,44 @@ UPDATE camada SET fecha_creacion = fecha_ingreso || ' 00:00:00';
 -- INSUMOS (14 registros)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO insumo
-  (id_usuario, id_categoria, nombre_insumo, unidad_medida, stock_actual, umbral_minimo)
+  (id_usuario, id_categoria, nombre_insumo, unidad_medida, stock_actual, umbral_minimo, costo_unitario)
 VALUES
-  (1,  1, 'Concentrado Ponedora 16%',    'kg',    80.00, 20.00),
-  (2,  1, 'Maíz molido',                 'kg',   150.00, 30.00),
-  (2,  2, 'Oxitetraciclina 20%',         'ml',    50.00, 15.00),
-  (3,  1, 'Concentrado Ponedora 18%',    'kg',   200.00, 40.00),
-  (3,  5, 'Amonio cuaternario 5L',       'litro',  8.00, 10.00),  -- bajo umbral (alerta)
-  (4,  1, 'Purina Ponedora',             'kg',    90.00, 25.00),
-  (4,  3, 'Vitamina AD3E',               'ml',    30.00, 10.00),
-  (5,  6, 'Cartones x30 unidades',       'unidad',200.00, 50.00),
-  (5,  1, 'Sorgo forrajero',             'kg',   180.00, 35.00),
-  (6,  4, 'Bebedero automático 5L',      'unidad',  6.00,  2.00),
-  (6,  2, 'Ivermectina 1%',              'ml',    20.00, 10.00),
-  (7,  1, 'Concentrado Inicio Ponedoras','kg',    40.00, 20.00),
-  (8,  5, 'Desinfectante Virkon S',      'kg',     3.00, 10.00),  -- bajo umbral (alerta)
-  (9,  2, 'Enrofloxacina 10%',           'ml',    25.00, 10.00);
+  (1,  1, 'Concentrado Ponedora 16%',    'kg',    80.00, 20.00,  2200.00),
+  (2,  1, 'Maíz molido',                 'kg',   150.00, 30.00,  1600.00),
+  (2,  2, 'Oxitetraciclina 20%',         'ml',    50.00, 15.00,   180.00),
+  (3,  1, 'Concentrado Ponedora 18%',    'kg',   200.00, 40.00,  2400.00),
+  (3,  5, 'Amonio cuaternario 5L',       'litro',  8.00, 10.00, 18000.00),  -- bajo umbral (alerta)
+  (4,  1, 'Purina Ponedora',             'kg',    90.00, 25.00,  2600.00),
+  (4,  3, 'Vitamina AD3E',               'ml',    30.00, 10.00,   350.00),
+  (5,  6, 'Cartones x30 unidades',       'unidad',200.00, 50.00,   800.00),
+  (5,  1, 'Sorgo forrajero',             'kg',   180.00, 35.00,  1400.00),
+  (6,  4, 'Bebedero automático 5L',      'unidad',  6.00,  2.00, 25000.00),
+  (6,  2, 'Ivermectina 1%',              'ml',    20.00, 10.00,   220.00),
+  (7,  1, 'Concentrado Inicio Ponedoras','kg',    40.00, 20.00,  2500.00),
+  (8,  5, 'Desinfectante Virkon S',      'kg',     3.00, 10.00, 42000.00),  -- bajo umbral (alerta)
+  (9,  2, 'Enrofloxacina 10%',           'ml',    25.00, 10.00,   260.00);
 
 
 -- ─────────────────────────────────────────────────────────────
 -- MOVIMIENTOS DE INSUMO (14 registros)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO movimiento_insumo
-  (id_insumo, tipo_movimiento, cantidad, fecha_movimiento, observaciones)
+  (id_insumo, tipo_movimiento, cantidad, costo_unitario, fecha_movimiento, observaciones)
 VALUES
-  (1,  'entrada', 100.00, '2025-07-11 08:00:00', 'Stock inicial concentrado ponedora'),
-  (1,  'salida',   20.00, '2025-08-01 07:00:00', 'Consumo mensual camada La Esperanza'),
-  (2,  'entrada', 180.00, '2025-08-21 08:00:00', 'Compra inicial de maíz molido'),
-  (2,  'salida',   30.00, '2025-09-15 07:30:00', 'Consumo semanal camada Villa Nueva'),
-  (3,  'entrada',  65.00, '2025-09-06 09:00:00', 'Compra de oxitetraciclina'),
-  (4,  'entrada', 240.00, '2025-09-06 09:15:00', 'Primer pedido concentrado 18%'),
-  (4,  'salida',   40.00, '2025-10-01 07:00:00', 'Consumo mensual Lote El Paraíso'),
-  (5,  'entrada',  18.00, '2025-10-16 10:00:00', 'Compra amonio cuaternario'),
-  (5,  'salida',   10.00, '2025-11-05 08:00:00', 'Desinfección galpón'),
-  (6,  'entrada', 115.00, '2025-11-26 08:30:00', 'Compra Purina Ponedora'),
-  (8,  'entrada', 200.00, '2025-11-26 09:00:00', 'Primer lote de cartones'),
-  (11, 'entrada',  30.00, '2026-01-11 08:00:00', 'Compra ivermectina'),
-  (13, 'entrada',  13.00, '2026-02-02 08:00:00', 'Stock inicial Virkon S'),
-  (14, 'entrada',  25.00, '2026-02-16 09:00:00', 'Compra enrofloxacina');
+  (1,  'entrada', 100.00,  2200.00, '2025-07-11 08:00:00', 'Stock inicial concentrado ponedora'),
+  (1,  'salida',   20.00,  2200.00, '2025-08-01 07:00:00', 'Consumo mensual camada La Esperanza'),
+  (2,  'entrada', 180.00,  1600.00, '2025-08-21 08:00:00', 'Compra inicial de maíz molido'),
+  (2,  'salida',   30.00,  1600.00, '2025-09-15 07:30:00', 'Consumo semanal camada Villa Nueva'),
+  (3,  'entrada',  65.00,   180.00, '2025-09-06 09:00:00', 'Compra de oxitetraciclina'),
+  (4,  'entrada', 240.00,  2400.00, '2025-09-06 09:15:00', 'Primer pedido concentrado 18%'),
+  (4,  'salida',   40.00,  2400.00, '2025-10-01 07:00:00', 'Consumo mensual Lote El Paraíso'),
+  (5,  'entrada',  18.00, 18000.00, '2025-10-16 10:00:00', 'Compra amonio cuaternario'),
+  (5,  'salida',   10.00, 18000.00, '2025-11-05 08:00:00', 'Desinfección galpón'),
+  (6,  'entrada', 115.00,  2600.00, '2025-11-26 08:30:00', 'Compra Purina Ponedora'),
+  (8,  'entrada', 200.00,   800.00, '2025-11-26 09:00:00', 'Primer lote de cartones'),
+  (11, 'entrada',  30.00,   220.00, '2026-01-11 08:00:00', 'Compra ivermectina'),
+  (13, 'entrada',  13.00, 42000.00, '2026-02-02 08:00:00', 'Stock inicial Virkon S'),
+  (14, 'entrada',  25.00,   260.00, '2026-02-16 09:00:00', 'Compra enrofloxacina');
 
 
 -- ─────────────────────────────────────────────────────────────
