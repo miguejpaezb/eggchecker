@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from app.models.categoria_insumo import CategoriaInsumo
 from app.models.insumo import Insumo
@@ -14,6 +14,9 @@ from app.services import notificacion_service
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+# Centavos para redondear los valores monetarios del costo promedio.
+_CENTAVOS = Decimal("0.01")
 
 
 def crear_insumo(db: Session, usuario: Usuario, datos: InsumoCreate) -> Insumo:
@@ -38,6 +41,7 @@ def crear_insumo(db: Session, usuario: Usuario, datos: InsumoCreate) -> Insumo:
         unidad_medida=datos.unidad_medida,
         stock_actual=datos.stock_actual,
         umbral_minimo=datos.umbral_minimo,
+        costo_unitario=datos.costo_unitario,
     )
     db.add(insumo)
     db.commit()
@@ -233,7 +237,7 @@ def registrar_movimiento(
         db: Sesión de base de datos.
         usuario: Usuario dueño del insumo.
         id_insumo: Identificador del insumo afectado.
-        datos: Tipo de movimiento, cantidad y observaciones.
+        datos: Tipo de movimiento, cantidad, costo y observaciones.
 
     Returns:
         tuple[MovimientoInsumo, Decimal]: El movimiento recién creado y el
@@ -252,15 +256,29 @@ def registrar_movimiento(
             detail="Stock insuficiente para registrar la salida",
         )
 
+    costo = datos.costo_unitario
     if datos.tipo_movimiento == "entrada":
         stock_resultante = insumo.stock_actual + datos.cantidad
+        # El costo del insumo es el promedio ponderado del stock: cada
+        # compra recalcula cuánto vale la unidad con lo que ya había.
+        if costo is not None:
+            insumo.costo_unitario = _costo_promedio(
+                insumo.stock_actual,
+                insumo.costo_unitario,
+                datos.cantidad,
+                costo,
+            )
+        costo_movimiento = costo if costo is not None else insumo.costo_unitario
     else:
         stock_resultante = insumo.stock_actual - datos.cantidad
+        # La salida se valoriza al costo promedio vigente del stock.
+        costo_movimiento = insumo.costo_unitario
 
     movimiento = MovimientoInsumo(
         id_insumo=id_insumo,
         tipo_movimiento=datos.tipo_movimiento,
         cantidad=datos.cantidad,
+        costo_unitario=costo_movimiento,
         observaciones=datos.observaciones,
     )
     insumo.stock_actual = stock_resultante
@@ -386,3 +404,27 @@ def _validar_categoria_existe(db: Session, id_categoria: int) -> None:
     categoria = db.get(CategoriaInsumo, id_categoria)
     if categoria is None:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+
+def _costo_promedio(
+    stock_actual: Decimal,
+    costo_actual: Decimal,
+    cantidad: Decimal,
+    costo_entrada: Decimal,
+) -> Decimal:
+    """Calcula el costo promedio ponderado del stock tras una entrada.
+
+    Args:
+        stock_actual: Existencia del insumo antes de la entrada.
+        costo_actual: Costo promedio vigente antes de la entrada.
+        cantidad: Cantidad que ingresa.
+        costo_entrada: Costo unitario de la compra que ingresa.
+
+    Returns:
+        Decimal: El nuevo costo promedio por unidad, redondeado a centavos.
+    """
+    nueva_cantidad = stock_actual + cantidad
+    if nueva_cantidad <= 0:
+        return costo_actual
+    valor = stock_actual * costo_actual + cantidad * costo_entrada
+    return (valor / nueva_cantidad).quantize(_CENTAVOS, rounding=ROUND_HALF_UP)

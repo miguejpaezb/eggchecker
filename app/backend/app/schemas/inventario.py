@@ -44,18 +44,21 @@ class InsumoCreate(BaseModel):
     unidad_medida: str = Field(min_length=1, max_length=20)
     stock_actual: Decimal = Field(gt=0)
     umbral_minimo: Decimal = Field(gt=0)
+    costo_unitario: Decimal = Field(default=Decimal("0.00"), ge=0)
 
 
 class InsumoUpdate(BaseModel):
     """Datos editables de un insumo existente.
 
-    Solo se puede cambiar el nombre, la unidad de medida y el umbral
-    mínimo. El stock nunca se modifica aquí: solo cambia vía movimientos.
+    Solo se puede cambiar el nombre, la unidad de medida, el umbral mínimo
+    y el costo unitario. El stock nunca se modifica aquí: solo cambia vía
+    movimientos.
     """
 
     nombre_insumo: str | None = Field(default=None, min_length=1, max_length=80)
     unidad_medida: str | None = Field(default=None, min_length=1, max_length=20)
     umbral_minimo: Decimal | None = Field(default=None, gt=0)
+    costo_unitario: Decimal | None = Field(default=None, ge=0)
 
     model_config = ConfigDict(extra="forbid")
 
@@ -70,6 +73,7 @@ class InsumoResponse(BaseModel):
     unidad_medida: str
     stock_actual: Decimal
     umbral_minimo: Decimal
+    costo_unitario: Decimal
     activo: bool
     descontinuado: bool
 
@@ -81,6 +85,7 @@ class MovimientoCreate(BaseModel):
 
     tipo_movimiento: _TIPO_MOVIMIENTO
     cantidad: Decimal = Field(gt=0)
+    costo_unitario: Decimal | None = Field(default=None, ge=0)
     observaciones: str | None = None
 
 
@@ -91,6 +96,7 @@ class MovimientoResponse(BaseModel):
     id_insumo: int
     tipo_movimiento: str
     cantidad: Decimal
+    costo_unitario: Decimal | None
     fecha_movimiento: datetime
     observaciones: str | None
     stock_resultante: Decimal
@@ -103,6 +109,7 @@ class MovimientoHistorialResponse(BaseModel):
     id_insumo: int
     tipo_movimiento: str
     cantidad: Decimal
+    costo_unitario: Decimal | None
     fecha_movimiento: datetime
     observaciones: str | None
 
