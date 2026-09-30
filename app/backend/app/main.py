@@ -5,6 +5,7 @@ from app.api.auth import router as auth_router
 from app.api.camadas import router as camadas_router
 from app.api.categorias_insumo import router as categorias_insumo_router
 from app.api.clientes import router as clientes_router
+from app.api.dashboard import router as dashboard_router
 from app.api.health import router as health_router
 from app.api.insumos import router as insumos_router
 from app.api.notificaciones import router as notificaciones_router
@@ -37,6 +38,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router, prefix="/api")
     app.include_router(auth_router, prefix="/api")
     app.include_router(usuarios_router, prefix="/api")
+    app.include_router(dashboard_router, prefix="/api")
     app.include_router(camadas_router, prefix="/api")
     app.include_router(notificaciones_router, prefix="/api")
     app.include_router(categorias_insumo_router, prefix="/api")
