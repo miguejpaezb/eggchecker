@@ -1,0 +1,385 @@
+/* ─── Página de dashboard ────────────────────────────────── */
+.ec-dashboard__nueva {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.5rem 1.5rem;
+  background-color: var(--ec-brown);
+  color: var(--ec-yellow);
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transition: background-color 0.2s ease;
+  touch-action: manipulation;
+}
+
+.ec-dashboard__nueva-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--ec-yellow);
+}
+
+/* ─── Tarjetas KPI ───────────────────────────────────────── */
+.ec-dashboard__kpis {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.ec-dashboard__kpi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-left: 4px solid var(--ec-yellow);
+}
+
+.ec-dashboard__kpi-titulo {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.ec-dashboard__kpi-valor {
+  margin: 0;
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--ec-dark);
+}
+
+.ec-dashboard__kpi-detalle {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ec-green);
+}
+
+.ec-dashboard__kpi-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: rgba(253, 195, 59, 0.25);
+}
+
+.ec-dashboard__kpi-icono-svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--ec-yellow);
+}
+
+.ec-dashboard__kpi--brown {
+  border-left-color: var(--ec-brown);
+}
+
+.ec-dashboard__kpi--brown .ec-dashboard__kpi-icono {
+  background-color: rgba(144, 94, 39, 0.2);
+}
+
+.ec-dashboard__kpi--brown .ec-dashboard__kpi-icono-svg {
+  color: var(--ec-brown);
+}
+
+.ec-dashboard__kpi--green {
+  border-left-color: var(--ec-green);
+}
+
+.ec-dashboard__kpi--green .ec-dashboard__kpi-icono {
+  background-color: rgba(124, 138, 62, 0.2);
+}
+
+.ec-dashboard__kpi--green .ec-dashboard__kpi-icono-svg {
+  color: var(--ec-green);
+}
+
+.ec-dashboard__kpi--green .ec-dashboard__kpi-detalle {
+  color: var(--ec-green);
+}
+
+.ec-dashboard__kpi--red {
+  border-left-color: #ef4444;
+}
+
+.ec-dashboard__kpi--red .ec-dashboard__kpi-valor {
+  color: #dc2626;
+}
+
+.ec-dashboard__kpi--red .ec-dashboard__kpi-detalle {
+  color: #ef4444;
+}
+
+.ec-dashboard__kpi--red .ec-dashboard__kpi-icono {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.ec-dashboard__kpi--red .ec-dashboard__kpi-icono-svg {
+  color: #e11d48;
+}
+
+/* ─── Filas de contenido ─────────────────────────────────── */
+.ec-dashboard__fila {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.ec-dashboard__card {
+  padding: 1.5rem;
+}
+
+.ec-dashboard__card-titulo {
+  margin: 0 0 1.5rem;
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--ec-brown);
+}
+
+.ec-dashboard__card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ec-dashboard__card-head .ec-dashboard__card-titulo {
+  margin: 0;
+}
+
+.ec-dashboard__card-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--ec-brown);
+}
+
+.ec-dashboard__card-icon--rojo {
+  color: #e11d48;
+}
+
+.ec-dashboard__card-titulo--rojo {
+  color: #e11d48;
+}
+
+.ec-dashboard__vacio {
+  margin: 0;
+  color: #6b7280;
+}
+
+.ec-dashboard__reintentar {
+  min-height: 40px;
+  padding: 0.5rem 1.25rem;
+  background-color: var(--ec-brown);
+  color: var(--ec-yellow);
+  font-weight: 700;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ─── Gráfico semanal ────────────────────────────────────── */
+.ec-dashboard__chart {
+  position: relative;
+  width: 100%;
+  height: 13rem;
+}
+
+/* ─── Resumen semanal ────────────────────────────────────── */
+.ec-dashboard__resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin: 0;
+}
+
+.ec-dashboard__resumen-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ec-dashboard__resumen-fila dt {
+  font-weight: 700;
+  color: rgba(44, 36, 24, 0.8);
+}
+
+.ec-dashboard__resumen-fila dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ec-dark);
+}
+
+.ec-dashboard__resumen-valor--verde {
+  color: var(--ec-green) !important;
+}
+
+.ec-dashboard__resumen-valor--rojo {
+  color: #e11d48 !important;
+}
+
+/* ─── Alertas importantes ────────────────────────────────── */
+.ec-dashboard__alertas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ec-dashboard__alerta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 0.75rem;
+}
+
+.ec-dashboard__alerta-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.ec-dashboard__alerta-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  color: #e11d48;
+}
+
+.ec-dashboard__alerta-nombre {
+  margin: 0;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.ec-dashboard__alerta-texto {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.ec-dashboard__alerta-detalle {
+  flex-shrink: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ─── Pedidos recientes ──────────────────────────────────── */
+.ec-dashboard__pedidos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ec-dashboard__pedido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f6f9f4;
+  border: 1px solid #edf3e8;
+  border-radius: 0.75rem;
+}
+
+.ec-dashboard__pedido-info {
+  min-width: 0;
+}
+
+.ec-dashboard__pedido-cliente {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ec-dark);
+}
+
+.ec-dashboard__pedido-detalle {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.ec-dashboard__estado {
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ec-dashboard__estado--pendiente {
+  background-color: #fff9e6;
+  color: #d9a300;
+}
+
+.ec-dashboard__estado--enviado {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.ec-dashboard__estado--recibido {
+  background-color: #eefcf2;
+  color: #16a34a;
+}
+
+.ec-dashboard__estado--cancelado {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+/* ─── Efectos hover solo en dispositivos con puntero ─────── */
+@media (hover: hover) {
+  .ec-dashboard__nueva:hover {
+    background-color: #68431c;
+  }
+
+  .ec-dashboard__reintentar:hover {
+    background-color: #68431c;
+  }
+}
+
+/* ─── Tablet (>=768px) ───────────────────────────────────── */
+@media (min-width: 768px) {
+  .ec-dashboard__kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ─── Escritorio (>=1024px) ──────────────────────────────── */
+@media (min-width: 1024px) {
+  .ec-dashboard__kpis {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .ec-dashboard__fila {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ec-dashboard__card--ancha {
+    grid-column: span 2;
+  }
+}

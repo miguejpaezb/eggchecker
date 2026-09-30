@@ -4,6 +4,7 @@ import AppLayout from './components/AppLayout';
 import Auth from './pages/Auth';
 import Camadas from './pages/Camadas';
 import Clientes from './pages/Clientes';
+import Dashboard from './pages/Dashboard';
 import Inventario from './pages/Inventario';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 import Produccion from './pages/Produccion';
@@ -19,10 +20,7 @@ function App() {
       <Route path="/recuperar" element={<Auth mode="recuperar" />} />
 
       <Route element={<AppLayout />}>
-        <Route
-          path="/dashboard"
-          element={<ModulePlaceholder title="Dashboard" />}
-        />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/produccion" element={<Produccion />} />
         <Route path="/camadas" element={<Camadas />} />
         <Route path="/inventario" element={<Inventario />} />
