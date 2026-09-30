@@ -2,6 +2,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 
 import AlertasImportantesCard from '../components/dashboard/AlertasImportantesCard';
 import KpiCard from '../components/dashboard/KpiCard';
+import KpiCarrusel from '../components/dashboard/KpiCarrusel';
 import PedidosRecientesCard from '../components/dashboard/PedidosRecientesCard';
 import ProduccionSemanalChart from '../components/dashboard/ProduccionSemanalChart';
 import ResumenSemanalCard from '../components/dashboard/ResumenSemanalCard';
@@ -52,7 +53,14 @@ function Dashboard() {
 
       {!cargando && !error && datos && (
         <>
-          <div className="ec-dashboard__kpis">
+          <KpiCarrusel
+            etiquetas={[
+              'Producción Hoy',
+              'Aves activas',
+              'Pendientes',
+              'Alertas',
+            ]}
+          >
             <KpiCard
               titulo="Producción Hoy"
               valor={formatoNumero(datos.produccion_hoy)}
@@ -81,7 +89,7 @@ function Dashboard() {
               icono="/assets/icons/warning-icon.svg"
               tono="red"
             />
-          </div>
+          </KpiCarrusel>
 
           <div className="ec-dashboard__fila">
             <section className="ec-glass-card ec-dashboard__card ec-dashboard__card--ancha">
