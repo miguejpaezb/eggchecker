@@ -45,6 +45,11 @@ function AppLayout() {
 
   const abrirMenu = useCallback(() => setMenuAbierto(true), []);
   const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
+  const recargarPerfil = useCallback(async () => {
+    const datos = await obtenerPerfil();
+    setPerfil(datos);
+    return datos;
+  }, []);
   const handleLogout = useCallback(() => {
     cerrarSesion();
     navigate('/login', { replace: true });
@@ -78,7 +83,7 @@ function AppLayout() {
           />
         )}
         <main className="ec-main">
-          <Outlet context={perfil} />
+          <Outlet context={{ perfil, recargarPerfil }} />
         </main>
       </div>
     </div>

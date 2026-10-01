@@ -7,6 +7,7 @@ import Clientes from './pages/Clientes';
 import Dashboard from './pages/Dashboard';
 import Inventario from './pages/Inventario';
 import ModulePlaceholder from './pages/ModulePlaceholder';
+import Perfil from './pages/Perfil';
 import Produccion from './pages/Produccion';
 import Reportes from './pages/Reportes';
 import Ventas from './pages/Ventas';
@@ -31,7 +32,7 @@ function App() {
           element={<ModulePlaceholder title="Análisis IA" />}
         />
         <Route path="/reportes" element={<Reportes />} />
-        <Route path="/perfil" element={<ModulePlaceholder title="Perfil" />} />
+        <Route path="/perfil" element={<Perfil />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

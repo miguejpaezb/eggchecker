@@ -34,18 +34,18 @@ INSERT INTO categoria_insumo (nombre_categ, descripcion) VALUES
 -- Contraseña de prueba: Test1234! (bcrypt hash de ejemplo)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO usuario
-  (nombre_completo, correo_electronico, contrasena_hash, telefono, plan_suscripcion, fecha_registro)
+  (nombre_completo, correo_electronico, contrasena_hash, telefono, nombre_granja, plan_suscripcion, fecha_registro)
 VALUES
-  ('Brian Gonzalo Suárez Acevedo',  'brian.suarez@soy.sena.edu.co',   '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3001234567', 'premium',  '2025-07-01'),
-  ('Lucía Fernanda Torres Ríos',    'lucia.torres@gmail.com',          '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3112345678', 'premium',  '2025-08-15'),
-  ('Carlos Andrés Mejía Vargas',    'carlos.mejia@hotmail.com',        '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3209876543', 'gratuito', '2025-09-01'),
-  ('María Isabel Cano Ospina',      'maria.cano@yahoo.com',            '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3154567890', 'premium',  '2025-10-10'),
-  ('Jorge Ernesto Patiño Gómez',    'jorge.patino@gmail.com',          '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3187654321', 'gratuito', '2025-11-20'),
-  ('Sandra Milena Rojas Herrera',   'sandra.rojas@outlook.com',        '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3001112233', 'premium',  '2026-01-05'),
-  ('Andrés Felipe Mora Castillo',   'andres.mora@gmail.com',           '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3123334455', 'gratuito', '2026-01-18'),
-  ('Diana Carolina Peña Salazar',   'diana.pena@gmail.com',            '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3045556677', 'premium',  '2026-02-01'),
-  ('Héctor Fabio Zuluaga Arango',   'hector.zuluaga@hotmail.com',      '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3178889900', 'gratuito', '2026-02-14'),
-  ('Paula Andrea Ríos Montoya',     'paula.rios@outlook.com',          '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3209991122', 'gratuito', '2026-03-01');
+  ('Brian Gonzalo Suárez Acevedo',  'brian.suarez@soy.sena.edu.co',   '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3001234567', 'Granja El Paraíso',   'premium',  '2025-07-01'),
+  ('Lucía Fernanda Torres Ríos',    'lucia.torres@gmail.com',          '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3112345678', 'Finca La Esperanza',  'premium',  '2025-08-15'),
+  ('Carlos Andrés Mejía Vargas',    'carlos.mejia@hotmail.com',        '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3209876543', 'Granja Los Alisos',   'gratuito', '2025-09-01'),
+  ('María Isabel Cano Ospina',      'maria.cano@yahoo.com',            '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3154567890', 'Avícola San Rafael',  'premium',  '2025-10-10'),
+  ('Jorge Ernesto Patiño Gómez',    'jorge.patino@gmail.com',          '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3187654321', 'Granja La Montaña',   'gratuito', '2025-11-20'),
+  ('Sandra Milena Rojas Herrera',   'sandra.rojas@outlook.com',        '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3001112233', 'Finca El Roble',      'premium',  '2026-01-05'),
+  ('Andrés Felipe Mora Castillo',   'andres.mora@gmail.com',           '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3123334455', 'Granja Las Palmas',   'gratuito', '2026-01-18'),
+  ('Diana Carolina Peña Salazar',   'diana.pena@gmail.com',            '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3045556677', 'Avícola La Colina',   'premium',  '2026-02-01'),
+  ('Héctor Fabio Zuluaga Arango',   'hector.zuluaga@hotmail.com',      '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3178889900', 'Granja El Mirador',   'gratuito', '2026-02-14'),
+  ('Paula Andrea Ríos Montoya',     'paula.rios@outlook.com',          '$2b$10$exampleHashForTestingPurposesOnlyXXXXXXXXX', '3209991122', 'Finca Los Cerezos',   'gratuito', '2026-03-01');
 
 
 -- ─────────────────────────────────────────────────────────────

@@ -9,8 +9,8 @@
 --    * PROCEDURES sp_* -> no aplican en SQLite; la lógica de negocio
 --                          se implementa en app/backend/services/
 --    * TRIGGER trg_*   -> no se portan en S0 (se decide en S1+)
---  Regla: los cambios al esquema canónico se hacen PRIMERO en
---  supporting_documentation/context/ y luego se reflejan aquí.
+--  Regla: los cambios al esquema canónico se reflejan primero en el
+--  modelo de datos y luego aquí.
 -- ============================================================
 
 PRAGMA foreign_keys = ON;
@@ -28,9 +28,14 @@ CREATE TABLE usuario (
   correo_electronico TEXT         NOT NULL,
   contrasena_hash    TEXT         NOT NULL,
   telefono           TEXT         NULL,
+  nombre_granja      TEXT         NULL,
   plan_suscripcion   TEXT         NOT NULL DEFAULT 'gratuito',
   fecha_registro     TEXT         NOT NULL,
   activo             INTEGER      NOT NULL DEFAULT 1,
+  notif_produccion_baja  INTEGER  NOT NULL DEFAULT 1,
+  notif_stock_bajo       INTEGER  NOT NULL DEFAULT 1,
+  notif_vacunacion       INTEGER  NOT NULL DEFAULT 0,
+  notif_resumen_semanal  INTEGER  NOT NULL DEFAULT 1,
   CONSTRAINT uq_usuario_correo UNIQUE (correo_electronico),
   CONSTRAINT chk_usuario_plan
     CHECK (plan_suscripcion IN ('gratuito','premium'))

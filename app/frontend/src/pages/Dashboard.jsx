@@ -17,7 +17,7 @@ import { formatoNumero } from '../utils/reportes';
  */
 function Dashboard() {
   const { datos, cargando, error, recargar } = useDashboard();
-  const perfil = useOutletContext();
+  const { perfil } = useOutletContext();
   const nombre = perfil?.nombre_completo ?? 'avicultor';
 
   return (

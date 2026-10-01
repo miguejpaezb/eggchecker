@@ -7,6 +7,19 @@ _PLANES_VALIDOS = ("gratuito", "premium")
 _PLAN_POR_DEFECTO = "gratuito"
 
 
+def _validar_contrasena_segura(valor: str) -> str:
+    """Exige una contraseña sin espacios, con mayúscula, número y símbolo."""
+    if any(c.isspace() for c in valor):
+        raise ValueError("La contraseña no puede contener espacios en blanco")
+    if not any(c.isupper() for c in valor):
+        raise ValueError("Debe contener al menos una mayúscula")
+    if not any(c.isdigit() for c in valor):
+        raise ValueError("Debe contener al menos un número")
+    if not any(not c.isalnum() for c in valor):
+        raise ValueError("Debe contener al menos un símbolo")
+    return valor
+
+
 class RegistroRequest(BaseModel):
     """Datos de entrada para registrar un avicultor nuevo."""
 
@@ -19,16 +32,8 @@ class RegistroRequest(BaseModel):
     @field_validator("contrasena")
     @classmethod
     def _contrasena_segura(cls, valor: str) -> str:
-        """Exige una contraseña sin espacios, con mayúscula, número y símbolo."""
-        if any(c.isspace() for c in valor):
-            raise ValueError("La contraseña no puede contener espacios en blanco")
-        if not any(c.isupper() for c in valor):
-            raise ValueError("Debe contener al menos una mayúscula")
-        if not any(c.isdigit() for c in valor):
-            raise ValueError("Debe contener al menos un número")
-        if not any(not c.isalnum() for c in valor):
-            raise ValueError("Debe contener al menos un símbolo")
-        return valor
+        """Valida la fortaleza de la contraseña de registro."""
+        return _validar_contrasena_segura(valor)
 
     @field_validator("plan_suscripcion", mode="before")
     @classmethod
@@ -77,6 +82,7 @@ class UsuarioResponse(BaseModel):
     nombre_completo: str
     correo_electronico: EmailStr
     telefono: str | None
+    nombre_granja: str | None = None
     plan_suscripcion: str
     fecha_registro: date
     activo: bool
@@ -93,6 +99,12 @@ class RecuperarResponse(BaseModel):
     mensaje: str
 
 
+class MensajeResponse(BaseModel):
+    """Respuesta genérica con un mensaje para el usuario."""
+
+    mensaje: str
+
+
 class PerfilResponse(UsuarioResponse):
     """Perfil del usuario autenticado con los límites de su plan."""
 
@@ -102,3 +114,45 @@ class PerfilResponse(UsuarioResponse):
     ia_incluida: bool
     aves_actuales: int
     clientes_actuales: int
+    total_huevos_producidos: int
+    total_aves_gestionadas: int
+    notif_produccion_baja: bool
+    notif_stock_bajo: bool
+    notif_vacunacion: bool
+    notif_resumen_semanal: bool
+
+
+class PerfilUpdateRequest(BaseModel):
+    """Datos editables del perfil y de la granja del avicultor.
+
+    `contrasena_actual` es obligatoria solo cuando se cambia el correo:
+    ese cambio cierra la sesión y obliga a un nuevo inicio de sesión.
+    """
+
+    nombre_completo: str = Field(min_length=2, max_length=100)
+    correo_electronico: EmailStr
+    telefono: str | None = None
+    nombre_granja: str | None = Field(default=None, max_length=100)
+    contrasena_actual: str | None = None
+
+
+class NotificacionesUpdateRequest(BaseModel):
+    """Preferencias de alertas que el avicultor puede activar o desactivar."""
+
+    notif_produccion_baja: bool
+    notif_stock_bajo: bool
+    notif_vacunacion: bool
+    notif_resumen_semanal: bool
+
+
+class CambiarContrasenaRequest(BaseModel):
+    """Datos para cambiar la contraseña del usuario autenticado."""
+
+    contrasena_actual: str
+    contrasena_nueva: str = Field(min_length=8, max_length=72)
+
+    @field_validator("contrasena_nueva")
+    @classmethod
+    def _contrasena_segura(cls, valor: str) -> str:
+        """Valida la fortaleza de la contraseña nueva."""
+        return _validar_contrasena_segura(valor)

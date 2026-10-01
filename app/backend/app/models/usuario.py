@@ -31,8 +31,22 @@ class Usuario(Base):
     )
     contrasena_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     telefono: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    nombre_granja: Mapped[str | None] = mapped_column(String(100), nullable=True)
     plan_suscripcion: Mapped[str] = mapped_column(
         String(20), nullable=False, default="gratuito"
     )
     fecha_registro: Mapped[date] = mapped_column(Date, nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # Preferencias de alertas del avicultor; el envío real aún no existe.
+    notif_produccion_baja: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    notif_stock_bajo: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    notif_vacunacion: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    notif_resumen_semanal: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
