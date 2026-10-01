@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;500&display=swap');
+
+:root {
+  --ec-brown: #905e27;
+  --ec-yellow: #fdc33b;
+  --ec-yellow-hover: #eab332;
+  --ec-green: #7c8a3e;
+  --ec-cream: #f5f1ea;
+  --ec-clay: #e8e1d3;
+  --ec-smoke: #f0f0f0;
+  --ec-dark: #2c2418;
+  --ec-input-bg: #fafafa;
+  --ec-border: #e5e7eb;
+  --ec-placeholder: #9ca3af;
+  --ec-font-heading: 'Poppins', sans-serif;
+  --ec-font-body: 'Roboto', sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ec-font-body);
+  background-color: var(--ec-cream);
+  color: var(--ec-dark);
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
