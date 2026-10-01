@@ -1,0 +1,213 @@
+/* ─── Punto rojo de la campanita ─────────────────────────── */
+.ec-topbar__icon-btn {
+  position: relative;
+}
+
+.ec-topbar__dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background-color: #fdc33b;
+  border: 2px solid var(--ec-brown);
+}
+
+/* ─── Panel desplegable de notificaciones ────────────────── */
+.ec-notif-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 20rem;
+  max-width: calc(100vw - 1rem);
+  z-index: 50;
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.2),
+    0 8px 10px -6px rgb(0 0 0 / 0.2);
+  animation: ec-profile-enter 0.2s ease;
+}
+
+.ec-notif-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ec-notif-panel__title {
+  margin: 0;
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ec-brown);
+}
+
+.ec-notif__marcar-todas {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  color: var(--ec-brown);
+  font-family: var(--ec-font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ec-notif__marcar-todas:disabled {
+  color: #9ca3af;
+  cursor: default;
+}
+
+.ec-notif__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 0.5rem;
+  text-align: center;
+}
+
+.ec-notif__vacio-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #9ca3af;
+}
+
+.ec-notif__vacio-texto {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.ec-notif__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.ec-notif-card {
+  padding: 0.875rem;
+  background-color: #ffffff;
+  border: 1px solid var(--ec-border);
+  border-radius: 0.75rem;
+}
+
+.ec-notif-card--leida {
+  background-color: #f9fafb;
+}
+
+.ec-notif-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ec-notif-card__titulo {
+  margin: 0;
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ec-dark);
+}
+
+.ec-notif-card__cerrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ec-notif-card__mensaje {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.ec-notif-card__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ec-notif-card__btn {
+  flex: 1;
+  min-height: 40px;
+  padding: 0.4rem 0.5rem;
+  background-color: #ffffff;
+  border: 1px solid var(--ec-border);
+  border-radius: 0.5rem;
+  color: var(--ec-brown);
+  font-family: var(--ec-font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ec-notif-card__btn--primary {
+  background-color: var(--ec-brown);
+  border-color: var(--ec-brown);
+  color: #fcc33c;
+}
+
+.ec-notif-card__leida {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+@media (hover: hover) {
+  .ec-notif__marcar-todas:hover:not(:disabled) {
+    color: var(--ec-yellow);
+  }
+
+  .ec-notif-card__cerrar:hover {
+    background-color: #f3f4f6;
+    color: var(--ec-dark);
+  }
+
+  .ec-notif-card__btn:hover {
+    background-color: #f9fafb;
+  }
+
+  .ec-notif-card__btn--primary:hover {
+    background-color: #68431c;
+  }
+}
+
+/* ─── Móvil: ancho completo con un margen a cada lado ────── */
+@media (max-width: 767px) {
+  .ec-notif-panel {
+    position: fixed;
+    top: calc(60px + 0.5rem);
+    left: 0.5rem;
+    right: 0.5rem;
+    width: auto;
+    max-width: none;
+  }
+}

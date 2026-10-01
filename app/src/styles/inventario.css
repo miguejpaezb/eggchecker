@@ -1,0 +1,448 @@
+/* ─── Página de inventario ───────────────────────────────── */
+.ec-inventario__head {
+  align-items: flex-start;
+}
+
+.ec-inventario__filtros {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ec-buscador {
+  position: relative;
+  width: 100%;
+}
+
+.ec-buscador__input {
+  width: 100%;
+  padding: 0.75rem 2.75rem 0.75rem 1rem;
+  background-color: #fcfcfc;
+  border: 1px solid var(--ec-border);
+  border-radius: 0.75rem;
+  color: var(--ec-dark);
+  font-family: var(--ec-font-body);
+  font-size: 0.95rem;
+}
+
+.ec-buscador__input:focus {
+  outline: none;
+  border-color: var(--ec-brown);
+}
+
+.ec-buscador__icono {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.ec-inventario__filtros-derecha {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.75rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+.ec-inventario__filtros-derecha .ec-filtro {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  justify-content: space-between;
+}
+
+.ec-inventario__filtros-derecha .ec-filtro__select {
+  min-width: 0;
+}
+
+.ec-inventario__acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+.ec-inventario__acciones .ec-btn {
+  width: 100%;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+/* En móvil el alta de insumo vive dentro de la barra de filtros. */
+.ec-inventario__btn-nuevo,
+.ec-inventario__btn-categoria {
+  display: none;
+}
+
+.ec-inventario__limpiar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0;
+  background-color: #fcfcfc;
+  border: 1px solid var(--ec-border);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ec-inventario__limpiar-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--ec-brown);
+}
+
+.ec-inventario__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+/* ─── Botón secundario (Categoría) ───────────────────────── */
+.ec-btn--secondary {
+  background-color: var(--ec-yellow);
+  color: var(--ec-brown);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.ec-btn__icon-dark {
+  width: 1rem;
+  height: 1rem;
+  color: var(--ec-brown);
+}
+
+/* ─── Tarjeta de insumo ──────────────────────────────────── */
+.ec-insumo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+
+.ec-insumo-card--sin-stock {
+  background-color: rgba(225, 29, 72, 0.07);
+}
+
+.ec-insumo-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.ec-insumo-card__name {
+  margin: 0;
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--ec-brown);
+}
+
+.ec-insumo-card__meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.ec-insumo-card__aside {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ec-insumo-badge {
+  padding: 0.2rem 0.5rem;
+  background-color: rgba(253, 195, 59, 0.35);
+  color: #92610a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.ec-insumo-card__stock {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.ec-insumo-bar {
+  width: 100%;
+  height: 0.625rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.ec-insumo-bar__fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.ec-insumo-bar__fill--optimo {
+  background-color: var(--ec-green);
+}
+
+.ec-insumo-bar__fill--bajo {
+  background-color: var(--ec-yellow);
+}
+
+.ec-insumo-bar__fill--critico {
+  background-color: #e11d48;
+}
+
+.ec-insumo-bar__fill--sin_stock {
+  background-color: #9ca3af;
+}
+
+.ec-insumo-card__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ec-insumo-card__more-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ─── Resumen del insumo en "Añadir Stock" ───────────────── */
+.ec-stock-resumen {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--ec-cream);
+  border-radius: 0.75rem;
+}
+
+.ec-stock-resumen__nombre {
+  margin: 0;
+  font-family: var(--ec-font-heading);
+  font-weight: 700;
+  color: var(--ec-brown);
+}
+
+.ec-stock-resumen__dato {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+/* ─── Modal de categorías ────────────────────────────────── */
+.ec-categorias__form {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ec-border);
+}
+
+.ec-categorias__campos {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ec-categorias__lista {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.ec-categorias__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--ec-border);
+  border-radius: 0.75rem;
+}
+
+.ec-categorias__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ec-categorias__nombre {
+  font-weight: 700;
+  color: var(--ec-dark);
+}
+
+.ec-categorias__descripcion {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.ec-categorias__acciones {
+  display: flex;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.ec-categorias__btn {
+  padding: 0.35rem 0.6rem;
+  background: none;
+  border: 1px solid var(--ec-border);
+  border-radius: 0.5rem;
+  color: var(--ec-brown);
+  font-family: var(--ec-font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ec-categorias__btn--danger {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* ─── Autocompletado de categoría ────────────────────────── */
+.ec-autocomplete {
+  position: relative;
+}
+
+.ec-autocomplete__lista {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1px solid var(--ec-border);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.2),
+    0 8px 10px -6px rgb(0 0 0 / 0.2);
+}
+
+.ec-autocomplete__item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  text-align: left;
+  font-family: var(--ec-font-body);
+  font-size: 0.9rem;
+  color: var(--ec-dark);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ─── Hover solo con puntero ─────────────────────────────── */
+@media (hover: hover) {
+  .ec-autocomplete__item:hover {
+    background-color: #f3f4f6;
+  }
+
+  .ec-btn--secondary:hover {
+    background-color: #eab332;
+  }
+
+  .ec-inventario__limpiar:hover {
+    background-color: #f3f4f6;
+  }
+
+  .ec-insumo-card__more:hover {
+    background-color: #f3f4f6;
+    color: var(--ec-dark);
+  }
+
+  .ec-categorias__btn:hover {
+    background-color: #f9fafb;
+  }
+
+  .ec-categorias__btn--danger:hover {
+    background-color: #fef2f2;
+  }
+}
+
+/* ─── Tablet / escritorio ────────────────────────────────── */
+@media (min-width: 768px) {
+  .ec-categorias__campos {
+    flex-direction: row;
+  }
+
+  .ec-categorias__campos .ec-form__field {
+    flex: 1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ec-inventario__filtros {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ec-buscador {
+    width: 33%;
+  }
+
+  .ec-inventario__filtros-derecha {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: auto;
+  }
+
+  .ec-inventario__filtros-derecha .ec-filtro {
+    width: auto;
+  }
+
+  .ec-inventario__btn-nuevo {
+    display: inline-flex;
+  }
+
+  .ec-inventario__btn-categoria {
+    display: inline-flex;
+  }
+
+  .ec-inventario__acciones {
+    display: none;
+  }
+
+  .ec-inventario__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
