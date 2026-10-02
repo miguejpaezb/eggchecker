@@ -1,6 +1,6 @@
 # EggChecker API — Documentación de servicios web
 
-API REST del proyecto **EggChecker**, construida con **FastAPI + SQLAlchemy + Pydantic**. Expone los servicios necesarios para la gestión avícola: autenticación, camadas, inventario de insumos, producción diaria, clientes, ventas, reportes y notificaciones.
+API REST del proyecto **EggChecker**, construida con **FastAPI + SQLAlchemy + Pydantic**. Expone los servicios necesarios para la gestión avícola: autenticación, perfil, camadas, inventario de insumos, producción diaria, clientes, ventas, reportes, notificaciones y dashboard.
 
 - **URL base (desarrollo):** `http://127.0.0.1:8000/api`
 - **Swagger UI (interactivo):** `http://127.0.0.1:8000/docs`
@@ -111,14 +111,16 @@ En errores de validación automática (**422**) `detail` es una lista de campos 
 |---|---|---|---|---|
 | 1 | Health (estado) | este README | 1 | No |
 | 2 | Autenticación y usuarios | [auth.md](auth.md) | 4 | Mixto |
-| 3 | Camadas | [camadas.md](camadas.md) | 9 | Sí |
-| 4 | Inventario (categorías, insumos, movimientos) | [inventario.md](inventario.md) | 15 | Sí |
-| 5 | Producción | [produccion.md](produccion.md) | 5 | Sí |
-| 6 | Clientes | [clientes.md](clientes.md) | 7 | Sí |
-| 7 | Ventas (stock y pedidos) | [ventas.md](ventas.md) | 8 | Sí |
-| 8 | Reportes | [reportes.md](reportes.md) | 2 | Sí |
-| 9 | Notificaciones | [notificaciones.md](notificaciones.md) | 4 | Sí |
-| | **Total** | | **55** | |
+| 3 | Perfil | [perfil.md](perfil.md) | 3 | Sí |
+| 4 | Camadas | [camadas.md](camadas.md) | 9 | Sí |
+| 5 | Inventario (categorías, insumos, movimientos) | [inventario.md](inventario.md) | 15 | Sí |
+| 6 | Producción | [produccion.md](produccion.md) | 5 | Sí |
+| 7 | Clientes | [clientes.md](clientes.md) | 7 | Sí |
+| 8 | Ventas (stock y pedidos) | [ventas.md](ventas.md) | 8 | Sí |
+| 9 | Reportes | [reportes.md](reportes.md) | 2 | Sí |
+| 10 | Notificaciones | [notificaciones.md](notificaciones.md) | 4 | Sí |
+| 11 | Dashboard | [dashboard.md](dashboard.md) | 1 | Sí |
+| | **Total** | | **59** | |
 
 ### 5.1 Health
 
@@ -158,6 +160,9 @@ La API valida en **tres niveles** complementarios:
 | Auth | Correo no duplicado | 409 `El correo ya está registrado` |
 | Auth | Contraseña: sin espacios, 1 mayúscula, 1 número, 1 símbolo, 8–72 caracteres | 422 |
 | Auth | Plan válido (`gratuito`/`premium`) | 422 |
+| Perfil | Cambio de correo exige la contraseña actual | 401 `La contraseña actual es incorrecta` |
+| Perfil | Nuevo correo no duplicado | 409 `El correo ya está registrado` |
+| Perfil | Contraseña nueva: 8–72, sin espacios, 1 mayúscula, 1 número, 1 símbolo | 422 |
 | Camadas | Fecha de ingreso solo hoy o ayer | 400 `La fecha de ingreso solo puede ser hoy o ayer` |
 | Camadas | Límite de aves del plan | 400 `Límite de aves del plan alcanzado` |
 | Camadas | Cantidad inicial editable solo dentro de 24 h | 400 `La cantidad inicial no se puede editar: la camada se registró hace más de 24 horas` |
@@ -203,6 +208,7 @@ curl $BASE/usuarios/me -H "Authorization: Bearer $TOKEN"
 ## 8. Índice
 
 - [Autenticación y usuarios](auth.md)
+- [Perfil](perfil.md)
 - [Camadas](camadas.md)
 - [Inventario](inventario.md)
 - [Producción](produccion.md)
@@ -210,4 +216,6 @@ curl $BASE/usuarios/me -H "Authorization: Bearer $TOKEN"
 - [Ventas](ventas.md)
 - [Reportes](reportes.md)
 - [Notificaciones](notificaciones.md)
+- [Dashboard](dashboard.md)
+- [Ejemplos de solicitudes y respuestas](ejemplos.md)
 - [Resumen general](RESUMEN.md)

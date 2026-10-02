@@ -20,6 +20,8 @@ Aplicación web para avicultores que centraliza la gestión de camadas, inventar
 - **Ventas** — clientes, pedidos y detalle de pedidos con descuento de stock.
 - **Reportes** — consolidado de rentabilidad por período con exportación a PDF.
 - **Notificaciones** — alertas de stock de insumos y recordatorios de decisión de camada.
+- **Dashboard** — indicadores de producción del día, aves activas, pedidos pendientes, alertas y resumen semanal.
+- **Perfil** — datos personales y de la granja, preferencias de alertas, seguridad de la cuenta y detalle del plan.
 - **Inteligencia** — módulo premium que analiza imágenes de huevos con IA (pendiente).
 - **API REST** — backend reutilizable por aplicaciones web y móviles.
 
@@ -78,6 +80,9 @@ pytest
 ruff check app/ scripts/ tests/
 black --check app/ scripts/ tests/
 
+# Verificación de humo del CRUD de clientes (base temporal, sin servidor)
+python -m scripts.smoke_crud
+
 # Frontend (desde app/frontend)
 npm run lint                      # ESLint (Airbnb) sobre src/
 npm run format:check              # Prettier sobre src/
@@ -97,12 +102,12 @@ npm run build
 | Ventas (pedidos) | ✅ | ✅ | Stock vendible, pedidos con descuento de stock y cambio de estado |
 | Reportes | ✅ | ✅ | Consolidado de rentabilidad por período y exportación a PDF |
 | Notificaciones | ✅ | ✅ | Alertas de stock y recordatorios de decisión de camada |
+| Dashboard | ✅ | ✅ | Indicadores del día, producción semanal, alertas y pedidos recientes |
+| Perfil | ✅ | ✅ | Datos personales y de la granja, preferencias de alertas, seguridad y plan |
 | Inteligencia Premium (IA) | ⬜ | ⬜ | Análisis de imágenes de huevos con IA (tabla `analisis_ia` creada) |
-| Dashboard | — | ⬜ | Indicadores generales (placeholder) |
-| Perfil | — | ⬜ | Gestión de la cuenta y plan (placeholder) |
 | App móvil Android | ⬜ | ⬜ | Kotlin + Jetpack Compose sobre la misma API REST |
 
-> Leyenda: ✅ implementado · ⬜ pendiente · — no aplica (solo frontend).
+> Leyenda: ✅ implementado · ⬜ pendiente.
 
 ## 📚 Documentación
 
@@ -110,8 +115,13 @@ Para detalles extensos y técnicos, consulta la documentación en [`docs/`](docs
 
 - [Estándares de codificación](docs/Coding_Standards.md) — convenciones de Python, JavaScript/React y SQL.
 - [Documentación de la API](docs/api/README.md) — guía general, autenticación, convenciones y matriz de validaciones.
-- [Resumen de la API](docs/api/RESUMEN.md) — visión general de los 55 endpoints por módulo.
-- Documentación detallada por módulo: [auth](docs/api/auth.md), [camadas](docs/api/camadas.md), [inventario](docs/api/inventario.md), [producción](docs/api/produccion.md), [clientes](docs/api/clientes.md), [ventas](docs/api/ventas.md), [reportes](docs/api/reportes.md), [notificaciones](docs/api/notificaciones.md).
+- [Resumen de la API](docs/api/RESUMEN.md) — visión general de los 59 endpoints por módulo.
+- [Ejemplos de la API](docs/api/ejemplos.md) — solicitudes y respuestas de ejemplo.
+- Documentación detallada por módulo: [auth](docs/api/auth.md), [perfil](docs/api/perfil.md), [camadas](docs/api/camadas.md), [inventario](docs/api/inventario.md), [producción](docs/api/produccion.md), [clientes](docs/api/clientes.md), [ventas](docs/api/ventas.md), [reportes](docs/api/reportes.md), [notificaciones](docs/api/notificaciones.md), [dashboard](docs/api/dashboard.md).
+
+## 🤝 Contribuir
+
+Consulta la [guía de contribución](CONTRIBUTING.md) para el flujo de ramas, Pull Requests y mensajes de commit.
 
 ---
 
