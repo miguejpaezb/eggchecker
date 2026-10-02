@@ -266,6 +266,8 @@ Content-Type: application/json
 
 ## 4. Producción diaria
 
+> **Requisitos:** la camada debe estar **activa** y tener **≥ 28 semanas** (etapa de producción), y `fecha_recoleccion` debe ser la **fecha actual**.
+
 **Solicitud**
 
 ```http
@@ -404,7 +406,8 @@ Content-Type: application/json
 
 | Situación | Código | Respuesta |
 |---|---|---|
-| Sin token o token inválido | 401 | `{"detail": "No autenticado"}` |
+| Sin token | 401 | `{"detail": "No autenticado"}` |
+| Token inválido o expirado | 401 | `{"detail": "Token inválido o expirado"}` |
 | Recurso inexistente o de otro usuario | 404 | `{"detail": "Cliente no encontrado"}` |
 | Correo o categoría duplicados | 409 | `{"detail": "El correo ya está registrado"}` |
 | Regla de negocio incumplida | 400 | `{"detail": "Stock insuficiente para registrar la salida"}` |
