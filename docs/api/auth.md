@@ -156,6 +156,7 @@ Devuelve el perfil del usuario autenticado junto con los límites y el uso actua
   "nombre_completo": "Ana Avicultora",
   "correo_electronico": "ana@example.com",
   "telefono": "3001234567",
+  "nombre_granja": "Granja La Esperanza",
   "plan_suscripcion": "gratuito",
   "fecha_registro": "2026-09-25",
   "activo": true,
@@ -164,7 +165,13 @@ Devuelve el perfil del usuario autenticado junto con los límites y el uso actua
   "clientes_max": 10,
   "ia_incluida": false,
   "aves_actuales": 85,
-  "clientes_actuales": 3
+  "clientes_actuales": 3,
+  "total_huevos_producidos": 4230,
+  "total_aves_gestionadas": 118,
+  "notif_produccion_baja": true,
+  "notif_stock_bajo": true,
+  "notif_vacunacion": false,
+  "notif_resumen_semanal": true
 }
 ```
 
@@ -175,6 +182,7 @@ Devuelve el perfil del usuario autenticado junto con los límites y el uso actua
 | `ia_incluida` | Si el plan habilita el módulo de IA. |
 | `aves_actuales` | Suma de `cantidad_actual` de las camadas activas. |
 | `clientes_actuales` | Total de clientes del usuario. |
+| `nombre_granja`, `total_huevos_producidos`, `total_aves_gestionadas`, `notif_*` | Campos del módulo de perfil; ver [perfil.md](perfil.md). |
 
 ```bash
 curl http://127.0.0.1:8000/api/usuarios/me -H "Authorization: Bearer $TOKEN"
