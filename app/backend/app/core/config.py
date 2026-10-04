@@ -23,7 +23,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./eggchecker.db"
     JWT_SECRET_KEY: str = "cambiar-esta-llave-en-produccion"
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_MINUTES: int = 60
+    # 129600 minutos = 90 días: la sesión móvil se mantiene hasta 3 meses.
+    JWT_EXPIRE_MINUTES: int = 129600
     RECOVERY_TOKEN_EXPIRE_MINUTES: int = 30
     FRONTEND_URL: str = "http://localhost:5173"
 
