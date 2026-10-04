@@ -17,7 +17,7 @@
 
 EggChecker es una aplicación web para avicultores que centraliza la gestión de camadas, inventario de insumos, producción diaria, ventas y reportes. Su backend es una **API REST** reutilizable por la web y por el futuro cliente móvil.
 
-Esta API se construyó con **FastAPI** (Python) siguiendo el patrón de capas: **routers → services → models**, con **Pydantic** para la validación de datos y **SQLAlchemy** como ORM. Expone **55 endpoints** agrupados en **9 módulos funcionales**.
+Esta API se construyó con **FastAPI** (Python) siguiendo el patrón de capas: **routers → services → models**, con **Pydantic** para la validación de datos y **SQLAlchemy** como ORM. Expone **59 endpoints** agrupados en **módulos funcionales** (Health, Autenticación y usuarios, Perfil, Camadas, Inventario, Producción, Clientes, Ventas, Reportes, Notificaciones y Dashboard).
 
 | Aspecto | Valor |
 |---|---|
@@ -90,14 +90,16 @@ Todos los endpoints requieren token **excepto** `health`, `auth/registro`, `auth
 |---|---|---|---|
 | 1 | Health | 1 | Comprueba que la API está operativa. |
 | 2 | Autenticación y usuarios | 4 | Registro, login, recuperación y perfil con límites del plan. |
-| 3 | Camadas | 9 | CRUD, mortalidad, edad, retiro y ciclo de vida del lote. |
-| 4 | Inventario | 15 | Categorías, insumos, movimientos de stock y alertas de umbral. |
-| 5 | Producción | 5 | Recolección diaria por tipo de huevo, resumen y disponibles. |
-| 6 | Clientes | 7 | CRUD, suspensión/activación y eliminación con contraseña. |
-| 7 | Ventas | 8 | Stock vendible y gestión completa de pedidos. |
-| 8 | Reportes | 2 | Consolidado de rentabilidad y exportación a PDF. |
-| 9 | Notificaciones | 4 | Alertas de stock y recordatorios de camada. |
-| | **Total** | **55** | |
+| 3 | Perfil | 3 | Datos personales/granja, preferencias de alertas y cambio de contraseña. |
+| 4 | Camadas | 9 | CRUD, mortalidad, edad, retiro y ciclo de vida del lote. |
+| 5 | Inventario | 15 | Categorías, insumos, movimientos de stock y alertas de umbral. |
+| 6 | Producción | 5 | Recolección diaria por tipo de huevo, resumen y disponibles. |
+| 7 | Clientes | 7 | CRUD, suspensión/activación y eliminación con contraseña. |
+| 8 | Ventas | 8 | Stock vendible y gestión completa de pedidos. |
+| 9 | Reportes | 2 | Consolidado de rentabilidad y exportación a PDF. |
+| 10 | Notificaciones | 4 | Alertas de stock y recordatorios de camada. |
+| 11 | Dashboard | 1 | KPI, producción semanal, alertas y pedidos recientes. |
+| | **Total** | **59** | |
 
 ### 4.1 Endpoints principales
 
@@ -107,6 +109,8 @@ Todos los endpoints requieren token **excepto** `health`, `auth/registro`, `auth
 | POST | `/api/auth/registro` | Registro de usuario. |
 | POST | `/api/auth/login` | Inicio de sesión (JWT). |
 | GET | `/api/usuarios/me` | Perfil y límites del plan. |
+| PUT | `/api/usuarios/me` | Actualizar datos personales y de la granja. |
+| PUT | `/api/usuarios/me/contrasena` | Cambiar la contraseña. |
 | POST | `/api/camadas` | Crear camada. |
 | POST | `/api/camadas/{id}/mortalidad` | Registrar mortalidad. |
 | GET | `/api/camadas/{id}` | Detalle con edad y retiro. |
@@ -122,6 +126,7 @@ Todos los endpoints requieren token **excepto** `health`, `auth/registro`, `auth
 | GET | `/api/reportes/consolidado` | Reporte de rentabilidad. |
 | GET | `/api/reportes/pdf` | Exportar reporte a PDF. |
 | GET | `/api/notificaciones` | Listar notificaciones. |
+| GET | `/api/dashboard` | Indicadores agregados del dashboard. |
 
 ---
 
@@ -141,6 +146,8 @@ La API valida en **tres niveles**:
 |---|---|---|
 | Auth | Contraseña: 8–72, sin espacios, 1 mayúscula, 1 número, 1 símbolo | 422 |
 | Auth | Correo único | 409 `El correo ya está registrado` |
+| Perfil | Cambio de correo exige la contraseña actual | 401 |
+| Perfil | Nuevo correo no duplicado | 409 |
 | Camadas | Fecha de ingreso solo hoy o ayer | 400 |
 | Camadas | Límite de aves del plan | 400 `Límite de aves del plan alcanzado` |
 | Camadas | Mortalidad no excede las aves actuales | 400 |
@@ -214,13 +221,29 @@ curl -X POST $BASE/ventas/pedidos -H "Authorization: Bearer $TOKEN" -H "Content-
 curl "$BASE/reportes/consolidado?desde=2026-09-01&hasta=2026-09-25" -H "Authorization: Bearer $TOKEN"
 ```
 
+### 6.6 Actualizar perfil y preferencias
+
+```bash
+curl -X PUT $BASE/usuarios/me -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"nombre_completo":"Ana Avicultora","correo_electronico":"ana@example.com","nombre_granja":"Granja La Esperanza"}'
+
+curl -X PUT $BASE/usuarios/me/notificaciones -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"notif_produccion_baja":true,"notif_stock_bajo":true,"notif_vacunacion":false,"notif_resumen_semanal":true}'
+```
+
+### 6.7 Indicadores del dashboard
+
+```bash
+curl $BASE/dashboard -H "Authorization: Bearer $TOKEN"
+```
+
 ---
 
 ## 7. Criterios de la evidencia cubiertos
 
 | Criterio (25% c/u) | Cómo se cumple |
 |---|---|
-| Servicios según requerimientos | 55 endpoints en 9 módulos que cubren autenticación, camadas, inventario, producción, clientes, ventas, reportes y notificaciones. |
+| Servicios según requerimientos | 59 endpoints en módulos que cubren autenticación, perfil, camadas, inventario, producción, clientes, ventas, reportes, notificaciones y dashboard. |
 | API REST | Rutas con sustantivos, verbos HTTP (GET/POST/PATCH/DELETE), códigos de estado y JSON. |
 | Validaciones de verificación | Validación en tres niveles (Pydantic, negocio e integridad) documentada por módulo. |
 | Herramientas de versionamiento | Proyecto en Git/GitHub con GitHub Flow y Conventional Commits. |
@@ -233,6 +256,7 @@ Disponible en `docs/api/`:
 
 - [Guía general](README.md)
 - [auth.md](auth.md) — autenticación y usuarios
+- [perfil.md](perfil.md) — perfil del avicultor
 - [camadas.md](camadas.md) — camadas
 - [inventario.md](inventario.md) — categorías, insumos y movimientos
 - [produccion.md](produccion.md) — producción
@@ -240,3 +264,5 @@ Disponible en `docs/api/`:
 - [ventas.md](ventas.md) — stock y pedidos
 - [reportes.md](reportes.md) — reportes
 - [notificaciones.md](notificaciones.md) — notificaciones
+- [dashboard.md](dashboard.md) — dashboard
+- [ejemplos.md](ejemplos.md) — ejemplos de solicitudes y respuestas
