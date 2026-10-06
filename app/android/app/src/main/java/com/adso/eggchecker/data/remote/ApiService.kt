@@ -6,6 +6,10 @@ import com.adso.eggchecker.data.remote.dto.CamadaUpdateDto
 import com.adso.eggchecker.data.remote.dto.CategoriaCreateDto
 import com.adso.eggchecker.data.remote.dto.CategoriaDto
 import com.adso.eggchecker.data.remote.dto.CategoriaUpdateDto
+import com.adso.eggchecker.data.remote.dto.ClienteCreateDto
+import com.adso.eggchecker.data.remote.dto.ClienteDto
+import com.adso.eggchecker.data.remote.dto.ClienteEliminarDto
+import com.adso.eggchecker.data.remote.dto.ClienteUpdateDto
 import com.adso.eggchecker.data.remote.dto.InsumoCreateDto
 import com.adso.eggchecker.data.remote.dto.InsumoDto
 import com.adso.eggchecker.data.remote.dto.InsumoUpdateDto
@@ -183,4 +187,34 @@ interface ApiService {
         @Path("id") idInsumo: Int,
         @Body body: MovimientoCreateDto
     ): MovimientoDto
+
+    /** Lista los clientes del usuario incluyendo los suspendidos. */
+    @GET("clientes")
+    suspend fun listarClientes(@Query("activo") activo: Boolean?): List<ClienteDto>
+
+    /** Registra un cliente nuevo. */
+    @POST("clientes")
+    suspend fun crearCliente(@Body body: ClienteCreateDto): ClienteDto
+
+    /** Edita nombre, teléfono y dirección de un cliente. */
+    @PATCH("clientes/{id}")
+    suspend fun actualizarCliente(
+        @Path("id") idCliente: Int,
+        @Body body: ClienteUpdateDto
+    ): ClienteDto
+
+    /** Suspende un cliente (reversible). */
+    @POST("clientes/{id}/suspender")
+    suspend fun suspenderCliente(@Path("id") idCliente: Int): ClienteDto
+
+    /** Reactiva un cliente suspendido. */
+    @POST("clientes/{id}/activar")
+    suspend fun activarCliente(@Path("id") idCliente: Int): ClienteDto
+
+    /** Elimina un cliente de forma permanente confirmando la contraseña. */
+    @POST("clientes/{id}/eliminar")
+    suspend fun eliminarCliente(
+        @Path("id") idCliente: Int,
+        @Body body: ClienteEliminarDto
+    )
 }

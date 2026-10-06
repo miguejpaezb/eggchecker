@@ -8,6 +8,7 @@ import com.adso.eggchecker.data.remote.ApiClient
 import com.adso.eggchecker.data.repository.AuthRepository
 import com.adso.eggchecker.data.repository.CamadaRepository
 import com.adso.eggchecker.data.repository.CategoriaRepository
+import com.adso.eggchecker.data.repository.ClienteRepository
 import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.data.repository.ProduccionRepository
@@ -46,6 +47,9 @@ class AppContainer(context: Context) {
     /** Repositorios de inventario del usuario. */
     val insumoRepository = InsumoRepository(api)
     val categoriaRepository = CategoriaRepository(api)
+
+    /** Repositorio de clientes del usuario. */
+    val clienteRepository = ClienteRepository(api)
 
     /** Bus de recarga para el pull-to-refresh de las pantallas. */
     val refreshBus = RefreshBus()

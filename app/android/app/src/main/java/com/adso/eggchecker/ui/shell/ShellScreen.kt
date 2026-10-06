@@ -54,6 +54,8 @@ import com.adso.eggchecker.model.MODULOS
 import com.adso.eggchecker.navigation.Rutas
 import com.adso.eggchecker.ui.camadas.CamadasScreen
 import com.adso.eggchecker.ui.camadas.CamadasViewModel
+import com.adso.eggchecker.ui.clientes.ClientesScreen
+import com.adso.eggchecker.ui.clientes.ClientesViewModel
 import com.adso.eggchecker.ui.common.ModulePlaceholderScreen
 import com.adso.eggchecker.ui.inventario.InventarioScreen
 import com.adso.eggchecker.ui.inventario.InventarioViewModel
@@ -207,6 +209,14 @@ fun ShellScreen(
                                     val inventarioViewModel: InventarioViewModel =
                                         viewModel(factory = factory)
                                     InventarioScreen(viewModel = inventarioViewModel)
+                                }
+                                Rutas.CLIENTES -> {
+                                    val clientesViewModel: ClientesViewModel =
+                                        viewModel(factory = factory)
+                                    ClientesScreen(
+                                        viewModel = clientesViewModel,
+                                        onRegistrarVenta = { irA(Rutas.VENTAS) }
+                                    )
                                 }
                                 else -> ModulePlaceholderScreen(
                                     titulo = modulo.nombre

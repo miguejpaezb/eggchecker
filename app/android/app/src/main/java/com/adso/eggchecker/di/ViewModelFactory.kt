@@ -8,6 +8,7 @@ import com.adso.eggchecker.ui.MainViewModel
 import com.adso.eggchecker.ui.auth.LoginViewModel
 import com.adso.eggchecker.ui.auth.RegisterViewModel
 import com.adso.eggchecker.ui.camadas.CamadasViewModel
+import com.adso.eggchecker.ui.clientes.ClientesViewModel
 import com.adso.eggchecker.ui.inventario.InventarioViewModel
 import com.adso.eggchecker.ui.produccion.ProduccionViewModel
 import com.adso.eggchecker.ui.shell.NotificacionesViewModel
@@ -38,6 +39,13 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
         InventarioViewModel(
             insumoRepository = insumoRepository,
             categoriaRepository = categoriaRepository,
+            refreshBus = refreshBus,
+            mensajeManager = mensajeManager
+        )
+    }
+    initializer {
+        ClientesViewModel(
+            clienteRepository = clienteRepository,
             refreshBus = refreshBus,
             mensajeManager = mensajeManager
         )
