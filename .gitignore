@@ -39,6 +39,8 @@ dist/
 *.db-wal
 *.db-shm
 data/
+# Excepción: el paquete "data" del código Android es fuente, no datos.
+!app/android/app/src/main/java/com/adso/eggchecker/data/
 *.sql
 !app/backend/db/*.sql
 
