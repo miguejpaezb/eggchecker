@@ -75,7 +75,8 @@ private fun EggCheckerRoot() {
                     ShellScreen(
                         viewModel = shellViewModel,
                         factory = factory,
-                        refreshBus = container.refreshBus
+                        refreshBus = container.refreshBus,
+                        ventaPendienteBus = container.ventaPendienteBus
                     )
                 }
                 EstadoApp.NoAutenticado -> AuthNavHost(factory = factory)

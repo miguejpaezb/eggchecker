@@ -50,6 +50,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 import com.adso.eggchecker.data.sync.RefreshBus
+import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.model.MODULOS
 import com.adso.eggchecker.navigation.Rutas
 import com.adso.eggchecker.ui.camadas.CamadasScreen
@@ -69,6 +70,8 @@ import com.adso.eggchecker.ui.theme.Brown
 import com.adso.eggchecker.ui.theme.Cream
 import com.adso.eggchecker.ui.theme.EstiloIconosBarraEstado
 import com.adso.eggchecker.ui.theme.Yellow
+import com.adso.eggchecker.ui.ventas.VentasScreen
+import com.adso.eggchecker.ui.ventas.VentasViewModel
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -88,7 +91,8 @@ private const val MS_REFRESCO_MINIMO = 700L
 fun ShellScreen(
     viewModel: ShellViewModel,
     factory: ViewModelProvider.Factory,
-    refreshBus: RefreshBus
+    refreshBus: RefreshBus,
+    ventaPendienteBus: VentaPendienteBus
 ) {
     val usuario by viewModel.usuario.collectAsState()
     val notificacionesViewModel: NotificacionesViewModel =
@@ -215,8 +219,18 @@ fun ShellScreen(
                                         viewModel(factory = factory)
                                     ClientesScreen(
                                         viewModel = clientesViewModel,
-                                        onRegistrarVenta = { irA(Rutas.VENTAS) }
+                                        onRegistrarVenta = { cliente ->
+                                            ventaPendienteBus.solicitar(
+                                                cliente.idCliente
+                                            )
+                                            irA(Rutas.VENTAS)
+                                        }
                                     )
+                                }
+                                Rutas.VENTAS -> {
+                                    val ventasViewModel: VentasViewModel =
+                                        viewModel(factory = factory)
+                                    VentasScreen(viewModel = ventasViewModel)
                                 }
                                 else -> ModulePlaceholderScreen(
                                     titulo = modulo.nombre

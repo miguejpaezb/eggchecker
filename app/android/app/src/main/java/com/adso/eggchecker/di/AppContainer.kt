@@ -12,7 +12,9 @@ import com.adso.eggchecker.data.repository.ClienteRepository
 import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.data.repository.ProduccionRepository
+import com.adso.eggchecker.data.repository.VentaRepository
 import com.adso.eggchecker.data.sync.RefreshBus
+import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.ui.mensajes.MensajeManager
 
 /**
@@ -51,8 +53,14 @@ class AppContainer(context: Context) {
     /** Repositorio de clientes del usuario. */
     val clienteRepository = ClienteRepository(api)
 
+    /** Repositorio de ventas (pedidos y stock) del usuario. */
+    val ventaRepository = VentaRepository(api)
+
     /** Bus de recarga para el pull-to-refresh de las pantallas. */
     val refreshBus = RefreshBus()
+
+    /** Aviso para abrir Ventas con un cliente precargado. */
+    val ventaPendienteBus = VentaPendienteBus()
 
     /** Canal global de mensajes flotantes (toasts). */
     val mensajeManager = MensajeManager()

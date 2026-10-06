@@ -6,6 +6,7 @@ import com.adso.eggchecker.data.remote.dto.CamadaUpdateDto
 import com.adso.eggchecker.data.remote.dto.CategoriaCreateDto
 import com.adso.eggchecker.data.remote.dto.CategoriaDto
 import com.adso.eggchecker.data.remote.dto.CategoriaUpdateDto
+import com.adso.eggchecker.data.remote.dto.CambiarEstadoDto
 import com.adso.eggchecker.data.remote.dto.ClienteCreateDto
 import com.adso.eggchecker.data.remote.dto.ClienteDto
 import com.adso.eggchecker.data.remote.dto.ClienteEliminarDto
@@ -19,11 +20,16 @@ import com.adso.eggchecker.data.remote.dto.MortalidadRequestDto
 import com.adso.eggchecker.data.remote.dto.MovimientoCreateDto
 import com.adso.eggchecker.data.remote.dto.MovimientoDto
 import com.adso.eggchecker.data.remote.dto.NotificacionDto
+import com.adso.eggchecker.data.remote.dto.PedidoCreateDto
+import com.adso.eggchecker.data.remote.dto.PedidoDto
+import com.adso.eggchecker.data.remote.dto.PedidoEliminarDto
+import com.adso.eggchecker.data.remote.dto.PedidoUpdateDto
 import com.adso.eggchecker.data.remote.dto.ProduccionConDetalleDto
 import com.adso.eggchecker.data.remote.dto.ProduccionCreateDto
 import com.adso.eggchecker.data.remote.dto.ProduccionDto
 import com.adso.eggchecker.data.remote.dto.RecuperarRequestDto
 import com.adso.eggchecker.data.remote.dto.RegistroRequestDto
+import com.adso.eggchecker.data.remote.dto.StockDto
 import com.adso.eggchecker.data.remote.dto.TokenResponseDto
 import com.adso.eggchecker.data.remote.dto.UsuarioDto
 
@@ -216,5 +222,42 @@ interface ApiService {
     suspend fun eliminarCliente(
         @Path("id") idCliente: Int,
         @Body body: ClienteEliminarDto
+    )
+
+    /** Stock de huevos disponible por tipo. */
+    @GET("ventas/stock")
+    suspend fun obtenerStock(): StockDto
+
+    /** Lista los pedidos del usuario. */
+    @GET("ventas/pedidos")
+    suspend fun listarPedidos(): List<PedidoDto>
+
+    /** Registra un pedido nuevo. */
+    @POST("ventas/pedidos")
+    suspend fun crearPedido(@Body body: PedidoCreateDto): PedidoDto
+
+    /** Edita un pedido pendiente. */
+    @PATCH("ventas/pedidos/{id}")
+    suspend fun actualizarPedido(
+        @Path("id") idPedido: Int,
+        @Body body: PedidoUpdateDto
+    ): PedidoDto
+
+    /** Avanza el estado de un pedido a enviado o recibido. */
+    @PATCH("ventas/pedidos/{id}/estado")
+    suspend fun cambiarEstadoPedido(
+        @Path("id") idPedido: Int,
+        @Body body: CambiarEstadoDto
+    ): PedidoDto
+
+    /** Cancela un pedido y repone el stock. */
+    @POST("ventas/pedidos/{id}/cancelar")
+    suspend fun cancelarPedido(@Path("id") idPedido: Int): PedidoDto
+
+    /** Elimina un pedido confirmando la contraseña. */
+    @POST("ventas/pedidos/{id}/eliminar")
+    suspend fun eliminarPedido(
+        @Path("id") idPedido: Int,
+        @Body body: PedidoEliminarDto
     )
 }

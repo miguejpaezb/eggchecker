@@ -13,6 +13,7 @@ import com.adso.eggchecker.ui.inventario.InventarioViewModel
 import com.adso.eggchecker.ui.produccion.ProduccionViewModel
 import com.adso.eggchecker.ui.shell.NotificacionesViewModel
 import com.adso.eggchecker.ui.shell.ShellViewModel
+import com.adso.eggchecker.ui.ventas.VentasViewModel
 
 /**
  * Fábrica de ViewModels del contenedor manual (sin Hilt).
@@ -48,6 +49,15 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
             clienteRepository = clienteRepository,
             refreshBus = refreshBus,
             mensajeManager = mensajeManager
+        )
+    }
+    initializer {
+        VentasViewModel(
+            ventaRepository = ventaRepository,
+            clienteRepository = clienteRepository,
+            refreshBus = refreshBus,
+            mensajeManager = mensajeManager,
+            ventaPendienteBus = ventaPendienteBus
         )
     }
 }
