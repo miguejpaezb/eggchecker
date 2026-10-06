@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -22,6 +23,8 @@ import com.adso.eggchecker.navigation.AuthNavHost
 import com.adso.eggchecker.ui.EstadoApp
 import com.adso.eggchecker.ui.MainViewModel
 import com.adso.eggchecker.ui.SplashScreen
+import com.adso.eggchecker.ui.mensajes.LocalMensajeManager
+import com.adso.eggchecker.ui.mensajes.MensajeHost
 import com.adso.eggchecker.ui.shell.ShellScreen
 import com.adso.eggchecker.ui.shell.ShellViewModel
 import com.adso.eggchecker.ui.theme.Cream
@@ -57,18 +60,28 @@ private fun EggCheckerRoot() {
     val mainViewModel: MainViewModel = viewModel(factory = factory)
     val estado by mainViewModel.estado.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Cream)
+    CompositionLocalProvider(
+        LocalMensajeManager provides container.mensajeManager
     ) {
-        when (estado) {
-            EstadoApp.Cargando -> SplashScreen()
-            EstadoApp.Autenticado -> {
-                val shellViewModel: ShellViewModel = viewModel(factory = factory)
-                ShellScreen(viewModel = shellViewModel, factory = factory)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Cream)
+        ) {
+            when (estado) {
+                EstadoApp.Cargando -> SplashScreen()
+                EstadoApp.Autenticado -> {
+                    val shellViewModel: ShellViewModel = viewModel(factory = factory)
+                    ShellScreen(
+                        viewModel = shellViewModel,
+                        factory = factory,
+                        refreshBus = container.refreshBus
+                    )
+                }
+                EstadoApp.NoAutenticado -> AuthNavHost(factory = factory)
             }
-            EstadoApp.NoAutenticado -> AuthNavHost(factory = factory)
+
+            MensajeHost()
         }
     }
 }

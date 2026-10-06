@@ -1,8 +1,23 @@
 package com.adso.eggchecker.data.remote
 
+import com.adso.eggchecker.data.remote.dto.CamadaCreateDto
+import com.adso.eggchecker.data.remote.dto.CamadaDto
+import com.adso.eggchecker.data.remote.dto.CamadaUpdateDto
+import com.adso.eggchecker.data.remote.dto.CategoriaCreateDto
+import com.adso.eggchecker.data.remote.dto.CategoriaDto
+import com.adso.eggchecker.data.remote.dto.CategoriaUpdateDto
+import com.adso.eggchecker.data.remote.dto.InsumoCreateDto
+import com.adso.eggchecker.data.remote.dto.InsumoDto
+import com.adso.eggchecker.data.remote.dto.InsumoUpdateDto
 import com.adso.eggchecker.data.remote.dto.LoginRequestDto
 import com.adso.eggchecker.data.remote.dto.MensajeResponseDto
+import com.adso.eggchecker.data.remote.dto.MortalidadRequestDto
+import com.adso.eggchecker.data.remote.dto.MovimientoCreateDto
+import com.adso.eggchecker.data.remote.dto.MovimientoDto
 import com.adso.eggchecker.data.remote.dto.NotificacionDto
+import com.adso.eggchecker.data.remote.dto.ProduccionConDetalleDto
+import com.adso.eggchecker.data.remote.dto.ProduccionCreateDto
+import com.adso.eggchecker.data.remote.dto.ProduccionDto
 import com.adso.eggchecker.data.remote.dto.RecuperarRequestDto
 import com.adso.eggchecker.data.remote.dto.RegistroRequestDto
 import com.adso.eggchecker.data.remote.dto.TokenResponseDto
@@ -11,8 +26,10 @@ import com.adso.eggchecker.data.remote.dto.UsuarioDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Endpoints del backend EggChecker consumidos por la app.
@@ -53,4 +70,117 @@ interface ApiService {
     /** Elimina una notificación del usuario. */
     @DELETE("notificaciones/{id}")
     suspend fun eliminarNotificacion(@Path("id") idNotificacion: Int)
+
+    /** Lista las camadas del usuario, opcionalmente filtradas por estado. */
+    @GET("camadas")
+    suspend fun listarCamadas(@Query("estado") estado: String?): List<CamadaDto>
+
+    /** Obtiene una camada con su edad y retiro estimado. */
+    @GET("camadas/{id}")
+    suspend fun obtenerCamada(@Path("id") idCamada: Int): CamadaDto
+
+    /** Registra una camada nueva. */
+    @POST("camadas")
+    suspend fun crearCamada(@Body body: CamadaCreateDto): CamadaDto
+
+    /** Edita el nombre y, dentro de 24 h, la cantidad inicial. */
+    @PATCH("camadas/{id}")
+    suspend fun actualizarCamada(
+        @Path("id") idCamada: Int,
+        @Body body: CamadaUpdateDto
+    ): CamadaDto
+
+    /** Registra mortalidad y descuenta aves de la camada. */
+    @POST("camadas/{id}/mortalidad")
+    suspend fun registrarMortalidad(
+        @Path("id") idCamada: Int,
+        @Body body: MortalidadRequestDto
+    ): CamadaDto
+
+    /** Suma una semana de vida a la camada. */
+    @POST("camadas/{id}/avanzar-semana")
+    suspend fun avanzarSemana(@Path("id") idCamada: Int): CamadaDto
+
+    /** Posponer una semana la decisión de la camada. */
+    @POST("camadas/{id}/seguir-activa")
+    suspend fun seguirActiva(@Path("id") idCamada: Int): CamadaDto
+
+    /** Descarta una camada (estado retirada, irreversible). */
+    @POST("camadas/{id}/descartar")
+    suspend fun descartarCamada(@Path("id") idCamada: Int): CamadaDto
+
+    /** Lista la producción del usuario, opcionalmente filtrada. */
+    @GET("produccion")
+    suspend fun listarProduccion(
+        @Query("camada") camada: Int?,
+        @Query("fecha") fecha: String?
+    ): List<ProduccionDto>
+
+    /** Obtiene una producción con su detalle por tipo. */
+    @GET("produccion/{id}")
+    suspend fun obtenerProduccion(
+        @Path("id") idProduccion: Int
+    ): ProduccionConDetalleDto
+
+    /** Registra o actualiza la recolección diaria de una camada. */
+    @POST("produccion")
+    suspend fun registrarProduccion(
+        @Body body: ProduccionCreateDto
+    ): ProduccionConDetalleDto
+
+    /** Lista el catálogo global de categorías de insumo. */
+    @GET("categorias-insumo")
+    suspend fun listarCategorias(): List<CategoriaDto>
+
+    /** Crea una categoría de insumo. */
+    @POST("categorias-insumo")
+    suspend fun crearCategoria(@Body body: CategoriaCreateDto): CategoriaDto
+
+    /** Edita una categoría de insumo. */
+    @PATCH("categorias-insumo/{id}")
+    suspend fun actualizarCategoria(
+        @Path("id") idCategoria: Int,
+        @Body body: CategoriaUpdateDto
+    ): CategoriaDto
+
+    /** Elimina una categoría sin insumos asociados. */
+    @DELETE("categorias-insumo/{id}")
+    suspend fun eliminarCategoria(@Path("id") idCategoria: Int)
+
+    /** Lista los insumos del usuario, opcionalmente filtrados. */
+    @GET("insumos")
+    suspend fun listarInsumos(
+        @Query("categoria") categoria: Int?,
+        @Query("activo") activo: Boolean?
+    ): List<InsumoDto>
+
+    /** Registra un insumo nuevo. */
+    @POST("insumos")
+    suspend fun crearInsumo(@Body body: InsumoCreateDto): InsumoDto
+
+    /** Edita nombre, unidad y umbral de un insumo. */
+    @PATCH("insumos/{id}")
+    suspend fun actualizarInsumo(
+        @Path("id") idInsumo: Int,
+        @Body body: InsumoUpdateDto
+    ): InsumoDto
+
+    /** Suspende un insumo (reversible). */
+    @POST("insumos/{id}/suspender")
+    suspend fun suspenderInsumo(@Path("id") idInsumo: Int): InsumoDto
+
+    /** Reactiva un insumo suspendido. */
+    @POST("insumos/{id}/activar")
+    suspend fun activarInsumo(@Path("id") idInsumo: Int): InsumoDto
+
+    /** Descontinúa un insumo (permanente). */
+    @POST("insumos/{id}/descontinuar")
+    suspend fun descontinuarInsumo(@Path("id") idInsumo: Int): InsumoDto
+
+    /** Registra una entrada o salida de stock. */
+    @POST("insumos/{id}/movimientos")
+    suspend fun registrarMovimiento(
+        @Path("id") idInsumo: Int,
+        @Body body: MovimientoCreateDto
+    ): MovimientoDto
 }

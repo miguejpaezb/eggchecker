@@ -49,9 +49,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
+import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.model.MODULOS
 import com.adso.eggchecker.navigation.Rutas
+import com.adso.eggchecker.ui.camadas.CamadasScreen
+import com.adso.eggchecker.ui.camadas.CamadasViewModel
 import com.adso.eggchecker.ui.common.ModulePlaceholderScreen
+import com.adso.eggchecker.ui.inventario.InventarioScreen
+import com.adso.eggchecker.ui.inventario.InventarioViewModel
+import com.adso.eggchecker.ui.produccion.ProduccionScreen
+import com.adso.eggchecker.ui.produccion.ProduccionViewModel
 import com.adso.eggchecker.ui.shell.components.AppDrawer
 import com.adso.eggchecker.ui.shell.components.AppTopbar
 import com.adso.eggchecker.ui.shell.components.NotificacionesPanel
@@ -78,7 +85,8 @@ private const val MS_REFRESCO_MINIMO = 700L
 @Composable
 fun ShellScreen(
     viewModel: ShellViewModel,
-    factory: ViewModelProvider.Factory
+    factory: ViewModelProvider.Factory,
+    refreshBus: RefreshBus
 ) {
     val usuario by viewModel.usuario.collectAsState()
     val notificacionesViewModel: NotificacionesViewModel =
@@ -152,6 +160,7 @@ fun ShellScreen(
                             val inicio = System.currentTimeMillis()
                             viewModel.refrescar()
                             notificacionesViewModel.cargar()
+                            refreshBus.solicitar()
                             val restante = MS_REFRESCO_MINIMO -
                                 (System.currentTimeMillis() - inicio)
                             if (restante > 0) delay(restante)
@@ -181,11 +190,30 @@ fun ShellScreen(
                         popEnterTransition = { fadeIn(tween(MS_SECCION)) },
                         popExitTransition = { fadeOut(tween(MS_SECCION)) }
                     ) {
-                        MODULOS.forEach { modulo ->
-                            composable(modulo.ruta) {
-                                ModulePlaceholderScreen(titulo = modulo.nombre)
+                    MODULOS.forEach { modulo ->
+                        composable(modulo.ruta) {
+                            when (modulo.ruta) {
+                                Rutas.CAMADAS -> {
+                                    val camadasViewModel: CamadasViewModel =
+                                        viewModel(factory = factory)
+                                    CamadasScreen(viewModel = camadasViewModel)
+                                }
+                                Rutas.PRODUCCION -> {
+                                    val produccionViewModel: ProduccionViewModel =
+                                        viewModel(factory = factory)
+                                    ProduccionScreen(viewModel = produccionViewModel)
+                                }
+                                Rutas.INVENTARIO -> {
+                                    val inventarioViewModel: InventarioViewModel =
+                                        viewModel(factory = factory)
+                                    InventarioScreen(viewModel = inventarioViewModel)
+                                }
+                                else -> ModulePlaceholderScreen(
+                                    titulo = modulo.nombre
+                                )
                             }
                         }
+                    }
                     }
                 }
 
