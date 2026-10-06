@@ -37,6 +37,7 @@ import com.adso.eggchecker.ui.theme.Brown
 import com.adso.eggchecker.ui.theme.Dark
 import com.adso.eggchecker.ui.theme.ErrorRed
 import com.adso.eggchecker.ui.theme.Placeholder
+import com.adso.eggchecker.ui.theme.SuperficieTarjeta
 import com.adso.eggchecker.ui.theme.TextMuted
 import com.adso.eggchecker.ui.theme.Yellow
 
@@ -44,7 +45,7 @@ private val RADIO_PANEL = RoundedCornerShape(16.dp)
 private val RADIO_CARD = RoundedCornerShape(12.dp)
 private val RADIO_BTN = RoundedCornerShape(8.dp)
 private val COLOR_MENSAJE = Color(0xFF4B5563)
-private val COLOR_LEIDA = Color(0xFFF9FAFB)
+private val COLOR_LEIDA = Color(0xFFF1F1EE)
 
 /**
  * Panel desplegable de notificaciones, fiel al `.ec-notif-panel` del web.
@@ -62,7 +63,7 @@ fun NotificacionesPanel(
 ) {
     Surface(
         shape = RADIO_PANEL,
-        color = Color.White,
+        color = SuperficieTarjeta,
         shadowElevation = 16.dp,
         modifier = modifier
     ) {
@@ -172,7 +173,7 @@ private fun NotificacionCard(
 ) {
     Surface(
         shape = RADIO_CARD,
-        color = if (aviso.leida) COLOR_LEIDA else Color.White,
+        color = if (aviso.leida) COLOR_LEIDA else SuperficieTarjeta,
         border = BorderStroke(1.dp, Border)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -254,7 +255,7 @@ private fun BotonNotificacion(
 ) {
     Surface(
         shape = RADIO_BTN,
-        color = if (primario) Brown else Color.White,
+        color = if (primario) Brown else SuperficieTarjeta,
         border = if (primario) null else BorderStroke(1.dp, Border),
         modifier = modifier
             .heightIn(min = 40.dp)

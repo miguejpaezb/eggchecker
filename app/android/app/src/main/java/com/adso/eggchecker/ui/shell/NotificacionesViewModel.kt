@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.domain.model.Notificacion
+import com.adso.eggchecker.ui.mensajes.MensajeManager
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,8 @@ data class NotificacionesUiState(
 
 /** Carga y gestiona las notificaciones del usuario. */
 class NotificacionesViewModel(
-    private val notificacionRepository: NotificacionRepository
+    private val notificacionRepository: NotificacionRepository,
+    private val mensajeManager: MensajeManager
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(NotificacionesUiState())
@@ -63,7 +65,9 @@ class NotificacionesViewModel(
             notificacionRepository.marcarLeida(idNotificacion)
                 .onSuccess { cargar() }
                 .onFailure { error ->
-                    _estado.update { it.copy(error = error.message) }
+                    mensajeManager.error(
+                        error.message ?: "No se pudo marcar como leída"
+                    )
                 }
         }
     }
@@ -74,7 +78,9 @@ class NotificacionesViewModel(
             notificacionRepository.marcarTodas()
                 .onSuccess { cargar() }
                 .onFailure { error ->
-                    _estado.update { it.copy(error = error.message) }
+                    mensajeManager.error(
+                        error.message ?: "No se pudieron marcar como leídas"
+                    )
                 }
         }
     }
@@ -85,7 +91,9 @@ class NotificacionesViewModel(
             notificacionRepository.eliminar(idNotificacion)
                 .onSuccess { cargar() }
                 .onFailure { error ->
-                    _estado.update { it.copy(error = error.message) }
+                    mensajeManager.error(
+                        error.message ?: "No se pudo eliminar"
+                    )
                 }
         }
     }
