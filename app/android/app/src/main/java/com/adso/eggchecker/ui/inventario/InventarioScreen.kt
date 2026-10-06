@@ -1,9 +1,6 @@
 package com.adso.eggchecker.ui.inventario
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,15 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.adso.eggchecker.R
 import com.adso.eggchecker.domain.model.Insumo
 import com.adso.eggchecker.ui.components.BotonApp
+import com.adso.eggchecker.ui.components.BotonLimpiar
 import com.adso.eggchecker.ui.components.CampoBusqueda
 import com.adso.eggchecker.ui.components.CartelEstado
 import com.adso.eggchecker.ui.components.ConfirmDialog
@@ -46,12 +42,9 @@ import com.adso.eggchecker.ui.inventario.components.EditarInsumoModal
 import com.adso.eggchecker.ui.inventario.components.InsumoAccionesMenu
 import com.adso.eggchecker.ui.inventario.components.InsumoCard
 import com.adso.eggchecker.ui.inventario.components.NuevoInsumoModal
-import com.adso.eggchecker.ui.theme.Border
 import com.adso.eggchecker.ui.theme.Brown
 import com.adso.eggchecker.ui.theme.SuperficieTarjeta
 import com.adso.eggchecker.ui.theme.TextMuted
-
-private val LIMPIAR_FONDO = Color(0xFFFCFCFC)
 
 /** Pantalla de Inventario (modo online, fiel al web móvil). */
 @Composable
@@ -309,26 +302,4 @@ fun InventarioScreen(viewModel: InventarioViewModel) {
         },
         onCerrar = { aDescontinuar = null }
     )
-}
-
-@Composable
-private fun BotonLimpiar(onClick: () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = LIMPIAR_FONDO,
-        border = BorderStroke(1.dp, Border),
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Limpiar",
-                color = Brown,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-        }
-    }
 }

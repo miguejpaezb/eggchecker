@@ -15,8 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -28,24 +26,41 @@ import com.adso.eggchecker.ui.theme.InputBackground
 import com.adso.eggchecker.ui.theme.Placeholder
 import com.adso.eggchecker.ui.theme.TextMuted
 
+/** Cantidad máxima de dígitos aceptados en un teléfono. */
+private const val MAX_DIGITOS_TELEFONO = 15
+
+/** Deja solo los dígitos de un texto. */
+fun soloDigitos(valor: String?): String = (valor ?: "").filter { it.isDigit() }
+
 /**
- * Campo de texto de los formularios.
- *
- * @param hint Texto de ayuda bajo el campo.
+ * Aplica el formato colombiano 3-3-4 solo para mostrar.
+ * El valor persistido sigue siendo la cadena de dígitos.
+ */
+fun formatearTelefono(valor: String?): String {
+    val digitos = soloDigitos(valor)
+    return when {
+        digitos.length <= 3 -> digitos
+        digitos.length <= 6 ->
+            "${digitos.substring(0, 3)} ${digitos.substring(3)}"
+        else ->
+            "${digitos.substring(0, 3)} ${digitos.substring(3, 6)} " +
+                digitos.substring(6)
+    }
+}
+
+/**
+ * Campo de teléfono que solo acepta dígitos y muestra el formato 3-3-4.
+ * Al llamador le entrega el valor sin espacios (solo dígitos).
  */
 @Composable
-fun CampoTexto(
+fun CampoTelefono(
     valor: String,
     onValorChange: (String) -> Unit,
     etiqueta: String,
     modifier: Modifier = Modifier,
     marcador: String = "",
     error: String? = null,
-    hint: String? = null,
-    habilitado: Boolean = true,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    soloDecimal: Boolean = false,
-    esContrasena: Boolean = false
+    habilitado: Boolean = true
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -56,7 +71,7 @@ fun CampoTexto(
         )
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = if (habilitado) InputBackground else InputBackground,
+            color = InputBackground,
             border = BorderStroke(
                 1.dp,
                 if (error != null) ErrorRed else Border
@@ -64,14 +79,14 @@ fun CampoTexto(
             modifier = Modifier.fillMaxWidth()
         ) {
             Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
-                if (valor.isEmpty() && marcador.isNotEmpty()) {
+                if (soloDigitos(valor).isEmpty() && marcador.isNotEmpty()) {
                     Text(text = marcador, fontSize = 15.sp, color = Placeholder)
                 }
                 BasicTextField(
-                    value = valor,
+                    value = formatearTelefono(valor),
                     onValueChange = { texto ->
                         onValorChange(
-                            if (soloDecimal) filtrarDecimal(texto) else texto
+                            soloDigitos(texto).take(MAX_DIGITOS_TELEFONO)
                         )
                     },
                     enabled = habilitado,
@@ -80,12 +95,9 @@ fun CampoTexto(
                         color = if (habilitado) Dark else Placeholder
                     ),
                     cursorBrush = SolidColor(Brown),
-                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                    visualTransformation = if (esContrasena) {
-                        PasswordVisualTransformation()
-                    } else {
-                        VisualTransformation.None
-                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -97,22 +109,6 @@ fun CampoTexto(
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 4.dp, start = 2.dp)
             )
-        } else if (hint != null) {
-            Text(
-                text = hint,
-                color = TextMuted,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
-            )
         }
     }
-}
-
-/** Deja solo dígitos y un único punto decimal. */
-private fun filtrarDecimal(texto: String): String {
-    val limpio = texto.filter { it.isDigit() || it == '.' }
-    val primerPunto = limpio.indexOf('.')
-    if (primerPunto == -1) return limpio
-    return limpio.substring(0, primerPunto + 1) +
-        limpio.substring(primerPunto + 1).replace(".", "")
 }
