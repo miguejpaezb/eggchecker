@@ -147,9 +147,9 @@ fun NuevoPedidoModal(
                                 color = TextMuted
                             )
                         }
-                        Row(
+                        Column(
                             modifier = Modifier.padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             CampoTexto(
                                 valor = cantidades[tipo.idTipo].orEmpty(),
@@ -159,8 +159,7 @@ fun NuevoPedidoModal(
                                 },
                                 etiqueta = "Cantidad",
                                 marcador = "0",
-                                keyboardType = KeyboardType.Number,
-                                modifier = Modifier.weight(1f)
+                                keyboardType = KeyboardType.Number
                             )
                             CampoTexto(
                                 valor = precios[tipo.idTipo].orEmpty(),
@@ -170,8 +169,7 @@ fun NuevoPedidoModal(
                                 etiqueta = "Valor unidad",
                                 marcador = "0",
                                 keyboardType = KeyboardType.Decimal,
-                                soloDecimal = true,
-                                modifier = Modifier.weight(1f)
+                                soloDecimal = true
                             )
                         }
                         Text(
