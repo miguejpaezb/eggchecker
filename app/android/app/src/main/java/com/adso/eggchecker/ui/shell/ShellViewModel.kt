@@ -29,8 +29,7 @@ class ShellViewModel(
 
     init {
         viewModelScope.launch { refrescar() }
-        notificacionGestor.asegurarPeriodico()
-        notificacionGestor.sincronizarAhora()
+        viewModelScope.launch { notificacionGestor.sincronizarAjustes() }
     }
 
     /** Refresca el perfil desde el backend (pull-to-refresh). */

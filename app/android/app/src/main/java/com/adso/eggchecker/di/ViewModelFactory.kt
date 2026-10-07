@@ -88,7 +88,9 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
         PerfilViewModel(
             perfilRepository = perfilRepository,
             authRepository = authRepository,
-            mensajeManager = mensajeManager
+            mensajeManager = mensajeManager,
+            notificacionEstadoStore = notificacionEstadoStore,
+            notificacionGestor = notificacionGestor
         )
     }
 }

@@ -8,6 +8,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.media.AudioAttributes
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 
 import androidx.core.app.NotificationCompat
@@ -22,6 +25,7 @@ import androidx.work.workDataOf
 
 import com.adso.eggchecker.MainActivity
 import com.adso.eggchecker.R
+import com.adso.eggchecker.data.local.AjustesNotificacion
 import com.adso.eggchecker.data.local.NotificacionEstadoStore
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.data.repository.PerfilRepository
@@ -44,42 +48,46 @@ class NotificacionGestor(
     /** Crea el canal de notificaciones (Android 8+) si aún no existe. */
     fun crearCanal() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val canal = NotificationChannel(
-            CANAL_ID,
-            "Alertas de la granja",
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            description = "Avisos de producción, inventario y camadas."
-        }
         val manager = context.getSystemService(NotificationManager::class.java)
-        manager?.createNotificationChannel(canal)
+            ?: return
+        if (manager.getNotificationChannel(CANAL_ID) != null) return
+        manager.createNotificationChannel(construirCanal(null, vibrar = true))
     }
 
-    /** Programa la sincronización periódica de notificaciones. */
-    fun asegurarPeriodico() {
-        val solicitud = PeriodicWorkRequestBuilder<NotificacionSyncWorker>(
-            MINUTOS_SINCRONIZACION,
-            TimeUnit.MINUTES
-        ).build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            TRABAJO_PERIODICO,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            solicitud
-        )
+    /** Aplica los ajustes locales: canal (sonido/vibración) y trabajo periódico. */
+    suspend fun sincronizarAjustes() {
+        val ajustes = estadoStore.leerAjustes()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(NotificationManager::class.java)
+            val canal = manager?.getNotificationChannel(CANAL_ID)
+            val vibraOk = canal?.shouldVibrate() == ajustes.vibracion
+            val sonidoOk = canal?.sound?.toString() ==
+                uriSonido(ajustes.sonidoUri).toString()
+            if (canal == null || !vibraOk || !sonidoOk) {
+                manager?.deleteNotificationChannel(CANAL_ID)
+                manager?.createNotificationChannel(
+                    construirCanal(ajustes.sonidoUri, ajustes.vibracion)
+                )
+            }
+        }
+        aplicarEstadoTrabajo(ajustes.activas)
     }
 
-    /** Lanza una sincronización inmediata (al abrir la app). */
-    fun sincronizarAhora() {
-        val solicitud = OneTimeWorkRequestBuilder<NotificacionSyncWorker>().build()
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            TRABAJO_SINCRONIZAR,
-            ExistingWorkPolicy.REPLACE,
-            solicitud
-        )
+    /** Reproduce el sonido de notificación actual (vista previa). */
+    suspend fun reproducirSonido() {
+        val uri = uriSonido(estadoStore.leerAjustes().sonidoUri)
+        runCatching {
+            RingtoneManager.getRingtone(context, uri)?.play()
+        }
     }
 
     /** Publica las no leídas nuevas y limpia las que ya no aplican. */
     suspend fun sincronizar(): Boolean {
+        val ajustes = estadoStore.leerAjustes()
+        if (!ajustes.activas) {
+            cancelarTodas()
+            return true
+        }
         val lista = notificacionRepository.listar().getOrNull() ?: return false
         val perfil = perfilRepository.obtenerPerfil().getOrNull()
         val descartadas = estadoStore.descartadas()
@@ -92,7 +100,7 @@ class NotificacionGestor(
         noLeidas.forEach { aviso ->
             val id = aviso.idNotificacion
             if (id in activas || id in descartadas) return@forEach
-            if (mostrable(aviso.tipo, perfil)) publicar(aviso)
+            if (mostrable(aviso.tipo, perfil)) publicar(aviso, ajustes)
         }
         return true
     }
@@ -103,11 +111,17 @@ class NotificacionGestor(
      * @return true si el trabajo terminó; false si hay que reintentar.
      */
     suspend fun repostar(id: Int): Boolean {
+        val ajustes = estadoStore.leerAjustes()
+        if (!ajustes.activas) {
+            cancelar(id)
+            estadoStore.quitar(id)
+            return true
+        }
         val lista = notificacionRepository.listar().getOrNull() ?: return false
         val perfil = perfilRepository.obtenerPerfil().getOrNull()
         val aviso = lista.find { it.idNotificacion == id && !it.leida }
         estadoStore.quitar(id)
-        if (aviso != null && mostrable(aviso.tipo, perfil)) publicar(aviso)
+        if (aviso != null && mostrable(aviso.tipo, perfil)) publicar(aviso, ajustes)
         return true
     }
 
@@ -137,7 +151,41 @@ class NotificacionGestor(
         estadoStore.limpiar()
     }
 
-    private fun publicar(aviso: Notificacion) {
+    private fun aplicarEstadoTrabajo(activas: Boolean) {
+        if (activas) {
+            asegurarPeriodico()
+            sincronizarAhora()
+        } else {
+            WorkManager.getInstance(context).cancelUniqueWork(TRABAJO_PERIODICO)
+            WorkManager.getInstance(context).cancelUniqueWork(TRABAJO_SINCRONIZAR)
+            cancelarTodas()
+        }
+    }
+
+    /** Programa la sincronización periódica de notificaciones. */
+    private fun asegurarPeriodico() {
+        val solicitud = PeriodicWorkRequestBuilder<NotificacionSyncWorker>(
+            MINUTOS_SINCRONIZACION,
+            TimeUnit.MINUTES
+        ).build()
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            TRABAJO_PERIODICO,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            solicitud
+        )
+    }
+
+    /** Lanza una sincronización inmediata (al abrir la app). */
+    private fun sincronizarAhora() {
+        val solicitud = OneTimeWorkRequestBuilder<NotificacionSyncWorker>().build()
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            TRABAJO_SINCRONIZAR,
+            ExistingWorkPolicy.REPLACE,
+            solicitud
+        )
+    }
+
+    private fun publicar(aviso: Notificacion, ajustes: AjustesNotificacion) {
         if (!puedeNotificar()) return
 
         val id = aviso.idNotificacion
@@ -172,7 +220,7 @@ class NotificacionGestor(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val notificacion = NotificationCompat.Builder(context, CANAL_ID)
+        val builder = NotificationCompat.Builder(context, CANAL_ID)
             .setSmallIcon(R.drawable.ic_stat_notificacion)
             .setColor(Color.parseColor("#905E27"))
             .setContentTitle(aviso.titulo)
@@ -184,11 +232,45 @@ class NotificacionGestor(
             .setDeleteIntent(borrar)
             .addAction(0, "Ver", ver)
             .addAction(0, "Marcar como leído", marcarLeido)
-            .build()
+
+        // En Android 8+ el sonido y la vibración los controla el canal.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setSound(uriSonido(ajustes.sonidoUri))
+            if (ajustes.vibracion) {
+                builder.setVibrate(longArrayOf(0, 250, 250, 250))
+            }
+        }
 
         NotificationManagerCompat.from(context)
-            .notify(aviso.idNotificacion, notificacion)
+            .notify(aviso.idNotificacion, builder.build())
     }
+
+    private fun construirCanal(
+        sonidoUri: String?,
+        vibrar: Boolean
+    ): NotificationChannel =
+        NotificationChannel(
+            CANAL_ID,
+            "Alertas de la granja",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Avisos de producción, inventario y camadas."
+            setSound(uriSonido(sonidoUri), atributosSonido())
+            enableVibration(vibrar)
+        }
+
+    private fun uriSonido(sonidoGuardado: String?): Uri =
+        sonidoGuardado?.let { Uri.parse(it) }
+            ?: Uri.parse(
+                "android.resource://${context.packageName}/" +
+                    "${R.raw.notif_eggchecker_sound}"
+            )
+
+    private fun atributosSonido(): AudioAttributes =
+        AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
 
     private fun intentAbrirNotificaciones(): Intent =
         Intent(context, MainActivity::class.java).apply {
@@ -247,7 +329,7 @@ class NotificacionGestor(
 
     companion object {
         /** Identificador del canal de notificaciones. */
-        const val CANAL_ID = "alertas_granja"
+        const val CANAL_ID = "alertas_granja_v2"
 
         /** Cada cuántos minutos se revisan notificaciones nuevas. */
         const val MINUTOS_SINCRONIZACION = 15L

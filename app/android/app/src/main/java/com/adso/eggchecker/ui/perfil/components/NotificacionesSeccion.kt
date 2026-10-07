@@ -1,5 +1,6 @@
 package com.adso.eggchecker.ui.perfil.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,10 +49,13 @@ private val OPCIONES = listOf(
     )
 )
 
-/** Sección de preferencias de alertas. */
+/** Sección de notificaciones: preferencias de alertas y ajustes de la app. */
 @Composable
 fun NotificacionesSeccion(
     perfil: Perfil,
+    notificacionesActivas: Boolean,
+    vibracion: Boolean,
+    sonidoPersonalizado: String?,
     onGuardar: (
         produccionBaja: Boolean,
         stockBajo: Boolean,
@@ -59,7 +63,11 @@ fun NotificacionesSeccion(
         resumenSemanal: Boolean,
         onExito: () -> Unit,
         onError: () -> Unit
-    ) -> Unit
+    ) -> Unit,
+    onCambiarNotificaciones: (Boolean) -> Unit,
+    onCambiarVibracion: (Boolean) -> Unit,
+    onCambiarSonido: (String?) -> Unit,
+    onReproducirSonido: () -> Unit
 ) {
     var produccionBaja by remember { mutableStateOf(perfil.notifProduccionBaja) }
     var stockBajo by remember { mutableStateOf(perfil.notifStockBajo) }
@@ -81,66 +89,78 @@ fun NotificacionesSeccion(
         resumenSemanal to { v: Boolean -> resumenSemanal = v }
     )
 
-    TarjetaPerfil {
-        SubtituloSeccion("Preferencias de Alertas")
-        Text(
-            text = "Activa o desactiva los avisos que quieres recibir.",
-            fontSize = 14.sp,
-            color = TextMuted,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        TarjetaPerfil {
+            SubtituloSeccion("Preferencias de Alertas")
+            Text(
+                text = "Activa o desactiva los avisos que quieres recibir.",
+                fontSize = 14.sp,
+                color = TextMuted,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
-        OPCIONES.forEachIndexed { indice, opcion ->
-            val (activo, cambiar) = valores[indice]
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = opcion.titulo,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = Dark
-                    )
-                    Text(
-                        text = opcion.descripcion,
-                        fontSize = 13.sp,
-                        color = TextMuted,
-                        modifier = Modifier.padding(top = 2.dp)
+            OPCIONES.forEachIndexed { indice, opcion ->
+                val (activo, cambiar) = valores[indice]
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = opcion.titulo,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Dark
+                        )
+                        Text(
+                            text = opcion.descripcion,
+                            fontSize = 13.sp,
+                            color = TextMuted,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                    SwitchApp(
+                        activo = activo,
+                        onCambiar = cambiar,
+                        habilitado = !enviando,
+                        modifier = Modifier.padding(start = 12.dp)
                     )
                 }
-                SwitchApp(
-                    activo = activo,
-                    onCambiar = cambiar,
-                    habilitado = !enviando,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
             }
+
+            AccionesFormulario(
+                textoGuardar = "Guardar Cambios",
+                enviando = enviando,
+                onCancelar = {
+                    produccionBaja = perfil.notifProduccionBaja
+                    stockBajo = perfil.notifStockBajo
+                    vacunacion = perfil.notifVacunacion
+                    resumenSemanal = perfil.notifResumenSemanal
+                },
+                onGuardar = {
+                    enviando = true
+                    onGuardar(
+                        produccionBaja,
+                        stockBajo,
+                        vacunacion,
+                        resumenSemanal,
+                        { enviando = false },
+                        { enviando = false }
+                    )
+                }
+            )
         }
 
-        AccionesFormulario(
-            textoGuardar = "Guardar Cambios",
-            enviando = enviando,
-            onCancelar = {
-                produccionBaja = perfil.notifProduccionBaja
-                stockBajo = perfil.notifStockBajo
-                vacunacion = perfil.notifVacunacion
-                resumenSemanal = perfil.notifResumenSemanal
-            },
-            onGuardar = {
-                enviando = true
-                onGuardar(
-                    produccionBaja,
-                    stockBajo,
-                    vacunacion,
-                    resumenSemanal,
-                    { enviando = false },
-                    { enviando = false }
-                )
-            }
+        AjustesNotificacionApp(
+            notificacionesActivas = notificacionesActivas,
+            vibracion = vibracion,
+            sonidoPersonalizado = sonidoPersonalizado,
+            onCambiarNotificaciones = onCambiarNotificaciones,
+            onCambiarVibracion = onCambiarVibracion,
+            onCambiarSonido = onCambiarSonido,
+            onReproducirSonido = onReproducirSonido
         )
     }
 }

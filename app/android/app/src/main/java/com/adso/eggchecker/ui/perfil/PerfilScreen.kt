@@ -85,11 +85,19 @@ fun PerfilScreen(viewModel: PerfilViewModel) {
                     when (estado.seccion) {
                         "notificaciones" -> NotificacionesSeccion(
                             perfil = perfil,
+                            notificacionesActivas = estado.notificacionesActivas,
+                            vibracion = estado.vibracion,
+                            sonidoPersonalizado = estado.sonidoPersonalizado,
                             onGuardar = { a, b, c, d, onExito, onError ->
                                 viewModel.guardarNotificaciones(
                                     a, b, c, d, onExito, onError
                                 )
-                            }
+                            },
+                            onCambiarNotificaciones =
+                                viewModel::cambiarNotificaciones,
+                            onCambiarVibracion = viewModel::cambiarVibracion,
+                            onCambiarSonido = viewModel::cambiarSonido,
+                            onReproducirSonido = viewModel::reproducirSonido
                         )
                         "seguridad" -> SeguridadSeccion(
                             onGuardar = { actual, nueva, onExito, onError ->
