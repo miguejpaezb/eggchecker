@@ -100,7 +100,8 @@ private fun EggCheckerRoot() {
                         factory = factory,
                         refreshBus = container.refreshBus,
                         ventaPendienteBus = container.ventaPendienteBus,
-                        abrirNotificacionesBus = container.abrirNotificacionesBus
+                        abrirNotificacionesBus = container.abrirNotificacionesBus,
+                        inventarioPendienteBus = container.inventarioPendienteBus
                     )
                 }
                 EstadoApp.NoAutenticado -> AuthNavHost(factory = factory)

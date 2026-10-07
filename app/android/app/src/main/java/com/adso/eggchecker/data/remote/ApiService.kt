@@ -12,6 +12,7 @@ import com.adso.eggchecker.data.remote.dto.ClienteCreateDto
 import com.adso.eggchecker.data.remote.dto.ClienteDto
 import com.adso.eggchecker.data.remote.dto.ClienteEliminarDto
 import com.adso.eggchecker.data.remote.dto.ClienteUpdateDto
+import com.adso.eggchecker.data.remote.dto.DashboardDto
 import com.adso.eggchecker.data.remote.dto.InsumoCreateDto
 import com.adso.eggchecker.data.remote.dto.InsumoDto
 import com.adso.eggchecker.data.remote.dto.InsumoUpdateDto
@@ -85,6 +86,10 @@ interface ApiService {
     /** Solicita la recuperación de contraseña. */
     @POST("auth/recuperar")
     suspend fun recuperar(@Body body: RecuperarRequestDto): MensajeResponseDto
+
+    /** Indicadores agregados del dashboard del usuario. */
+    @GET("dashboard")
+    suspend fun obtenerDashboard(): DashboardDto
 
     /** Lista las notificaciones del usuario (no leídas primero). */
     @GET("notificaciones")

@@ -10,6 +10,7 @@ import com.adso.eggchecker.data.repository.AuthRepository
 import com.adso.eggchecker.data.repository.CamadaRepository
 import com.adso.eggchecker.data.repository.CategoriaRepository
 import com.adso.eggchecker.data.repository.ClienteRepository
+import com.adso.eggchecker.data.repository.DashboardRepository
 import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.data.repository.PerfilRepository
@@ -18,6 +19,7 @@ import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.repository.VentaRepository
 import com.adso.eggchecker.data.storage.PdfStorage
 import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
+import com.adso.eggchecker.data.sync.InventarioPendienteBus
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.notifications.NotificacionGestor
@@ -68,6 +70,9 @@ class AppContainer(context: Context) {
     /** Repositorio del perfil del usuario. */
     val perfilRepository = PerfilRepository(api)
 
+    /** Repositorio de los indicadores del dashboard. */
+    val dashboardRepository = DashboardRepository(api)
+
     /** Guarda los PDF de reportes en la carpeta de Descargas. */
     val pdfStorage = PdfStorage(context.applicationContext)
 
@@ -90,6 +95,9 @@ class AppContainer(context: Context) {
 
     /** Aviso para abrir el panel de notificaciones desde el sistema. */
     val abrirNotificacionesBus = AbrirNotificacionesBus()
+
+    /** Aviso para abrir el inventario con el stock de un insumo. */
+    val inventarioPendienteBus = InventarioPendienteBus()
 
     /** Canal global de mensajes flotantes (toasts). */
     val mensajeManager = MensajeManager()

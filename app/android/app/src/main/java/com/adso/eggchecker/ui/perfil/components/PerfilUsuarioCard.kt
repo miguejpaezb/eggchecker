@@ -55,7 +55,7 @@ fun PerfilUsuarioCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_avatar),
+                    painter = painterResource(R.drawable.ic_usuario),
                     contentDescription = null,
                     tint = Brown,
                     modifier = Modifier.size(44.dp)

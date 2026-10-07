@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.adso.eggchecker.R
+import com.adso.eggchecker.data.sync.InventarioPendienteBus
 import com.adso.eggchecker.domain.model.Insumo
 import com.adso.eggchecker.ui.components.BotonApp
 import com.adso.eggchecker.ui.components.BotonLimpiar
@@ -48,7 +50,10 @@ import com.adso.eggchecker.ui.theme.TextMuted
 
 /** Pantalla de Inventario (modo online, fiel al web móvil). */
 @Composable
-fun InventarioScreen(viewModel: InventarioViewModel) {
+fun InventarioScreen(
+    viewModel: InventarioViewModel,
+    inventarioPendienteBus: InventarioPendienteBus
+) {
     val estado by viewModel.estado.collectAsState()
 
     var nuevoAbierto by remember { mutableStateOf(false) }
@@ -57,6 +62,17 @@ fun InventarioScreen(viewModel: InventarioViewModel) {
     var enStock by remember { mutableStateOf<Insumo?>(null) }
     var aDescontinuar by remember { mutableStateOf<Insumo?>(null) }
     var descontinuando by remember { mutableStateOf(false) }
+
+    // Abre el modal de stock cuando se llega desde una alerta del dashboard.
+    val insumoPendiente by inventarioPendienteBus.insumoId.collectAsState()
+    LaunchedEffect(insumoPendiente, estado.insumos) {
+        val id = insumoPendiente ?: return@LaunchedEffect
+        val insumo = estado.insumos.find { it.idInsumo == id }
+        if (insumo != null) {
+            enStock = insumo
+            inventarioPendienteBus.consumir()
+        }
+    }
 
     val filtrados = remember(
         estado.insumos,

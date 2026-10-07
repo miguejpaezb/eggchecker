@@ -68,7 +68,7 @@ fun AppTopbar(
             Box {
                 IconButton(onClick = onNotificaciones) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_notificaciones),
+                        painter = painterResource(R.drawable.ic_notificacion),
                         contentDescription = "Notificaciones",
                         tint = Yellow
                     )
@@ -95,7 +95,7 @@ fun AppTopbar(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_avatar),
+                        painter = painterResource(R.drawable.ic_usuario),
                         contentDescription = "Perfil de usuario",
                         tint = Brown,
                         modifier = Modifier.size(20.dp)

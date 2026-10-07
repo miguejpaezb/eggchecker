@@ -127,7 +127,7 @@ fun NotificacionesPanel(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_notificaciones),
+                        painter = painterResource(R.drawable.ic_notificacion),
                         contentDescription = null,
                         tint = Placeholder,
                         modifier = Modifier.size(32.dp)

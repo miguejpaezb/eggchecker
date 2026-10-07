@@ -59,6 +59,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
+import com.adso.eggchecker.data.sync.InventarioPendienteBus
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.model.MODULOS
@@ -68,6 +69,8 @@ import com.adso.eggchecker.ui.camadas.CamadasViewModel
 import com.adso.eggchecker.ui.clientes.ClientesScreen
 import com.adso.eggchecker.ui.clientes.ClientesViewModel
 import com.adso.eggchecker.ui.common.ModulePlaceholderScreen
+import com.adso.eggchecker.ui.dashboard.DashboardScreen
+import com.adso.eggchecker.ui.dashboard.DashboardViewModel
 import com.adso.eggchecker.ui.inventario.InventarioScreen
 import com.adso.eggchecker.ui.inventario.InventarioViewModel
 import com.adso.eggchecker.ui.perfil.PerfilScreen
@@ -107,7 +110,8 @@ fun ShellScreen(
     factory: ViewModelProvider.Factory,
     refreshBus: RefreshBus,
     ventaPendienteBus: VentaPendienteBus,
-    abrirNotificacionesBus: AbrirNotificacionesBus
+    abrirNotificacionesBus: AbrirNotificacionesBus,
+    inventarioPendienteBus: InventarioPendienteBus
 ) {
     val usuario by viewModel.usuario.collectAsState()
     val notificacionesViewModel: NotificacionesViewModel =
@@ -245,6 +249,24 @@ fun ShellScreen(
                                         viewModel(factory = factory)
                                     CamadasScreen(viewModel = camadasViewModel)
                                 }
+                                Rutas.DASHBOARD -> {
+                                    val dashboardViewModel: DashboardViewModel =
+                                        viewModel(factory = factory)
+                                    DashboardScreen(
+                                        viewModel = dashboardViewModel,
+                                        nombreUsuario = usuario?.nombreCompleto
+                                            ?: "avicultor",
+                                        onNuevaProduccion = {
+                                            irA(Rutas.PRODUCCION)
+                                        },
+                                        onVerInsumo = { idInsumo ->
+                                            inventarioPendienteBus.solicitar(
+                                                idInsumo
+                                            )
+                                            irA(Rutas.INVENTARIO)
+                                        }
+                                    )
+                                }
                                 Rutas.PRODUCCION -> {
                                     val produccionViewModel: ProduccionViewModel =
                                         viewModel(factory = factory)
@@ -253,7 +275,10 @@ fun ShellScreen(
                                 Rutas.INVENTARIO -> {
                                     val inventarioViewModel: InventarioViewModel =
                                         viewModel(factory = factory)
-                                    InventarioScreen(viewModel = inventarioViewModel)
+                                    InventarioScreen(
+                                        viewModel = inventarioViewModel,
+                                        inventarioPendienteBus = inventarioPendienteBus
+                                    )
                                 }
                                 Rutas.CLIENTES -> {
                                     val clientesViewModel: ClientesViewModel =
