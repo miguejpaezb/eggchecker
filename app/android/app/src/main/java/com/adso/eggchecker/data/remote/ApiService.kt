@@ -29,10 +29,12 @@ import com.adso.eggchecker.data.remote.dto.ProduccionCreateDto
 import com.adso.eggchecker.data.remote.dto.ProduccionDto
 import com.adso.eggchecker.data.remote.dto.RecuperarRequestDto
 import com.adso.eggchecker.data.remote.dto.RegistroRequestDto
+import com.adso.eggchecker.data.remote.dto.ReporteConsolidadoDto
 import com.adso.eggchecker.data.remote.dto.StockDto
 import com.adso.eggchecker.data.remote.dto.TokenResponseDto
 import com.adso.eggchecker.data.remote.dto.UsuarioDto
 
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -260,4 +262,20 @@ interface ApiService {
         @Path("id") idPedido: Int,
         @Body body: PedidoEliminarDto
     )
+
+    /** Reporte de rentabilidad consolidado del período. */
+    @GET("reportes/consolidado")
+    suspend fun obtenerReporteConsolidado(
+        @Query("desde") desde: String?,
+        @Query("hasta") hasta: String?,
+        @Query("camada") camada: Int?
+    ): ReporteConsolidadoDto
+
+    /** PDF del reporte de rentabilidad del período. */
+    @GET("reportes/pdf")
+    suspend fun descargarReportePdf(
+        @Query("desde") desde: String?,
+        @Query("hasta") hasta: String?,
+        @Query("camada") camada: Int?
+    ): ResponseBody
 }

@@ -62,6 +62,8 @@ import com.adso.eggchecker.ui.inventario.InventarioScreen
 import com.adso.eggchecker.ui.inventario.InventarioViewModel
 import com.adso.eggchecker.ui.produccion.ProduccionScreen
 import com.adso.eggchecker.ui.produccion.ProduccionViewModel
+import com.adso.eggchecker.ui.reportes.ReportesScreen
+import com.adso.eggchecker.ui.reportes.ReportesViewModel
 import com.adso.eggchecker.ui.shell.components.AppDrawer
 import com.adso.eggchecker.ui.shell.components.AppTopbar
 import com.adso.eggchecker.ui.shell.components.NotificacionesPanel
@@ -231,6 +233,11 @@ fun ShellScreen(
                                     val ventasViewModel: VentasViewModel =
                                         viewModel(factory = factory)
                                     VentasScreen(viewModel = ventasViewModel)
+                                }
+                                Rutas.REPORTES -> {
+                                    val reportesViewModel: ReportesViewModel =
+                                        viewModel(factory = factory)
+                                    ReportesScreen(viewModel = reportesViewModel)
                                 }
                                 else -> ModulePlaceholderScreen(
                                     titulo = modulo.nombre

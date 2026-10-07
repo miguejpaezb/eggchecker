@@ -12,7 +12,9 @@ import com.adso.eggchecker.data.repository.ClienteRepository
 import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.data.repository.ProduccionRepository
+import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.repository.VentaRepository
+import com.adso.eggchecker.data.storage.PdfStorage
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.ui.mensajes.MensajeManager
@@ -55,6 +57,12 @@ class AppContainer(context: Context) {
 
     /** Repositorio de ventas (pedidos y stock) del usuario. */
     val ventaRepository = VentaRepository(api)
+
+    /** Repositorio de reportes de rentabilidad del usuario. */
+    val reporteRepository = ReporteRepository(api)
+
+    /** Guarda los PDF de reportes en la carpeta de Descargas. */
+    val pdfStorage = PdfStorage(context.applicationContext)
 
     /** Bus de recarga para el pull-to-refresh de las pantallas. */
     val refreshBus = RefreshBus()
