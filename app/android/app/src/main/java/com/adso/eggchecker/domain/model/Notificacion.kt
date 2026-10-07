@@ -5,6 +5,7 @@ data class Notificacion(
     val idNotificacion: Int,
     val idCamada: Int?,
     val idInsumo: Int?,
+    val tipo: String,
     val titulo: String,
     val mensaje: String,
     val leida: Boolean

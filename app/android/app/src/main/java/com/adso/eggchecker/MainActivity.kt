@@ -1,5 +1,6 @@
 package com.adso.eggchecker
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -34,6 +35,7 @@ import com.adso.eggchecker.ui.theme.EggCheckerTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        manejarIntento(intent)
         // Barras transparentes con íconos oscuros: la app es de fondo claro.
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
@@ -50,6 +52,27 @@ class MainActivity : ComponentActivity() {
                 EggCheckerRoot()
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        manejarIntento(intent)
+    }
+
+    /** Abre el panel de notificaciones si el intent lo pide. */
+    private fun manejarIntento(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_ABRIR_NOTIFICACIONES, false) == true) {
+            (application as EggCheckerApp)
+                .container
+                .abrirNotificacionesBus
+                .solicitar()
+        }
+    }
+
+    companion object {
+        /** Extra que indica abrir el panel de notificaciones al entrar. */
+        const val EXTRA_ABRIR_NOTIFICACIONES = "abrir_notificaciones"
     }
 }
 
@@ -76,7 +99,8 @@ private fun EggCheckerRoot() {
                         viewModel = shellViewModel,
                         factory = factory,
                         refreshBus = container.refreshBus,
-                        ventaPendienteBus = container.ventaPendienteBus
+                        ventaPendienteBus = container.ventaPendienteBus,
+                        abrirNotificacionesBus = container.abrirNotificacionesBus
                     )
                 }
                 EstadoApp.NoAutenticado -> AuthNavHost(factory = factory)

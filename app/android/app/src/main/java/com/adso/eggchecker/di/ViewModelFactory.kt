@@ -25,8 +25,14 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
     initializer { MainViewModel(authRepository) }
     initializer { LoginViewModel(authRepository) }
     initializer { RegisterViewModel(authRepository) }
-    initializer { ShellViewModel(authRepository) }
-    initializer { NotificacionesViewModel(notificacionRepository, mensajeManager) }
+    initializer { ShellViewModel(authRepository, notificacionGestor) }
+    initializer {
+        NotificacionesViewModel(
+            notificacionRepository,
+            mensajeManager,
+            notificacionGestor
+        )
+    }
     initializer {
         CamadasViewModel(camadaRepository, refreshBus, mensajeManager)
     }

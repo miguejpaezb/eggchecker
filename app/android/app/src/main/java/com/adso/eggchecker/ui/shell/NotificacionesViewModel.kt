@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.domain.model.Notificacion
+import com.adso.eggchecker.notifications.NotificacionGestor
 import com.adso.eggchecker.ui.mensajes.MensajeManager
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,8 @@ data class NotificacionesUiState(
 /** Carga y gestiona las notificaciones del usuario. */
 class NotificacionesViewModel(
     private val notificacionRepository: NotificacionRepository,
-    private val mensajeManager: MensajeManager
+    private val mensajeManager: MensajeManager,
+    private val notificacionGestor: NotificacionGestor
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(NotificacionesUiState())
@@ -63,7 +65,10 @@ class NotificacionesViewModel(
     fun marcarLeida(idNotificacion: Int) {
         viewModelScope.launch {
             notificacionRepository.marcarLeida(idNotificacion)
-                .onSuccess { cargar() }
+                .onSuccess {
+                    notificacionGestor.quitarDescartada(idNotificacion)
+                    cargar()
+                }
                 .onFailure { error ->
                     mensajeManager.error(
                         error.message ?: "No se pudo marcar como leída"
@@ -76,7 +81,10 @@ class NotificacionesViewModel(
     fun marcarTodas() {
         viewModelScope.launch {
             notificacionRepository.marcarTodas()
-                .onSuccess { cargar() }
+                .onSuccess {
+                    notificacionGestor.cancelarTodas()
+                    cargar()
+                }
                 .onFailure { error ->
                     mensajeManager.error(
                         error.message ?: "No se pudieron marcar como leídas"
@@ -89,7 +97,10 @@ class NotificacionesViewModel(
     fun eliminar(idNotificacion: Int) {
         viewModelScope.launch {
             notificacionRepository.eliminar(idNotificacion)
-                .onSuccess { cargar() }
+                .onSuccess {
+                    notificacionGestor.quitarDescartada(idNotificacion)
+                    cargar()
+                }
                 .onFailure { error ->
                     mensajeManager.error(
                         error.message ?: "No se pudo eliminar"

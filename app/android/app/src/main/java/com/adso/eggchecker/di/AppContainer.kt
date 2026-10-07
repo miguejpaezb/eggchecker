@@ -3,6 +3,7 @@ package com.adso.eggchecker.di
 import android.content.Context
 
 import com.adso.eggchecker.data.local.EggCheckerDatabase
+import com.adso.eggchecker.data.local.NotificacionEstadoStore
 import com.adso.eggchecker.data.local.SessionDataStore
 import com.adso.eggchecker.data.remote.ApiClient
 import com.adso.eggchecker.data.repository.AuthRepository
@@ -16,8 +17,10 @@ import com.adso.eggchecker.data.repository.ProduccionRepository
 import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.repository.VentaRepository
 import com.adso.eggchecker.data.storage.PdfStorage
+import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
+import com.adso.eggchecker.notifications.NotificacionGestor
 import com.adso.eggchecker.ui.mensajes.MensajeManager
 
 /**
@@ -68,11 +71,25 @@ class AppContainer(context: Context) {
     /** Guarda los PDF de reportes en la carpeta de Descargas. */
     val pdfStorage = PdfStorage(context.applicationContext)
 
+    /** Estado local de notificaciones descartadas en la barra del sistema. */
+    val notificacionEstadoStore = NotificacionEstadoStore(context.applicationContext)
+
+    /** Publica y sincroniza las notificaciones en el dispositivo. */
+    val notificacionGestor = NotificacionGestor(
+        context = context.applicationContext,
+        notificacionRepository = notificacionRepository,
+        perfilRepository = perfilRepository,
+        estadoStore = notificacionEstadoStore
+    )
+
     /** Bus de recarga para el pull-to-refresh de las pantallas. */
     val refreshBus = RefreshBus()
 
     /** Aviso para abrir Ventas con un cliente precargado. */
     val ventaPendienteBus = VentaPendienteBus()
+
+    /** Aviso para abrir el panel de notificaciones desde el sistema. */
+    val abrirNotificacionesBus = AbrirNotificacionesBus()
 
     /** Canal global de mensajes flotantes (toasts). */
     val mensajeManager = MensajeManager()

@@ -1,5 +1,11 @@
 package com.adso.eggchecker.ui.shell
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -30,6 +36,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +47,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -49,6 +58,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
+import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.model.MODULOS
@@ -96,7 +106,8 @@ fun ShellScreen(
     viewModel: ShellViewModel,
     factory: ViewModelProvider.Factory,
     refreshBus: RefreshBus,
-    ventaPendienteBus: VentaPendienteBus
+    ventaPendienteBus: VentaPendienteBus,
+    abrirNotificacionesBus: AbrirNotificacionesBus
 ) {
     val usuario by viewModel.usuario.collectAsState()
     val notificacionesViewModel: NotificacionesViewModel =
@@ -112,6 +123,32 @@ fun ShellScreen(
     var perfilAbierto by remember { mutableStateOf(false) }
     var refrescando by remember { mutableStateOf(false) }
     val pullState = rememberPullToRefreshState()
+
+    // Pide el permiso de notificaciones una vez (Android 13+).
+    val context = LocalContext.current
+    val permisoNotificaciones = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Abre el panel cuando se llega desde una notificación del sistema.
+    val abrirNotificaciones by abrirNotificacionesBus.solicitado.collectAsState()
+    LaunchedEffect(abrirNotificaciones) {
+        if (abrirNotificaciones) {
+            notificacionesAbierto = true
+            notificacionesViewModel.cargar()
+            abrirNotificacionesBus.consumir()
+        }
+    }
 
     // El topbar es marrón: íconos de la barra de estado en claro.
     EstiloIconosBarraEstado(oscuros = false)

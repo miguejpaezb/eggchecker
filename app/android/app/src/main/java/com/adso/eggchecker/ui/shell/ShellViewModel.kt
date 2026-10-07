@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.adso.eggchecker.data.remote.ApiException
 import com.adso.eggchecker.data.repository.AuthRepository
 import com.adso.eggchecker.domain.model.Usuario
+import com.adso.eggchecker.notifications.NotificacionGestor
 
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,8 @@ import kotlinx.coroutines.launch
 
 /** Perfil del usuario y acciones del shell principal (topbar/drawer). */
 class ShellViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val notificacionGestor: NotificacionGestor
 ) : ViewModel() {
 
     /** Perfil del usuario leído desde Room. */
@@ -27,6 +29,8 @@ class ShellViewModel(
 
     init {
         viewModelScope.launch { refrescar() }
+        notificacionGestor.asegurarPeriodico()
+        notificacionGestor.sincronizarAhora()
     }
 
     /** Refresca el perfil desde el backend (pull-to-refresh). */
@@ -37,8 +41,11 @@ class ShellViewModel(
         }
     }
 
-    /** Cierra la sesión de forma manual. */
+    /** Cierra la sesión de forma manual y detiene las notificaciones. */
     fun cerrarSesion() {
-        viewModelScope.launch { authRepository.cerrarSesion() }
+        viewModelScope.launch {
+            notificacionGestor.detener()
+            authRepository.cerrarSesion()
+        }
     }
 }
