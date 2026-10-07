@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.adso.eggchecker.R
+import com.adso.eggchecker.data.sync.CamadaPendienteBus
 import com.adso.eggchecker.domain.model.Camada
 import com.adso.eggchecker.ui.camadas.components.CamadaCard
 import com.adso.eggchecker.ui.camadas.components.CamadaDetalleModal
@@ -49,7 +51,10 @@ import com.adso.eggchecker.ui.theme.TextMuted
 
 /** Pantalla de gestión de camadas (modo online, fiel al web móvil). */
 @Composable
-fun CamadasScreen(viewModel: CamadasViewModel) {
+fun CamadasScreen(
+    viewModel: CamadasViewModel,
+    camadaPendienteBus: CamadaPendienteBus
+) {
     val estado by viewModel.estado.collectAsState()
 
     var nuevaAbierta by remember { mutableStateOf(false) }
@@ -58,6 +63,23 @@ fun CamadasScreen(viewModel: CamadasViewModel) {
     var enDetalle by remember { mutableStateOf<Camada?>(null) }
     var aDescartar by remember { mutableStateOf<Camada?>(null) }
     var descartando by remember { mutableStateOf(false) }
+
+    // Abre el detalle cuando se llega desde una notificación de camada.
+    val camadaPendiente by camadaPendienteBus.camadaId.collectAsState()
+    LaunchedEffect(camadaPendiente, estado.camadas, estado.cargando) {
+        val id = camadaPendiente ?: return@LaunchedEffect
+        if (estado.cargando) return@LaunchedEffect
+        val encontrada = estado.camadas.find { it.idCamada == id }
+        if (encontrada != null) {
+            enDetalle = encontrada
+            camadaPendienteBus.consumir()
+        } else {
+            viewModel.cargarDetalle(id) { camada, _ ->
+                if (camada != null) enDetalle = camada
+                camadaPendienteBus.consumir()
+            }
+        }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),

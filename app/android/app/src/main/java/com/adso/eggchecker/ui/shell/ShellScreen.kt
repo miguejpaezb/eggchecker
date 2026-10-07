@@ -59,6 +59,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
+import com.adso.eggchecker.data.sync.CamadaPendienteBus
 import com.adso.eggchecker.data.sync.InventarioPendienteBus
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
@@ -111,7 +112,8 @@ fun ShellScreen(
     refreshBus: RefreshBus,
     ventaPendienteBus: VentaPendienteBus,
     abrirNotificacionesBus: AbrirNotificacionesBus,
-    inventarioPendienteBus: InventarioPendienteBus
+    inventarioPendienteBus: InventarioPendienteBus,
+    camadaPendienteBus: CamadaPendienteBus
 ) {
     val usuario by viewModel.usuario.collectAsState()
     val notificacionesViewModel: NotificacionesViewModel =
@@ -247,7 +249,10 @@ fun ShellScreen(
                                 Rutas.CAMADAS -> {
                                     val camadasViewModel: CamadasViewModel =
                                         viewModel(factory = factory)
-                                    CamadasScreen(viewModel = camadasViewModel)
+                                    CamadasScreen(
+                                        viewModel = camadasViewModel,
+                                        camadaPendienteBus = camadaPendienteBus
+                                    )
                                 }
                                 Rutas.DASHBOARD -> {
                                     val dashboardViewModel: DashboardViewModel =
@@ -367,12 +372,20 @@ fun ShellScreen(
                         onEliminar = notificacionesViewModel::eliminar,
                         onVer = { aviso ->
                             notificacionesAbierto = false
-                            val ruta = if (aviso.idInsumo != null) {
-                                Rutas.INVENTARIO
-                            } else {
-                                Rutas.CAMADAS
+                            when {
+                                aviso.idInsumo != null -> {
+                                    inventarioPendienteBus.solicitar(
+                                        aviso.idInsumo
+                                    )
+                                    irA(Rutas.INVENTARIO)
+                                }
+                                aviso.idCamada != null -> {
+                                    camadaPendienteBus.solicitar(
+                                        aviso.idCamada
+                                    )
+                                    irA(Rutas.CAMADAS)
+                                }
                             }
-                            irA(ruta)
                         },
                         modifier = Modifier
                             .padding(8.dp)

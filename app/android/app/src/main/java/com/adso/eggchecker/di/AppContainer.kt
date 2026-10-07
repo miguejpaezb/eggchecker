@@ -19,6 +19,7 @@ import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.repository.VentaRepository
 import com.adso.eggchecker.data.storage.PdfStorage
 import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
+import com.adso.eggchecker.data.sync.CamadaPendienteBus
 import com.adso.eggchecker.data.sync.InventarioPendienteBus
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
@@ -98,6 +99,9 @@ class AppContainer(context: Context) {
 
     /** Aviso para abrir el inventario con el stock de un insumo. */
     val inventarioPendienteBus = InventarioPendienteBus()
+
+    /** Aviso para abrir el detalle de una camada. */
+    val camadaPendienteBus = CamadaPendienteBus()
 
     /** Canal global de mensajes flotantes (toasts). */
     val mensajeManager = MensajeManager()
