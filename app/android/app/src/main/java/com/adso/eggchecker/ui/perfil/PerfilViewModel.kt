@@ -218,6 +218,7 @@ class PerfilViewModel(
 
     /** Cambia el sonido (null = predeterminado de la app). */
     fun cambiarSonido(uri: String?) {
+        if (uri == _estado.value.sonidoPersonalizado) return
         viewModelScope.launch {
             notificacionEstadoStore.guardarSonido(uri)
             notificacionGestor.sincronizarAjustes()

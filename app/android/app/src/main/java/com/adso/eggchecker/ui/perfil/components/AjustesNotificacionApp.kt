@@ -59,7 +59,9 @@ fun AjustesNotificacionApp(
                 ?.getParcelableExtra<Uri>(
                     RingtoneManager.EXTRA_RINGTONE_PICKED_URI
                 )
-            onCambiarSonido(uri?.toString())
+            if (uri != null) {
+                onCambiarSonido(uri.toString())
+            }
         }
     }
 
@@ -124,7 +126,7 @@ fun AjustesNotificacionApp(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OpcionSonido(
-                texto = "Predeterminado de la app",
+                texto = "Predeterminado",
                 seleccionado = sonidoPersonalizado == null,
                 habilitado = notificacionesActivas,
                 modifier = Modifier.weight(1f)
