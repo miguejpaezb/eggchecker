@@ -11,6 +11,7 @@ import com.adso.eggchecker.data.repository.CategoriaRepository
 import com.adso.eggchecker.data.repository.ClienteRepository
 import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.repository.NotificacionRepository
+import com.adso.eggchecker.data.repository.PerfilRepository
 import com.adso.eggchecker.data.repository.ProduccionRepository
 import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.repository.VentaRepository
@@ -60,6 +61,9 @@ class AppContainer(context: Context) {
 
     /** Repositorio de reportes de rentabilidad del usuario. */
     val reporteRepository = ReporteRepository(api)
+
+    /** Repositorio del perfil del usuario. */
+    val perfilRepository = PerfilRepository(api)
 
     /** Guarda los PDF de reportes en la carpeta de Descargas. */
     val pdfStorage = PdfStorage(context.applicationContext)

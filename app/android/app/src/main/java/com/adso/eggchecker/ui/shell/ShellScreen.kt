@@ -60,6 +60,8 @@ import com.adso.eggchecker.ui.clientes.ClientesViewModel
 import com.adso.eggchecker.ui.common.ModulePlaceholderScreen
 import com.adso.eggchecker.ui.inventario.InventarioScreen
 import com.adso.eggchecker.ui.inventario.InventarioViewModel
+import com.adso.eggchecker.ui.perfil.PerfilScreen
+import com.adso.eggchecker.ui.perfil.PerfilViewModel
 import com.adso.eggchecker.ui.produccion.ProduccionScreen
 import com.adso.eggchecker.ui.produccion.ProduccionViewModel
 import com.adso.eggchecker.ui.reportes.ReportesScreen
@@ -238,6 +240,11 @@ fun ShellScreen(
                                     val reportesViewModel: ReportesViewModel =
                                         viewModel(factory = factory)
                                     ReportesScreen(viewModel = reportesViewModel)
+                                }
+                                Rutas.PERFIL -> {
+                                    val perfilViewModel: PerfilViewModel =
+                                        viewModel(factory = factory)
+                                    PerfilScreen(viewModel = perfilViewModel)
                                 }
                                 else -> ModulePlaceholderScreen(
                                     titulo = modulo.nombre

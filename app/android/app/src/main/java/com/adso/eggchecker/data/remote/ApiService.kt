@@ -7,6 +7,7 @@ import com.adso.eggchecker.data.remote.dto.CategoriaCreateDto
 import com.adso.eggchecker.data.remote.dto.CategoriaDto
 import com.adso.eggchecker.data.remote.dto.CategoriaUpdateDto
 import com.adso.eggchecker.data.remote.dto.CambiarEstadoDto
+import com.adso.eggchecker.data.remote.dto.CambiarContrasenaDto
 import com.adso.eggchecker.data.remote.dto.ClienteCreateDto
 import com.adso.eggchecker.data.remote.dto.ClienteDto
 import com.adso.eggchecker.data.remote.dto.ClienteEliminarDto
@@ -20,10 +21,13 @@ import com.adso.eggchecker.data.remote.dto.MortalidadRequestDto
 import com.adso.eggchecker.data.remote.dto.MovimientoCreateDto
 import com.adso.eggchecker.data.remote.dto.MovimientoDto
 import com.adso.eggchecker.data.remote.dto.NotificacionDto
+import com.adso.eggchecker.data.remote.dto.NotificacionesUpdateDto
 import com.adso.eggchecker.data.remote.dto.PedidoCreateDto
 import com.adso.eggchecker.data.remote.dto.PedidoDto
 import com.adso.eggchecker.data.remote.dto.PedidoEliminarDto
 import com.adso.eggchecker.data.remote.dto.PedidoUpdateDto
+import com.adso.eggchecker.data.remote.dto.PerfilDto
+import com.adso.eggchecker.data.remote.dto.PerfilUpdateDto
 import com.adso.eggchecker.data.remote.dto.ProduccionConDetalleDto
 import com.adso.eggchecker.data.remote.dto.ProduccionCreateDto
 import com.adso.eggchecker.data.remote.dto.ProduccionDto
@@ -40,6 +44,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -59,7 +64,23 @@ interface ApiService {
 
     /** Consulta el perfil del usuario autenticado. */
     @GET("usuarios/me")
-    suspend fun obtenerPerfil(): UsuarioDto
+    suspend fun obtenerPerfil(): PerfilDto
+
+    /** Actualiza los datos personales y de la granja del usuario. */
+    @PUT("usuarios/me")
+    suspend fun actualizarPerfil(@Body body: PerfilUpdateDto): PerfilDto
+
+    /** Guarda las preferencias de alertas del usuario. */
+    @PUT("usuarios/me/notificaciones")
+    suspend fun actualizarNotificaciones(
+        @Body body: NotificacionesUpdateDto
+    ): PerfilDto
+
+    /** Cambia la contraseña del usuario autenticado. */
+    @PUT("usuarios/me/contrasena")
+    suspend fun cambiarContrasena(
+        @Body body: CambiarContrasenaDto
+    ): MensajeResponseDto
 
     /** Solicita la recuperación de contraseña. */
     @POST("auth/recuperar")
