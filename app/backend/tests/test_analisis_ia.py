@@ -16,7 +16,7 @@ from app.core.database import get_db
 from app.core.security import crear_token_acceso
 from app.main import create_app
 from app.models.usuario import Usuario
-from app.schemas.analisis_ia import DiagnosticoIA
+from app.schemas.analisis_ia import DiagnosticoIA, DistribucionTipos
 from app.services.ia_proveedor import (
     DemoProveedor,
     GeminiProveedor,
@@ -444,3 +444,22 @@ def test_gemini_bloqueo_sin_candidatos():
     )
     with pytest.raises(ProveedorIAError):
         proveedor.diagnosticar(JPEG, "image/jpeg")
+
+
+def test_recomendaciones_sin_camada_usan_del_lote():
+    diagnostico = DemoProveedor().diagnosticar(b"", "image/jpeg")
+    recs = generar_recomendaciones(diagnostico, ContextoGranja())
+    assert any("postura del lote" in r for r in recs)
+    assert not any("de el lote" in r for r in recs)
+
+
+def test_resumen_en_singular_con_un_huevo(cliente, proveedor):
+    headers = _registrar(cliente, "singular@test.com")
+    proveedor.diagnostico = proveedor.diagnostico.model_copy(
+        update={
+            "huevos_detectados": 1,
+            "distribucion": DistribucionTipos(No_apto=1),
+        }
+    )
+    datos = _analizar(cliente, headers).json()
+    assert datos["resultado_diagnostico"].startswith("Muestra 1 huevo: 100% No_apto")

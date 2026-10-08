@@ -56,7 +56,9 @@ function DiagnosticoContenido({ analisis, onRetroalimentar }) {
           )}
           {analisis.huevos_detectados !== null && (
             <p className="ec-analisis__dato">
-              {analisis.huevos_detectados} huevos detectados
+              {analisis.huevos_detectados === 1
+                ? '1 huevo detectado'
+                : `${analisis.huevos_detectados} huevos detectados`}
             </p>
           )}
         </div>

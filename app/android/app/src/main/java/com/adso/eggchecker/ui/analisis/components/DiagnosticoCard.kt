@@ -184,7 +184,7 @@ private fun EncabezadoCalidad(analisis: Analisis) {
             }
             analisis.huevosDetectados?.let {
                 Text(
-                    text = "$it huevos detectados",
+                    text = if (it == 1) "1 huevo detectado" else "$it huevos detectados",
                     fontSize = 13.sp,
                     color = TextMuted
                 )
