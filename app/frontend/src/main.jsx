@@ -11,6 +11,7 @@ import './styles/ventas.css';
 import './styles/reportes.css';
 import './styles/dashboard.css';
 import './styles/perfil.css';
+import './styles/analisis.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

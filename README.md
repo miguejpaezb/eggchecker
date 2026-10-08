@@ -22,7 +22,7 @@ Aplicación web para avicultores que centraliza la gestión de camadas, inventar
 - **Notificaciones** — alertas de stock de insumos y recordatorios de decisión de camada.
 - **Dashboard** — indicadores de producción del día, aves activas, pedidos pendientes, alertas y resumen semanal.
 - **Perfil** — datos personales y de la granja, preferencias de alertas, seguridad de la cuenta y detalle del plan.
-- **Inteligencia** — módulo premium que analiza fotos de huevos con IA (Gemini, plan gratuito): diagnóstico, anomalías, recomendaciones personalizadas e historial por camada. Disponible en la app Android.
+- **Inteligencia** — módulo premium que analiza fotos de huevos con IA (Gemini, plan gratuito): diagnóstico, anomalías, recomendaciones personalizadas e historial por camada. Disponible en la web y en la app Android.
 - **API REST** — backend reutilizable por aplicaciones web y móviles.
 
 ## 🛠️ Stack tecnológico
@@ -104,7 +104,7 @@ npm run build
 | Notificaciones | ✅ | ✅ | Alertas de stock y recordatorios de decisión de camada |
 | Dashboard | ✅ | ✅ | Indicadores del día, producción semanal, alertas y pedidos recientes |
 | Perfil | ✅ | ✅ | Datos personales y de la granja, preferencias de alertas, seguridad y plan |
-| Inteligencia Premium (IA) | ✅ | ⬜ | Análisis de fotos de huevos (RF-33 a RF-36): API `/api/analisis-ia` y pantalla Android; la versión web está pendiente |
+| Inteligencia Premium (IA) | ✅ | ✅ | Análisis de fotos de huevos (RF-33 a RF-36): API `/api/analisis-ia`, página web y pantalla Android |
 | App móvil Android | ⬜ | ⬜ | Kotlin + Jetpack Compose sobre la misma API REST |
 
 > Leyenda: ✅ implementado · ⬜ pendiente.
