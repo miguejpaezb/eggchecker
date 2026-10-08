@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.analisis_ia import router as analisis_ia_router
 from app.api.auth import router as auth_router
 from app.api.camadas import router as camadas_router
 from app.api.categorias_insumo import router as categorias_insumo_router
@@ -47,6 +48,7 @@ def create_app() -> FastAPI:
     app.include_router(clientes_router, prefix="/api")
     app.include_router(ventas_router, prefix="/api")
     app.include_router(reportes_router, prefix="/api")
+    app.include_router(analisis_ia_router, prefix="/api")
 
     return app
 

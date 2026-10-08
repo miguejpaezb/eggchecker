@@ -9,9 +9,12 @@ pymysql
 python-jose[cryptography]
 passlib[bcrypt]
 reportlab
+# Recibe la foto del análisis IA (multipart/form-data).
+python-multipart
+# Cliente HTTP para la API de Gemini (también lo usan las pruebas).
+httpx
 # passlib 1.7.4 no soporta bcrypt >= 4.1; se fija 4.0.1 para que el hashing funcione.
 bcrypt==4.0.1
 pytest
-httpx
 ruff
 black
