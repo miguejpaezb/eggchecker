@@ -1,12 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import AppLayout from './components/AppLayout';
+import AnalisisIA from './pages/AnalisisIA';
 import Auth from './pages/Auth';
 import Camadas from './pages/Camadas';
 import Clientes from './pages/Clientes';
 import Dashboard from './pages/Dashboard';
 import Inventario from './pages/Inventario';
-import ModulePlaceholder from './pages/ModulePlaceholder';
 import Perfil from './pages/Perfil';
 import Produccion from './pages/Produccion';
 import Reportes from './pages/Reportes';
@@ -27,10 +27,7 @@ function App() {
         <Route path="/inventario" element={<Inventario />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/ventas" element={<Ventas />} />
-        <Route
-          path="/analisis"
-          element={<ModulePlaceholder title="Análisis IA" />}
-        />
+        <Route path="/analisis" element={<AnalisisIA />} />
         <Route path="/reportes" element={<Reportes />} />
         <Route path="/perfil" element={<Perfil />} />
       </Route>
