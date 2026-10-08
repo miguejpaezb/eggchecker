@@ -246,6 +246,7 @@ def test_png_es_aceptado(cliente):
         (b"%PDF-1.4 no es imagen", 415),
         (b"\xff\xd8\xff" + b"\x00" * (1024 * 1024), 413),
     ],
+    ids=["vacia", "gif", "pdf", "demasiado_grande"],
 )
 def test_imagen_invalida(cliente, proveedor, contenido, codigo):
     headers = _registrar(cliente, f"invalida{codigo}{len(contenido)}@test.com")
