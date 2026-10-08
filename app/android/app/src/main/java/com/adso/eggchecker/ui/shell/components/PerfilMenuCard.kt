@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.adso.eggchecker.R
 import com.adso.eggchecker.ui.theme.Brown
 import com.adso.eggchecker.ui.theme.Dark
+import com.adso.eggchecker.ui.theme.SuperficieTarjeta
 import com.adso.eggchecker.ui.theme.TextMuted
 import com.adso.eggchecker.ui.theme.Yellow
 
@@ -48,7 +48,7 @@ fun PerfilMenuCard(
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = SuperficieTarjeta,
         shadowElevation = 16.dp,
         modifier = modifier
     ) {
@@ -64,7 +64,7 @@ fun PerfilMenuCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_avatar),
+                    painter = painterResource(R.drawable.ic_usuario),
                     contentDescription = null,
                     tint = Brown,
                     modifier = Modifier.size(40.dp)

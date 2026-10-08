@@ -3,10 +3,28 @@ package com.adso.eggchecker.di
 import android.content.Context
 
 import com.adso.eggchecker.data.local.EggCheckerDatabase
+import com.adso.eggchecker.data.local.NotificacionEstadoStore
 import com.adso.eggchecker.data.local.SessionDataStore
 import com.adso.eggchecker.data.remote.ApiClient
 import com.adso.eggchecker.data.repository.AuthRepository
+import com.adso.eggchecker.data.repository.CamadaRepository
+import com.adso.eggchecker.data.repository.CategoriaRepository
+import com.adso.eggchecker.data.repository.ClienteRepository
+import com.adso.eggchecker.data.repository.DashboardRepository
+import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.repository.NotificacionRepository
+import com.adso.eggchecker.data.repository.PerfilRepository
+import com.adso.eggchecker.data.repository.ProduccionRepository
+import com.adso.eggchecker.data.repository.ReporteRepository
+import com.adso.eggchecker.data.repository.VentaRepository
+import com.adso.eggchecker.data.storage.PdfStorage
+import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
+import com.adso.eggchecker.data.sync.CamadaPendienteBus
+import com.adso.eggchecker.data.sync.InventarioPendienteBus
+import com.adso.eggchecker.data.sync.RefreshBus
+import com.adso.eggchecker.data.sync.VentaPendienteBus
+import com.adso.eggchecker.notifications.NotificacionGestor
+import com.adso.eggchecker.ui.mensajes.MensajeManager
 
 /**
  * Contenedor de dependencias manual (sin Hilt) para mantener el proyecto
@@ -30,4 +48,61 @@ class AppContainer(context: Context) {
 
     /** Repositorio de notificaciones del usuario. */
     val notificacionRepository = NotificacionRepository(api)
+
+    /** Repositorio de camadas del usuario. */
+    val camadaRepository = CamadaRepository(api)
+
+    /** Repositorio de producción diaria del usuario. */
+    val produccionRepository = ProduccionRepository(api)
+
+    /** Repositorios de inventario del usuario. */
+    val insumoRepository = InsumoRepository(api)
+    val categoriaRepository = CategoriaRepository(api)
+
+    /** Repositorio de clientes del usuario. */
+    val clienteRepository = ClienteRepository(api)
+
+    /** Repositorio de ventas (pedidos y stock) del usuario. */
+    val ventaRepository = VentaRepository(api)
+
+    /** Repositorio de reportes de rentabilidad del usuario. */
+    val reporteRepository = ReporteRepository(api)
+
+    /** Repositorio del perfil del usuario. */
+    val perfilRepository = PerfilRepository(api)
+
+    /** Repositorio de los indicadores del dashboard. */
+    val dashboardRepository = DashboardRepository(api)
+
+    /** Guarda los PDF de reportes en la carpeta de Descargas. */
+    val pdfStorage = PdfStorage(context.applicationContext)
+
+    /** Estado local de notificaciones descartadas en la barra del sistema. */
+    val notificacionEstadoStore = NotificacionEstadoStore(context.applicationContext)
+
+    /** Publica y sincroniza las notificaciones en el dispositivo. */
+    val notificacionGestor = NotificacionGestor(
+        context = context.applicationContext,
+        notificacionRepository = notificacionRepository,
+        perfilRepository = perfilRepository,
+        estadoStore = notificacionEstadoStore
+    )
+
+    /** Bus de recarga para el pull-to-refresh de las pantallas. */
+    val refreshBus = RefreshBus()
+
+    /** Aviso para abrir Ventas con un cliente precargado. */
+    val ventaPendienteBus = VentaPendienteBus()
+
+    /** Aviso para abrir el panel de notificaciones desde el sistema. */
+    val abrirNotificacionesBus = AbrirNotificacionesBus()
+
+    /** Aviso para abrir el inventario con el stock de un insumo. */
+    val inventarioPendienteBus = InventarioPendienteBus()
+
+    /** Aviso para abrir el detalle de una camada. */
+    val camadaPendienteBus = CamadaPendienteBus()
+
+    /** Canal global de mensajes flotantes (toasts). */
+    val mensajeManager = MensajeManager()
 }

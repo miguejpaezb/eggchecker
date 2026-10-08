@@ -1,5 +1,11 @@
 package com.adso.eggchecker.ui.shell
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -30,6 +36,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +47,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -49,9 +58,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
+import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
+import com.adso.eggchecker.data.sync.CamadaPendienteBus
+import com.adso.eggchecker.data.sync.InventarioPendienteBus
+import com.adso.eggchecker.data.sync.RefreshBus
+import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.model.MODULOS
 import com.adso.eggchecker.navigation.Rutas
+import com.adso.eggchecker.ui.camadas.CamadasScreen
+import com.adso.eggchecker.ui.camadas.CamadasViewModel
+import com.adso.eggchecker.ui.clientes.ClientesScreen
+import com.adso.eggchecker.ui.clientes.ClientesViewModel
 import com.adso.eggchecker.ui.common.ModulePlaceholderScreen
+import com.adso.eggchecker.ui.dashboard.DashboardScreen
+import com.adso.eggchecker.ui.dashboard.DashboardViewModel
+import com.adso.eggchecker.ui.inventario.InventarioScreen
+import com.adso.eggchecker.ui.inventario.InventarioViewModel
+import com.adso.eggchecker.ui.perfil.PerfilScreen
+import com.adso.eggchecker.ui.perfil.PerfilViewModel
+import com.adso.eggchecker.ui.produccion.ProduccionScreen
+import com.adso.eggchecker.ui.produccion.ProduccionViewModel
+import com.adso.eggchecker.ui.reportes.ReportesScreen
+import com.adso.eggchecker.ui.reportes.ReportesViewModel
 import com.adso.eggchecker.ui.shell.components.AppDrawer
 import com.adso.eggchecker.ui.shell.components.AppTopbar
 import com.adso.eggchecker.ui.shell.components.NotificacionesPanel
@@ -60,6 +88,8 @@ import com.adso.eggchecker.ui.theme.Brown
 import com.adso.eggchecker.ui.theme.Cream
 import com.adso.eggchecker.ui.theme.EstiloIconosBarraEstado
 import com.adso.eggchecker.ui.theme.Yellow
+import com.adso.eggchecker.ui.ventas.VentasScreen
+import com.adso.eggchecker.ui.ventas.VentasViewModel
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -78,7 +108,12 @@ private const val MS_REFRESCO_MINIMO = 700L
 @Composable
 fun ShellScreen(
     viewModel: ShellViewModel,
-    factory: ViewModelProvider.Factory
+    factory: ViewModelProvider.Factory,
+    refreshBus: RefreshBus,
+    ventaPendienteBus: VentaPendienteBus,
+    abrirNotificacionesBus: AbrirNotificacionesBus,
+    inventarioPendienteBus: InventarioPendienteBus,
+    camadaPendienteBus: CamadaPendienteBus
 ) {
     val usuario by viewModel.usuario.collectAsState()
     val notificacionesViewModel: NotificacionesViewModel =
@@ -94,6 +129,32 @@ fun ShellScreen(
     var perfilAbierto by remember { mutableStateOf(false) }
     var refrescando by remember { mutableStateOf(false) }
     val pullState = rememberPullToRefreshState()
+
+    // Pide el permiso de notificaciones una vez (Android 13+).
+    val context = LocalContext.current
+    val permisoNotificaciones = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Abre el panel cuando se llega desde una notificación del sistema.
+    val abrirNotificaciones by abrirNotificacionesBus.solicitado.collectAsState()
+    LaunchedEffect(abrirNotificaciones) {
+        if (abrirNotificaciones) {
+            notificacionesAbierto = true
+            notificacionesViewModel.cargar()
+            abrirNotificacionesBus.consumir()
+        }
+    }
 
     // El topbar es marrón: íconos de la barra de estado en claro.
     EstiloIconosBarraEstado(oscuros = false)
@@ -152,6 +213,7 @@ fun ShellScreen(
                             val inicio = System.currentTimeMillis()
                             viewModel.refrescar()
                             notificacionesViewModel.cargar()
+                            refreshBus.solicitar()
                             val restante = MS_REFRESCO_MINIMO -
                                 (System.currentTimeMillis() - inicio)
                             if (restante > 0) delay(restante)
@@ -181,11 +243,82 @@ fun ShellScreen(
                         popEnterTransition = { fadeIn(tween(MS_SECCION)) },
                         popExitTransition = { fadeOut(tween(MS_SECCION)) }
                     ) {
-                        MODULOS.forEach { modulo ->
-                            composable(modulo.ruta) {
-                                ModulePlaceholderScreen(titulo = modulo.nombre)
+                    MODULOS.forEach { modulo ->
+                        composable(modulo.ruta) {
+                            when (modulo.ruta) {
+                                Rutas.CAMADAS -> {
+                                    val camadasViewModel: CamadasViewModel =
+                                        viewModel(factory = factory)
+                                    CamadasScreen(
+                                        viewModel = camadasViewModel,
+                                        camadaPendienteBus = camadaPendienteBus
+                                    )
+                                }
+                                Rutas.DASHBOARD -> {
+                                    val dashboardViewModel: DashboardViewModel =
+                                        viewModel(factory = factory)
+                                    DashboardScreen(
+                                        viewModel = dashboardViewModel,
+                                        nombreUsuario = usuario?.nombreCompleto
+                                            ?: "avicultor",
+                                        onNuevaProduccion = {
+                                            irA(Rutas.PRODUCCION)
+                                        },
+                                        onVerInsumo = { idInsumo ->
+                                            inventarioPendienteBus.solicitar(
+                                                idInsumo
+                                            )
+                                            irA(Rutas.INVENTARIO)
+                                        }
+                                    )
+                                }
+                                Rutas.PRODUCCION -> {
+                                    val produccionViewModel: ProduccionViewModel =
+                                        viewModel(factory = factory)
+                                    ProduccionScreen(viewModel = produccionViewModel)
+                                }
+                                Rutas.INVENTARIO -> {
+                                    val inventarioViewModel: InventarioViewModel =
+                                        viewModel(factory = factory)
+                                    InventarioScreen(
+                                        viewModel = inventarioViewModel,
+                                        inventarioPendienteBus = inventarioPendienteBus
+                                    )
+                                }
+                                Rutas.CLIENTES -> {
+                                    val clientesViewModel: ClientesViewModel =
+                                        viewModel(factory = factory)
+                                    ClientesScreen(
+                                        viewModel = clientesViewModel,
+                                        onRegistrarVenta = { cliente ->
+                                            ventaPendienteBus.solicitar(
+                                                cliente.idCliente
+                                            )
+                                            irA(Rutas.VENTAS)
+                                        }
+                                    )
+                                }
+                                Rutas.VENTAS -> {
+                                    val ventasViewModel: VentasViewModel =
+                                        viewModel(factory = factory)
+                                    VentasScreen(viewModel = ventasViewModel)
+                                }
+                                Rutas.REPORTES -> {
+                                    val reportesViewModel: ReportesViewModel =
+                                        viewModel(factory = factory)
+                                    ReportesScreen(viewModel = reportesViewModel)
+                                }
+                                Rutas.PERFIL -> {
+                                    val perfilViewModel: PerfilViewModel =
+                                        viewModel(factory = factory)
+                                    PerfilScreen(viewModel = perfilViewModel)
+                                }
+                                else -> ModulePlaceholderScreen(
+                                    titulo = modulo.nombre
+                                )
                             }
                         }
+                    }
                     }
                 }
 
@@ -239,12 +372,20 @@ fun ShellScreen(
                         onEliminar = notificacionesViewModel::eliminar,
                         onVer = { aviso ->
                             notificacionesAbierto = false
-                            val ruta = if (aviso.idInsumo != null) {
-                                Rutas.INVENTARIO
-                            } else {
-                                Rutas.CAMADAS
+                            when {
+                                aviso.idInsumo != null -> {
+                                    inventarioPendienteBus.solicitar(
+                                        aviso.idInsumo
+                                    )
+                                    irA(Rutas.INVENTARIO)
+                                }
+                                aviso.idCamada != null -> {
+                                    camadaPendienteBus.solicitar(
+                                        aviso.idCamada
+                                    )
+                                    irA(Rutas.CAMADAS)
+                                }
                             }
-                            irA(ruta)
                         },
                         modifier = Modifier
                             .padding(8.dp)
