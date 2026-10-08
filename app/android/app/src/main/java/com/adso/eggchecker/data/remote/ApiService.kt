@@ -1,5 +1,6 @@
 package com.adso.eggchecker.data.remote
 
+import com.adso.eggchecker.data.remote.dto.AnalisisDto
 import com.adso.eggchecker.data.remote.dto.CamadaCreateDto
 import com.adso.eggchecker.data.remote.dto.CamadaDto
 import com.adso.eggchecker.data.remote.dto.CamadaUpdateDto
@@ -13,6 +14,7 @@ import com.adso.eggchecker.data.remote.dto.ClienteDto
 import com.adso.eggchecker.data.remote.dto.ClienteEliminarDto
 import com.adso.eggchecker.data.remote.dto.ClienteUpdateDto
 import com.adso.eggchecker.data.remote.dto.DashboardDto
+import com.adso.eggchecker.data.remote.dto.EstadoIADto
 import com.adso.eggchecker.data.remote.dto.InsumoCreateDto
 import com.adso.eggchecker.data.remote.dto.InsumoDto
 import com.adso.eggchecker.data.remote.dto.InsumoUpdateDto
@@ -35,17 +37,22 @@ import com.adso.eggchecker.data.remote.dto.ProduccionDto
 import com.adso.eggchecker.data.remote.dto.RecuperarRequestDto
 import com.adso.eggchecker.data.remote.dto.RegistroRequestDto
 import com.adso.eggchecker.data.remote.dto.ReporteConsolidadoDto
+import com.adso.eggchecker.data.remote.dto.RetroalimentacionDto
 import com.adso.eggchecker.data.remote.dto.StockDto
 import com.adso.eggchecker.data.remote.dto.TokenResponseDto
 import com.adso.eggchecker.data.remote.dto.UsuarioDto
 
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -304,4 +311,37 @@ interface ApiService {
         @Query("hasta") hasta: String?,
         @Query("camada") camada: Int?
     ): ResponseBody
+
+    /** Disponibilidad del análisis IA (plan Premium y cupo del día). */
+    @GET("analisis-ia/estado")
+    suspend fun obtenerEstadoIA(): EstadoIADto
+
+    /** Analiza una foto de huevos (RF-33 a RF-36). */
+    @Multipart
+    @POST("analisis-ia")
+    suspend fun crearAnalisis(
+        @Part imagen: MultipartBody.Part,
+        @Part("id_camada") idCamada: RequestBody?
+    ): AnalisisDto
+
+    /** Historial de análisis, opcionalmente de una camada. */
+    @GET("analisis-ia")
+    suspend fun listarAnalisis(
+        @Query("id_camada") idCamada: Int?
+    ): List<AnalisisDto>
+
+    /** Foto guardada de un análisis. */
+    @GET("analisis-ia/{id}/imagen")
+    suspend fun descargarImagenAnalisis(@Path("id") idAnalisis: Int): ResponseBody
+
+    /** Registra si el diagnóstico fue correcto. */
+    @PATCH("analisis-ia/{id}/retroalimentacion")
+    suspend fun retroalimentarAnalisis(
+        @Path("id") idAnalisis: Int,
+        @Body body: RetroalimentacionDto
+    ): AnalisisDto
+
+    /** Elimina un análisis y su foto (responde 204 sin cuerpo). */
+    @DELETE("analisis-ia/{id}")
+    suspend fun eliminarAnalisis(@Path("id") idAnalisis: Int)
 }

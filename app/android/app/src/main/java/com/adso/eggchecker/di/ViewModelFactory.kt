@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 
 import com.adso.eggchecker.ui.MainViewModel
+import com.adso.eggchecker.ui.analisis.AnalisisViewModel
 import com.adso.eggchecker.ui.auth.LoginViewModel
 import com.adso.eggchecker.ui.auth.RegisterViewModel
 import com.adso.eggchecker.ui.camadas.CamadasViewModel
@@ -80,6 +81,15 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
             reporteRepository = reporteRepository,
             camadaRepository = camadaRepository,
             pdfStorage = pdfStorage,
+            refreshBus = refreshBus,
+            mensajeManager = mensajeManager
+        )
+    }
+    initializer {
+        AnalisisViewModel(
+            analisisRepository = analisisRepository,
+            camadaRepository = camadaRepository,
+            fotoStorage = fotoAnalisisStorage,
             refreshBus = refreshBus,
             mensajeManager = mensajeManager
         )

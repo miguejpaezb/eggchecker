@@ -12,6 +12,9 @@ import java.util.concurrent.TimeUnit
 /** Construye la instancia de Retrofit que consume la API de EggChecker. */
 object ApiClient {
 
+    private const val RUTA_ANALISIS_IA = "/analisis-ia"
+    private const val SEGUNDOS_ANALISIS_IA = 90
+
     /**
      * Crea el servicio HTTP con el interceptor de autenticación.
      *
@@ -30,6 +33,17 @@ object ApiClient {
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(sessionDataStore))
             .addInterceptor(logging)
+            .addInterceptor { chain ->
+                // El análisis IA puede tardar más que el resto de la API:
+                // el servidor espera a Gemini y, si falla, al modelo de respaldo.
+                if (chain.request().url.encodedPath.contains(RUTA_ANALISIS_IA)) {
+                    chain.withReadTimeout(SEGUNDOS_ANALISIS_IA, TimeUnit.SECONDS)
+                        .withWriteTimeout(SEGUNDOS_ANALISIS_IA, TimeUnit.SECONDS)
+                        .proceed(chain.request())
+                } else {
+                    chain.proceed(chain.request())
+                }
+            }
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()

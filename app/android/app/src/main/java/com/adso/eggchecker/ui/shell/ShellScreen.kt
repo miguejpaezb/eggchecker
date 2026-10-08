@@ -65,6 +65,8 @@ import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.model.MODULOS
 import com.adso.eggchecker.navigation.Rutas
+import com.adso.eggchecker.ui.analisis.AnalisisScreen
+import com.adso.eggchecker.ui.analisis.AnalisisViewModel
 import com.adso.eggchecker.ui.camadas.CamadasScreen
 import com.adso.eggchecker.ui.camadas.CamadasViewModel
 import com.adso.eggchecker.ui.clientes.ClientesScreen
@@ -302,6 +304,11 @@ fun ShellScreen(
                                     val ventasViewModel: VentasViewModel =
                                         viewModel(factory = factory)
                                     VentasScreen(viewModel = ventasViewModel)
+                                }
+                                Rutas.ANALISIS -> {
+                                    val analisisViewModel: AnalisisViewModel =
+                                        viewModel(factory = factory)
+                                    AnalisisScreen(viewModel = analisisViewModel)
                                 }
                                 Rutas.REPORTES -> {
                                     val reportesViewModel: ReportesViewModel =

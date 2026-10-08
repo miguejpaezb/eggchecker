@@ -6,6 +6,7 @@ import com.adso.eggchecker.data.local.EggCheckerDatabase
 import com.adso.eggchecker.data.local.NotificacionEstadoStore
 import com.adso.eggchecker.data.local.SessionDataStore
 import com.adso.eggchecker.data.remote.ApiClient
+import com.adso.eggchecker.data.repository.AnalisisRepository
 import com.adso.eggchecker.data.repository.AuthRepository
 import com.adso.eggchecker.data.repository.CamadaRepository
 import com.adso.eggchecker.data.repository.CategoriaRepository
@@ -17,6 +18,7 @@ import com.adso.eggchecker.data.repository.PerfilRepository
 import com.adso.eggchecker.data.repository.ProduccionRepository
 import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.repository.VentaRepository
+import com.adso.eggchecker.data.storage.FotoAnalisisStorage
 import com.adso.eggchecker.data.storage.PdfStorage
 import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
 import com.adso.eggchecker.data.sync.CamadaPendienteBus
@@ -73,6 +75,12 @@ class AppContainer(context: Context) {
 
     /** Repositorio de los indicadores del dashboard. */
     val dashboardRepository = DashboardRepository(api)
+
+    /** Repositorio del análisis de huevos con IA (RF-33 a RF-36). */
+    val analisisRepository = AnalisisRepository(api)
+
+    /** Prepara y comprime las fotos del análisis IA. */
+    val fotoAnalisisStorage = FotoAnalisisStorage(context.applicationContext)
 
     /** Guarda los PDF de reportes en la carpeta de Descargas. */
     val pdfStorage = PdfStorage(context.applicationContext)
