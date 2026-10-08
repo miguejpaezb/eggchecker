@@ -38,9 +38,13 @@ dist/
 *.db-journal
 *.db-wal
 *.db-shm
+
+# ─── Fotos subidas al análisis IA (datos de usuarios) ─────────
+app/backend/uploads/
 data/
 # Excepción: el paquete "data" del código Android es fuente, no datos.
 !app/android/app/src/main/java/com/adso/eggchecker/data/
+!app/android/app/src/test/java/com/adso/eggchecker/data/
 *.sql
 !app/backend/db/*.sql
 

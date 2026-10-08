@@ -1,3 +1,4 @@
+from app.models.analisis_ia import AnalisisIA
 from app.models.camada import Camada
 from app.models.categoria_insumo import CategoriaInsumo
 from app.models.cliente import Cliente
@@ -15,6 +16,7 @@ from app.models.token_recuperacion import TokenRecuperacion
 from app.models.usuario import Usuario
 
 __all__ = [
+    "AnalisisIA",
     "Camada",
     "CategoriaInsumo",
     "Cliente",

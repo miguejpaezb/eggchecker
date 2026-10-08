@@ -412,23 +412,42 @@ CREATE INDEX idx_detped_tipo   ON detalle_pedido (id_tipo);
 -- ─────────────────────────────────────────────────────────────
 -- Table analisis_ia
 -- Resultados del módulo IA de análisis de huevos (premium).
--- FK: id_usuario → usuario
+-- RF-33 a RF-36 · CU-06. id_camada es opcional: el análisis
+-- queda en el historial de la camada cuando se indica.
+-- FK: id_usuario → usuario, id_camada → camada
 -- ─────────────────────────────────────────────────────────────
 
 CREATE TABLE analisis_ia (
   id_analisis           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   id_usuario            INTEGER NOT NULL,
+  id_camada             INTEGER NULL,
   fecha_analisis        TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   imagen_url            TEXT    NOT NULL,
   resultado_diagnostico TEXT    NOT NULL,
   recomendaciones       TEXT    NULL,
+  calidad_general       TEXT    NULL,
+  puntaje_calidad       INTEGER NULL,
+  apto_venta            INTEGER NULL,
+  huevos_detectados     INTEGER NULL,
+  detalle_json          TEXT    NULL,
+  proveedor_ia          TEXT    NULL,
+  diagnostico_correcto  INTEGER NULL,
   CONSTRAINT fk_analisis_usuario
     FOREIGN KEY (id_usuario)
     REFERENCES usuario (id_usuario)
-    ON DELETE RESTRICT ON UPDATE CASCADE
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_analisis_camada
+    FOREIGN KEY (id_camada)
+    REFERENCES camada (id_camada)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT chk_analisis_calidad
+    CHECK (calidad_general IS NULL OR calidad_general IN ('buena','regular','mala')),
+  CONSTRAINT chk_analisis_puntaje
+    CHECK (puntaje_calidad IS NULL OR puntaje_calidad BETWEEN 0 AND 100)
 );
 
 CREATE INDEX idx_analisis_usuario ON analisis_ia (id_usuario);
+CREATE INDEX idx_analisis_camada  ON analisis_ia (id_camada);
 CREATE INDEX idx_analisis_fecha   ON analisis_ia (fecha_analisis DESC);
 
 

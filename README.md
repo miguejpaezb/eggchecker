@@ -22,7 +22,7 @@ Aplicación web para avicultores que centraliza la gestión de camadas, inventar
 - **Notificaciones** — alertas de stock de insumos y recordatorios de decisión de camada.
 - **Dashboard** — indicadores de producción del día, aves activas, pedidos pendientes, alertas y resumen semanal.
 - **Perfil** — datos personales y de la granja, preferencias de alertas, seguridad de la cuenta y detalle del plan.
-- **Inteligencia** — módulo premium que analiza imágenes de huevos con IA (pendiente).
+- **Inteligencia** — módulo premium que analiza fotos de huevos con IA (Gemini, plan gratuito): diagnóstico, anomalías, recomendaciones personalizadas e historial por camada. Disponible en la app Android.
 - **API REST** — backend reutilizable por aplicaciones web y móviles.
 
 ## 🛠️ Stack tecnológico
@@ -45,7 +45,7 @@ El modelo relacional se materializa con **16 tablas** y **3 vistas**:
 - **Producción** — `tipo_huevo`, `produccion_diaria`, `produccion_detalle`, `stock_produccion`.
 - **Ventas** — `cliente`, `pedido`, `detalle_pedido`.
 - **Notificaciones** — `notificacion`.
-- **IA** — `analisis_ia` (tabla creada; módulo pendiente).
+- **IA** — `analisis_ia` (diagnóstico, detalle JSON, camada de origen y retroalimentación del avicultor).
 - **Vistas** — `v_produccion_detallada`, `v_alertas_insumo`, `v_pedidos_pendientes`.
 
 En desarrollo y QA la base se crea y se puebla con datos de prueba en SQLite mediante el script `cargar_seed.py` (idempotente). En producción se usa MySQL 8 gestionado con migraciones Alembic.
@@ -104,7 +104,7 @@ npm run build
 | Notificaciones | ✅ | ✅ | Alertas de stock y recordatorios de decisión de camada |
 | Dashboard | ✅ | ✅ | Indicadores del día, producción semanal, alertas y pedidos recientes |
 | Perfil | ✅ | ✅ | Datos personales y de la granja, preferencias de alertas, seguridad y plan |
-| Inteligencia Premium (IA) | ⬜ | ⬜ | Análisis de imágenes de huevos con IA (tabla `analisis_ia` creada) |
+| Inteligencia Premium (IA) | ✅ | ⬜ | Análisis de fotos de huevos (RF-33 a RF-36): API `/api/analisis-ia` y pantalla Android; la versión web está pendiente |
 | App móvil Android | ⬜ | ⬜ | Kotlin + Jetpack Compose sobre la misma API REST |
 
 > Leyenda: ✅ implementado · ⬜ pendiente.
