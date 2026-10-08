@@ -109,10 +109,21 @@ npm run build
 
 > Leyenda: ✅ implementado · ⬜ pendiente.
 
+## 📸 Análisis IA en acción
+
+Toma una foto de los huevos, recibe el diagnóstico con anomalías y recomendaciones, y consulta el historial por camada.
+
+| 1. Nuevo análisis | 2. Diagnóstico | 3. Historial |
+|:---:|:---:|:---:|
+| <img src="docs/img/analisis-ia/04-foto-seleccionada.png" alt="Foto de un huevo agrietado lista para analizar" width="220" /> | <img src="docs/img/analisis-ia/05-resultado-diagnostico.png" alt="Diagnóstico: calidad Mala, 20 de 100, grieta grave" width="220" /> | <img src="docs/img/analisis-ia/07-historial.png" alt="Historial de análisis" width="220" /> |
+
+Guía completa paso a paso: [docs/guia-analisis-ia.md](docs/guia-analisis-ia.md).
+
 ## 📚 Documentación
 
 Para detalles extensos y técnicos, consulta la documentación en [`docs/`](docs/):
 
+- [Guía de uso: Análisis IA](docs/guia-analisis-ia.md) — paso a paso del módulo con capturas de la app.
 - [Estándares de codificación](docs/Coding_Standards.md) — convenciones de Python, JavaScript/React y SQL.
 - [Documentación de la API](docs/api/README.md) — guía general, autenticación, convenciones y matriz de validaciones.
 - [Resumen de la API](docs/api/RESUMEN.md) — visión general de los 59 endpoints por módulo.
