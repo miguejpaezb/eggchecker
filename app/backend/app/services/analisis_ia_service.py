@@ -169,7 +169,8 @@ def _texto_diagnostico(diagnostico: DiagnosticoIA) -> str:
         if cantidad:
             partes.append(f"{round(cantidad * 100 / total)}% {clave}")
     distribucion = f": {', '.join(partes)}" if partes else ""
-    return f"Muestra {total} huevos{distribucion}. {diagnostico.resumen}"
+    palabra = "huevo" if total == 1 else "huevos"
+    return f"Muestra {total} {palabra}{distribucion}. {diagnostico.resumen}"
 
 
 def _carpeta_base(settings: Settings) -> Path:

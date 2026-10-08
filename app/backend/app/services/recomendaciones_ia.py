@@ -45,20 +45,22 @@ def _reglas(diagnostico: DiagnosticoIA, ctx: ContextoGranja) -> list[str]:
     """Aplica las reglas de manejo según anomalías y contexto."""
     tipos = _tipos(diagnostico)
     lote = f"la camada {ctx.nombre_camada}" if ctx.nombre_camada else "el lote"
+    # "de" + "el lote" se contrae en "del lote".
+    de_lote = f"de {lote}" if ctx.nombre_camada else "del lote"
     edad = ctx.edad_semanas
     recs: list[str] = []
 
     if tipos & {"grieta", "cascara_rota", "cascara_rugosa_delgada"}:
         if edad is not None and edad >= SEMANAS_CASCARA_DELGADA:
             recs.append(
-                f"Las aves de {lote} tienen {edad} semanas: a esa edad la cáscara "
+                f"Las aves {de_lote} tienen {edad} semanas: a esa edad la cáscara "
                 "se adelgaza. Ofrece calcio en partícula gruesa (conchilla o "
                 "carbonato de calcio) en la tarde y revisa que el alimento de "
                 "postura tenga vitamina D3."
             )
         else:
             recs.append(
-                f"Revisa el calcio del alimento de postura de {lote} y ofrece "
+                f"Revisa el calcio del alimento de postura {de_lote} y ofrece "
                 "conchilla o carbonato de calcio en partícula gruesa; verifica "
                 "que el agua esté limpia y siempre disponible."
             )
@@ -85,7 +87,7 @@ def _reglas(diagnostico: DiagnosticoIA, ctx: ContextoGranja) -> list[str]:
         recs.append(
             "Huevos deformes o descoloridos pueden deberse a estrés, calor o "
             "enfermedades respiratorias como la bronquitis infecciosa. Revisa "
-            "el plan de vacunación de " + lote + " y la ventilación del galpón."
+            f"el plan de vacunación {de_lote} y la ventilación del galpón."
         )
 
     if "tamano_anormal" in tipos:
@@ -107,7 +109,7 @@ def _reglas(diagnostico: DiagnosticoIA, ctx: ContextoGranja) -> list[str]:
         and diagnostico.calidad_general != "buena"
     ):
         recs.append(
-            f"La postura de {lote} está en {ctx.postura_promedio:.0%} en los "
+            f"La postura {de_lote} está en {ctx.postura_promedio:.0%} en los "
             "últimos días. Junto con la calidad observada, conviene revisar "
             "alimento, agua, horas de luz y estado sanitario."
         )
@@ -122,7 +124,7 @@ def _reglas(diagnostico: DiagnosticoIA, ctx: ContextoGranja) -> list[str]:
 
     if diagnostico.calidad_general == "buena" and not tipos:
         recs.append(
-            f"La calidad de {lote} es buena. Mantén el manejo actual y repite el "
+            f"La calidad {de_lote} es buena. Mantén el manejo actual y repite el "
             "análisis cada semana para detectar cambios a tiempo."
         )
 
