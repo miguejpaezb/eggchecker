@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, time
 
+from app.models.usuario import FRECUENCIAS_RESUMEN
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 # El plan de suscripción hoy solo admite estos dos valores (DDL y seed).
@@ -116,10 +117,14 @@ class PerfilResponse(UsuarioResponse):
     clientes_actuales: int
     total_huevos_producidos: int
     total_aves_gestionadas: int
+    notif_camada_limite: bool
     notif_produccion_baja: bool
+    notif_produccion_hora: time
     notif_stock_bajo: bool
     notif_vacunacion: bool
     notif_resumen_semanal: bool
+    notif_resumen_frecuencia: str
+    notif_resumen_dia: int
 
 
 class PerfilUpdateRequest(BaseModel):
@@ -137,12 +142,39 @@ class PerfilUpdateRequest(BaseModel):
 
 
 class NotificacionesUpdateRequest(BaseModel):
-    """Preferencias de alertas que el avicultor puede activar o desactivar."""
+    """Preferencias de alertas que el avicultor puede activar o desactivar.
+
+    Los campos con valor por defecto son opcionales para no romper a los
+    clientes que todavía no los envían: si llegan en `None` se conserva el
+    valor guardado.
+    """
 
     notif_produccion_baja: bool
     notif_stock_bajo: bool
     notif_vacunacion: bool
     notif_resumen_semanal: bool
+    notif_camada_limite: bool | None = None
+    # Hora del análisis diario de producción (formato "HH:MM").
+    notif_produccion_hora: time | None = None
+    notif_resumen_frecuencia: str | None = None
+    # Día de la semana del recordatorio: 0 = lunes … 6 = domingo.
+    notif_resumen_dia: int | None = Field(default=None, ge=0, le=6)
+
+    @field_validator("notif_produccion_hora")
+    @classmethod
+    def _hora_sin_zona(cls, valor: time | None) -> time | None:
+        """Rechaza horas con zona horaria: se guardan en hora del servidor."""
+        if valor is not None and valor.tzinfo is not None:
+            raise ValueError("La hora no debe incluir zona horaria")
+        return valor
+
+    @field_validator("notif_resumen_frecuencia")
+    @classmethod
+    def _frecuencia_valida(cls, valor: str | None) -> str | None:
+        """Solo acepta las frecuencias soportadas por el recordatorio."""
+        if valor is not None and valor not in FRECUENCIAS_RESUMEN:
+            raise ValueError("La frecuencia debe ser semanal, quincenal o mensual")
+        return valor
 
 
 class CambiarContrasenaRequest(BaseModel):

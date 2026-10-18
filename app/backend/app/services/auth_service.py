@@ -194,10 +194,14 @@ def obtener_perfil(db: Session, usuario: Usuario) -> dict:
         "clientes_actuales": _contar_tabla(db, "cliente", usuario.id_usuario),
         "total_huevos_producidos": _sumar_huevos_producidos(db, usuario.id_usuario),
         "total_aves_gestionadas": _sumar_aves_gestionadas(db, usuario.id_usuario),
+        "notif_camada_limite": usuario.notif_camada_limite,
         "notif_produccion_baja": usuario.notif_produccion_baja,
+        "notif_produccion_hora": usuario.notif_produccion_hora,
         "notif_stock_bajo": usuario.notif_stock_bajo,
         "notif_vacunacion": usuario.notif_vacunacion,
         "notif_resumen_semanal": usuario.notif_resumen_semanal,
+        "notif_resumen_frecuencia": usuario.notif_resumen_frecuencia,
+        "notif_resumen_dia": usuario.notif_resumen_dia,
     }
 
 
@@ -255,7 +259,8 @@ def actualizar_notificaciones(
     """Guarda las preferencias de alertas del avicultor.
 
     El envío real de correo/teléfono aún no está implementado; por ahora
-    solo se persiste qué alertas quiere recibir.
+    solo se persiste qué alertas quiere recibir, con qué hora se analiza
+    la producción y cada cuándo se recuerda revisar los reportes.
 
     Args:
         db: Sesión de base de datos.
@@ -269,6 +274,14 @@ def actualizar_notificaciones(
     usuario.notif_stock_bajo = datos.notif_stock_bajo
     usuario.notif_vacunacion = datos.notif_vacunacion
     usuario.notif_resumen_semanal = datos.notif_resumen_semanal
+    if datos.notif_camada_limite is not None:
+        usuario.notif_camada_limite = datos.notif_camada_limite
+    if datos.notif_produccion_hora is not None:
+        usuario.notif_produccion_hora = datos.notif_produccion_hora
+    if datos.notif_resumen_frecuencia is not None:
+        usuario.notif_resumen_frecuencia = datos.notif_resumen_frecuencia
+    if datos.notif_resumen_dia is not None:
+        usuario.notif_resumen_dia = datos.notif_resumen_dia
     db.commit()
     db.refresh(usuario)
     return obtener_perfil(db, usuario)
