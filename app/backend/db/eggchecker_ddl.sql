@@ -473,6 +473,7 @@ CREATE TABLE recordatorio_sanitario (
   modo            TEXT    NOT NULL,
   intervalo_dias  INTEGER NULL,
   dias_semana     TEXT    NULL,
+  fechas_especificas TEXT NULL,
   fecha_inicio    TEXT    NOT NULL,
   fecha_fin       TEXT    NULL,
   cantidad        DECIMAL(10,2) NOT NULL,

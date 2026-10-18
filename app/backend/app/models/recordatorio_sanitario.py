@@ -75,6 +75,8 @@ class RecordatorioSanitario(Base):
     intervalo_dias: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # Días de la semana separados por coma, 0 = lunes (modo `dias_semana`).
     dias_semana: Mapped[str | None] = mapped_column(String(13), nullable=True)
+    # Fechas exactas en ISO separadas por coma (modo `fechas`).
+    fechas_especificas: Mapped[str | None] = mapped_column(String(60), nullable=True)
     fecha_inicio: Mapped[date] = mapped_column(Date, nullable=False)
     fecha_fin: Mapped[date | None] = mapped_column(Date, nullable=True)
     cantidad: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)

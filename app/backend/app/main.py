@@ -11,6 +11,7 @@ from app.api.health import router as health_router
 from app.api.insumos import router as insumos_router
 from app.api.notificaciones import router as notificaciones_router
 from app.api.produccion import router as produccion_router
+from app.api.recordatorios import router as recordatorios_router
 from app.api.reportes import router as reportes_router
 from app.api.usuarios import router as usuarios_router
 from app.api.ventas import router as ventas_router
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(categorias_insumo_router, prefix="/api")
     app.include_router(insumos_router, prefix="/api")
     app.include_router(produccion_router, prefix="/api")
+    app.include_router(recordatorios_router, prefix="/api")
     app.include_router(clientes_router, prefix="/api")
     app.include_router(ventas_router, prefix="/api")
     app.include_router(reportes_router, prefix="/api")
