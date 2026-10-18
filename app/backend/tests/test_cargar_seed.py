@@ -25,6 +25,8 @@ _CONTEOS_ESPERADOS = {
     "pedido": 12,
     "detalle_pedido": 20,
     "analisis_ia": 10,
+    "recordatorio_sanitario": 0,
+    "recordatorio_dosis": 0,
     "notificacion": 0,
 }
 
@@ -35,8 +37,8 @@ _VISTAS_ESPERADAS = {
 }
 
 
-def test_carga_crea_las_16_tablas(tmp_path: Path) -> None:
-    """El esquema se crea completo con las 16 tablas del modelo."""
+def test_carga_crea_las_18_tablas(tmp_path: Path) -> None:
+    """El esquema se crea completo con las 18 tablas del modelo."""
     db_path = tmp_path / "seed.db"
     cargar_seed(db_path)
 
@@ -49,7 +51,7 @@ def test_carga_crea_las_16_tablas(tmp_path: Path) -> None:
             if not fila[0].startswith("sqlite_")
         ]
 
-    assert len(tablas) == 16
+    assert len(tablas) == 18
 
 
 def test_carga_inserta_registros_esperados(tmp_path: Path) -> None:
