@@ -29,3 +29,31 @@ fun descripcionPlan(plan: String?): String = if (plan == "premium") {
     "Gestión de hasta 300 aves y 10 clientes. " +
         "La Inteligencia Artificial no está incluida."
 }
+
+/** Días de la semana en el orden que usa el backend (0 = lunes). */
+val DIAS_SEMANA_CORTOS = listOf(
+    "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"
+)
+
+/** Frecuencias del recordatorio de reportes. */
+val FRECUENCIAS_RESUMEN = listOf(
+    "semanal" to "Semanal",
+    "quincenal" to "Quincenal",
+    "mensual" to "Mensual"
+)
+
+/** Texto corto de la frecuencia elegida. */
+fun textoFrecuencia(frecuencia: String?): String =
+    FRECUENCIAS_RESUMEN.firstOrNull { it.first == frecuencia }?.second
+        ?: "Semanal"
+
+/** Convierte la hora del backend ("05:00:00") a "HH:mm" para la UI. */
+fun horaCorta(hora: String?): String {
+    if (hora.isNullOrBlank()) return "05:00"
+    return hora.take(5)
+}
+
+/** Nombre del día de la semana (0 = lunes). */
+fun nombreDia(dia: Int): String =
+    DIAS_SEMANA_CORTOS.getOrElse(dia) { DIAS_SEMANA_CORTOS[0] }
+

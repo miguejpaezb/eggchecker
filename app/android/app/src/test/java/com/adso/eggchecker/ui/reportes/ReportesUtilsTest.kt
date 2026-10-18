@@ -45,6 +45,13 @@ class ReportesUtilsTest {
     }
 
     @Test
+    fun rango_preset_quincena_cubre_catorce_dias() {
+        val (desde, hasta) = rangoPreset("quincena")
+        assertEquals(hoyIso(), hasta)
+        assertEquals(14, diasDelRango(desde, hasta))
+    }
+
+    @Test
     fun formato_numero_usa_separadores_locales() {
         assertEquals("1.234", formatoNumero(1234.0))
         assertEquals("1.234,5", formatoNumero(1234.5, decimales = 1))

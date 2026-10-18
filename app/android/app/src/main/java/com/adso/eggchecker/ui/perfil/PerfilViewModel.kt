@@ -7,6 +7,7 @@ import com.adso.eggchecker.data.local.NotificacionEstadoStore
 import com.adso.eggchecker.data.repository.AuthRepository
 import com.adso.eggchecker.data.repository.PerfilRepository
 import com.adso.eggchecker.domain.model.Perfil
+import com.adso.eggchecker.domain.model.PreferenciasNotificaciones
 import com.adso.eggchecker.notifications.NotificacionGestor
 import com.adso.eggchecker.ui.mensajes.MensajeManager
 
@@ -140,20 +141,12 @@ class PerfilViewModel(
 
     /** Guarda las preferencias de alertas. */
     fun guardarNotificaciones(
-        produccionBaja: Boolean,
-        stockBajo: Boolean,
-        vacunacion: Boolean,
-        resumenSemanal: Boolean,
+        preferencias: PreferenciasNotificaciones,
         onExito: () -> Unit,
         onError: () -> Unit
     ) {
         viewModelScope.launch {
-            perfilRepository.actualizarNotificaciones(
-                produccionBaja = produccionBaja,
-                stockBajo = stockBajo,
-                vacunacion = vacunacion,
-                resumenSemanal = resumenSemanal
-            )
+            perfilRepository.actualizarNotificaciones(preferencias)
                 .onSuccess { actualizado ->
                     mensajeManager.exito("Preferencias guardadas")
                     _estado.update { it.copy(perfil = actualizado) }
@@ -224,7 +217,7 @@ class PerfilViewModel(
             notificacionGestor.sincronizarAjustes()
             mensajeManager.exito(
                 if (uri == null) {
-                    "Sonido predeterminado"
+                    "Sonido de EggChecker activado"
                 } else {
                     "Sonido actualizado"
                 }

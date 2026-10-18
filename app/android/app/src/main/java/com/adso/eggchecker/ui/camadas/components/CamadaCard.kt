@@ -43,6 +43,7 @@ fun CamadaCard(
     onVerDetalles: (Camada) -> Unit,
     onEditar: (Camada) -> Unit,
     onMortalidad: (Camada) -> Unit,
+    onRecordatorios: (Camada) -> Unit,
     onAvanzarSemana: (Camada) -> Unit,
     onSeguirActiva: (Camada) -> Unit,
     onDescartar: (Camada) -> Unit
@@ -130,6 +131,7 @@ fun CamadaCard(
                         camada = camada,
                         onEditar = onEditar,
                         onMortalidad = onMortalidad,
+                        onRecordatorios = onRecordatorios,
                         onAvanzarSemana = onAvanzarSemana,
                         onSeguirActiva = onSeguirActiva,
                         onDescartar = onDescartar

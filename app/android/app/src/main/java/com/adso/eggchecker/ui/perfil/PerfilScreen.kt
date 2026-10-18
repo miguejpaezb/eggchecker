@@ -88,9 +88,9 @@ fun PerfilScreen(viewModel: PerfilViewModel) {
                             notificacionesActivas = estado.notificacionesActivas,
                             vibracion = estado.vibracion,
                             sonidoPersonalizado = estado.sonidoPersonalizado,
-                            onGuardar = { a, b, c, d, onExito, onError ->
+                            onGuardar = { preferencias, onExito, onError ->
                                 viewModel.guardarNotificaciones(
-                                    a, b, c, d, onExito, onError
+                                    preferencias, onExito, onError
                                 )
                             },
                             onCambiarNotificaciones =

@@ -47,7 +47,11 @@ fun PerfilDto.toPerfil(): Perfil = Perfil(
     totalHuevosProducidos = totalHuevosProducidos,
     totalAvesGestionadas = totalAvesGestionadas,
     notifProduccionBaja = notifProduccionBaja,
+    notifCamadaLimite = notifCamadaLimite,
+    notifProduccionHora = notifProduccionHora,
     notifStockBajo = notifStockBajo,
     notifVacunacion = notifVacunacion,
-    notifResumenSemanal = notifResumenSemanal
+    notifResumenSemanal = notifResumenSemanal,
+    notifResumenFrecuencia = notifResumenFrecuencia,
+    notifResumenDia = notifResumenDia
 )

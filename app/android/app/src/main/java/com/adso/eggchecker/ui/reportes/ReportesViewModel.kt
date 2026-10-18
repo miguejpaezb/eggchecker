@@ -7,6 +7,7 @@ import com.adso.eggchecker.data.repository.CamadaRepository
 import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.storage.PdfStorage
 import com.adso.eggchecker.data.sync.RefreshBus
+import com.adso.eggchecker.data.sync.ReportesPendienteBus
 import com.adso.eggchecker.domain.model.Camada
 import com.adso.eggchecker.domain.model.ReporteConsolidado
 import com.adso.eggchecker.ui.mensajes.MensajeManager
@@ -36,7 +37,8 @@ class ReportesViewModel(
     private val camadaRepository: CamadaRepository,
     private val pdfStorage: PdfStorage,
     private val refreshBus: RefreshBus,
-    private val mensajeManager: MensajeManager
+    private val mensajeManager: MensajeManager,
+    private val reportesPendienteBus: ReportesPendienteBus
 ) : ViewModel() {
 
     private val rangoInicial = rangoPreset("mes")
@@ -55,6 +57,21 @@ class ReportesViewModel(
         cargar()
         viewModelScope.launch {
             refreshBus.eventos.collect { cargar() }
+        }
+        viewModelScope.launch {
+            reportesPendienteBus.rango.collect { rango ->
+                if (rango == null) return@collect
+                // El recordatorio de reportes abre el período que anunció.
+                _estado.update {
+                    it.copy(
+                        preset = "personalizado",
+                        desde = rango.desde,
+                        hasta = rango.hasta
+                    )
+                }
+                cargarReporte()
+                reportesPendienteBus.consumir()
+            }
         }
     }
 

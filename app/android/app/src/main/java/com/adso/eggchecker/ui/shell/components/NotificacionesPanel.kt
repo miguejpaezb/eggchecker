@@ -1,6 +1,7 @@
 package com.adso.eggchecker.ui.shell.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -203,6 +204,19 @@ private fun NotificacionCard(
                         fontSize = 20.sp
                     )
                 }
+            }
+            if (aviso.momento != null) {
+                Text(
+                    text = if (aviso.momento == "previo") "Mañana" else "Hoy",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Brown,
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Yellow.copy(alpha = 0.35f))
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                )
             }
             Text(
                 text = aviso.mensaje,

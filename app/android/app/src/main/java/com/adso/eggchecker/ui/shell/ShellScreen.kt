@@ -61,7 +61,9 @@ import androidx.navigation.compose.rememberNavController
 import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
 import com.adso.eggchecker.data.sync.CamadaPendienteBus
 import com.adso.eggchecker.data.sync.InventarioPendienteBus
+import com.adso.eggchecker.data.sync.RecordatorioAplicarBus
 import com.adso.eggchecker.data.sync.RefreshBus
+import com.adso.eggchecker.data.sync.ReportesPendienteBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.model.MODULOS
 import com.adso.eggchecker.navigation.Rutas
@@ -80,6 +82,10 @@ import com.adso.eggchecker.ui.perfil.PerfilScreen
 import com.adso.eggchecker.ui.perfil.PerfilViewModel
 import com.adso.eggchecker.ui.produccion.ProduccionScreen
 import com.adso.eggchecker.ui.produccion.ProduccionViewModel
+import com.adso.eggchecker.ui.recordatorios.RecordatoriosViewModel
+import com.adso.eggchecker.ui.recordatorios.components.AplicarDosisModal
+import com.adso.eggchecker.ui.recordatorios.hoyIsoRecordatorio
+import com.adso.eggchecker.ui.recordatorios.restarDias
 import com.adso.eggchecker.ui.reportes.ReportesScreen
 import com.adso.eggchecker.ui.reportes.ReportesViewModel
 import com.adso.eggchecker.ui.shell.components.AppDrawer
@@ -115,12 +121,18 @@ fun ShellScreen(
     ventaPendienteBus: VentaPendienteBus,
     abrirNotificacionesBus: AbrirNotificacionesBus,
     inventarioPendienteBus: InventarioPendienteBus,
-    camadaPendienteBus: CamadaPendienteBus
+    camadaPendienteBus: CamadaPendienteBus,
+    recordatorioAplicarBus: RecordatorioAplicarBus,
+    reportesPendienteBus: ReportesPendienteBus
 ) {
     val usuario by viewModel.usuario.collectAsState()
+    val perfil by viewModel.perfil.collectAsState()
     val notificacionesViewModel: NotificacionesViewModel =
         viewModel(factory = factory)
     val estadoNotificaciones by notificacionesViewModel.estado.collectAsState()
+    val recordatoriosViewModel: RecordatoriosViewModel =
+        viewModel(factory = factory)
+    val solicitudAplicar by recordatorioAplicarBus.solicitud.collectAsState()
 
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -253,6 +265,8 @@ fun ShellScreen(
                                         viewModel(factory = factory)
                                     CamadasScreen(
                                         viewModel = camadasViewModel,
+                                        recordatoriosViewModel =
+                                            recordatoriosViewModel,
                                         camadaPendienteBus = camadaPendienteBus
                                     )
                                 }
@@ -379,7 +393,33 @@ fun ShellScreen(
                         onEliminar = notificacionesViewModel::eliminar,
                         onVer = { aviso ->
                             notificacionesAbierto = false
+                            val idRecordatorio = aviso.idRecordatorio
+                            val fechaAviso = aviso.fechaReferencia
                             when {
+                                aviso.tipo == "recordatorio_sanitario" &&
+                                    idRecordatorio != null &&
+                                    fechaAviso != null -> {
+                                    recordatorioAplicarBus.solicitar(
+                                        idRecordatorio,
+                                        fechaAviso
+                                    )
+                                }
+                                aviso.tipo == "resumen_periodico" -> {
+                                    val dias = when (
+                                        perfil?.notifResumenFrecuencia
+                                    ) {
+                                        "quincenal" -> 14
+                                        "mensual" -> 30
+                                        else -> 7
+                                    }
+                                    val hasta = fechaAviso
+                                        ?: hoyIsoRecordatorio()
+                                    reportesPendienteBus.solicitar(
+                                        restarDias(hasta, dias - 1),
+                                        hasta
+                                    )
+                                    irA(Rutas.REPORTES)
+                                }
                                 aviso.idInsumo != null -> {
                                     inventarioPendienteBus.solicitar(
                                         aviso.idInsumo
@@ -450,6 +490,20 @@ fun ShellScreen(
                             .width(240.dp)
                     )
                 }
+
+                // Modal de aplicación de dosis: vive en el shell para poder
+                // abrirse desde cualquier pantalla.
+                AplicarDosisModal(
+                    solicitud = solicitudAplicar,
+                    viewModel = recordatoriosViewModel,
+                    onCerrar = { recordatorioAplicarBus.consumir() },
+                    onAplicado = {
+                        recordatorioAplicarBus.consumir()
+                        notificacionesViewModel.cargar()
+                        scope.launch { viewModel.refrescar() }
+                        refreshBus.solicitar()
+                    }
+                )
             }
         }
     }
