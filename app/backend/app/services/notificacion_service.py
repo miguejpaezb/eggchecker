@@ -15,6 +15,7 @@ from app.models.notificacion import (
     TIPO_PRODUCCION_BAJA,
     TIPO_PRODUCCION_SIN_REGISTRO,
     TIPO_RECORDATORIO_SANITARIO,
+    TIPO_RESUMEN_PERIODICO,
     TIPO_SIN_STOCK,
     TIPO_STOCK_BAJO,
     TIPO_STOCK_MINIMO,
@@ -31,6 +32,12 @@ from sqlalchemy.orm import Session
 
 # Postura mínima esperada: por debajo del 85% de las aves activas se avisa.
 UMBRAL_POSTURA = Decimal("0.85")
+
+# Días que abarca el reporte de cada frecuencia del recordatorio.
+DIAS_POR_FRECUENCIA = {"semanal": 7, "quincenal": 14, "mensual": 30}
+
+# Lunes de referencia para alternar la cadencia quincenal.
+EPOCH_QUINCENAL = date(2026, 1, 5)
 
 
 def listar_notificaciones(db: Session, usuario: Usuario) -> list[Notificacion]:
@@ -51,6 +58,7 @@ def listar_notificaciones(db: Session, usuario: Usuario) -> list[Notificacion]:
     _generar_para_insumos_stock(db, usuario)
     _generar_para_produccion(db, usuario)
     _generar_para_recordatorios(db, usuario)
+    _generar_para_resumen(db, usuario)
     return (
         db.query(Notificacion)
         .filter(
@@ -97,6 +105,7 @@ def marcar_todas_leidas(db: Session, usuario: Usuario) -> int:
     _generar_para_insumos_stock(db, usuario)
     _generar_para_produccion(db, usuario)
     _generar_para_recordatorios(db, usuario)
+    _generar_para_resumen(db, usuario)
     total = (
         db.query(Notificacion)
         .filter(
@@ -387,6 +396,76 @@ def _existe_aviso_recordatorio(
             Notificacion.id_recordatorio == id_recordatorio,
             Notificacion.fecha_referencia == fecha,
             Notificacion.momento == momento,
+        )
+        .first()
+        is not None
+    )
+
+
+def _generar_para_resumen(db: Session, usuario: Usuario) -> None:
+    """Recuerda revisar los reportes según la frecuencia elegida.
+
+    Solo crea el aviso de la ocurrencia más reciente (no acumula semanas
+    atrás) y no lo repite si ya existe o si el usuario lo descartó. El
+    rango del reporte se deduce de la frecuencia: 7, 14 o 30 días que
+    terminan en `fecha_referencia`.
+    """
+    if not usuario.notif_resumen_semanal:
+        return
+    hoy = date.today()
+    ocurrencia = _ocurrencia_resumen(usuario, hoy)
+    if _existe_aviso_resumen(db, usuario, ocurrencia):
+        return
+    dias = DIAS_POR_FRECUENCIA.get(usuario.notif_resumen_frecuencia, 7)
+    desde = ocurrencia - timedelta(days=dias - 1)
+    db.add(
+        Notificacion(
+            id_usuario=usuario.id_usuario,
+            tipo=TIPO_RESUMEN_PERIODICO,
+            titulo="Recordatorio de reportes",
+            mensaje=(
+                f"Revisa el reporte del {desde:%d/%m} al {ocurrencia:%d/%m}. "
+                "Puedes abrirlo cuando quieras."
+            ),
+            fecha_referencia=ocurrencia,
+        )
+    )
+    db.commit()
+
+
+def _ocurrencia_resumen(usuario: Usuario, hoy: date) -> date:
+    """Calcula la última fecha en que tocaba el recordatorio de reportes."""
+    dia = usuario.notif_resumen_dia
+    frecuencia = usuario.notif_resumen_frecuencia
+    if frecuencia == "mensual":
+        return _primer_dia_del_mes(hoy, dia)
+    ultimo = hoy - timedelta(days=(hoy.weekday() - dia) % 7)
+    if frecuencia == "quincenal":
+        semanas = (ultimo - EPOCH_QUINCENAL).days // 7
+        if semanas % 2:
+            ultimo -= timedelta(days=7)
+    return ultimo
+
+
+def _primer_dia_del_mes(hoy: date, dia: int) -> date:
+    """Primer `<día de la semana>` del mes, o del mes anterior si no llegó."""
+    primero = date(hoy.year, hoy.month, 1)
+    candidato = primero + timedelta(days=(dia - primero.weekday()) % 7)
+    if candidato <= hoy:
+        return candidato
+    anterior = primero - timedelta(days=1)
+    primero = date(anterior.year, anterior.month, 1)
+    return primero + timedelta(days=(dia - primero.weekday()) % 7)
+
+
+def _existe_aviso_resumen(db: Session, usuario: Usuario, fecha: date) -> bool:
+    """Indica si ya se avisó ese recordatorio de reportes."""
+    return (
+        db.query(Notificacion)
+        .filter(
+            Notificacion.id_usuario == usuario.id_usuario,
+            Notificacion.tipo == TIPO_RESUMEN_PERIODICO,
+            Notificacion.fecha_referencia == fecha,
         )
         .first()
         is not None
