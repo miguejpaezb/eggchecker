@@ -481,3 +481,54 @@
     grid-template-columns: 320px 1fr;
   }
 }
+
+/* Extras de las preferencias: hora del analisis y resumen */
+.ec-perfil__opcion-extra {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.35rem;
+}
+
+.ec-perfil__opcion-extra label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--ec-placeholder);
+}
+
+.ec-perfil__hora {
+  border: 1px solid var(--ec-border);
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  font-family: var(--ec-font-body);
+  color: var(--ec-dark);
+  background-color: var(--ec-input-bg);
+}
+
+.ec-perfil__resumen-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0 0.25rem;
+}
+
+.ec-perfil__select-campo {
+  display: flex;
+  flex: 1;
+  min-width: 150px;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ec-placeholder);
+}
+
+.ec-perfil__select {
+  border: 1px solid var(--ec-border);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  font-family: var(--ec-font-body);
+  color: var(--ec-dark);
+  background-color: var(--ec-input-bg);
+}
