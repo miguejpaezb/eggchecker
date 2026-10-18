@@ -1,23 +1,39 @@
-from app.models.camada import EDAD_DECISION_SEMANAS, Camada
+from datetime import date, datetime, timedelta
+from decimal import Decimal
+
+from app.models.camada import (
+    EDAD_DECISION_SEMANAS,
+    EDAD_PRODUCCION_SEMANAS,
+    Camada,
+)
+from app.models.evento_sanitario import EventoSanitario
 from app.models.insumo import Insumo
 from app.models.notificacion import (
     TIPO_CAMADA_LIMITE,
+    TIPO_PRODUCCION_BAJA,
+    TIPO_PRODUCCION_SIN_REGISTRO,
     TIPO_SIN_STOCK,
     TIPO_STOCK_BAJO,
     TIPO_STOCK_MINIMO,
     TIPOS_STOCK,
     Notificacion,
 )
+from app.models.produccion_diaria import ProduccionDiaria
 from app.models.usuario import Usuario
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
+# Postura mínima esperada: por debajo del 85% de las aves activas se avisa.
+UMBRAL_POSTURA = Decimal("0.85")
 
 
 def listar_notificaciones(db: Session, usuario: Usuario) -> list[Notificacion]:
     """Lista las notificaciones del usuario, sin leídas primero.
 
     Antes de listar, genera las notificaciones de camadas que superaron
-    la vida productiva y aún no tienen aviso.
+    la vida productiva, los avisos de stock y el control diario de la
+    recolección de ayer.
 
     Args:
         db: Sesión de base de datos.
@@ -28,6 +44,7 @@ def listar_notificaciones(db: Session, usuario: Usuario) -> list[Notificacion]:
     """
     _generar_para_camadas_limite(db, usuario)
     _generar_para_insumos_stock(db, usuario)
+    _generar_para_produccion(db, usuario)
     return (
         db.query(Notificacion)
         .filter(
@@ -72,6 +89,7 @@ def marcar_todas_leidas(db: Session, usuario: Usuario) -> int:
     """
     _generar_para_camadas_limite(db, usuario)
     _generar_para_insumos_stock(db, usuario)
+    _generar_para_produccion(db, usuario)
     total = (
         db.query(Notificacion)
         .filter(
@@ -243,6 +261,126 @@ def _generar_para_insumos_stock(db: Session, usuario: Usuario) -> None:
     )
     for insumo in insumos:
         sincronizar_aviso_stock(db, insumo)
+
+
+def _generar_para_produccion(db: Session, usuario: Usuario) -> None:
+    """Revisa la recolección de ayer y avisa si la postura fue baja.
+
+    Solo corre a partir de la hora configurada por el usuario (por defecto
+    05:00) y evalúa las camadas activas que ya entraron en producción. Un
+    solo aviso por camada y por día evaluado.
+    """
+    if not usuario.notif_produccion_baja:
+        return
+    ahora = datetime.now()
+    if ahora.time() < usuario.notif_produccion_hora:
+        return
+    ayer = ahora.date() - timedelta(days=1)
+    camadas = (
+        db.query(Camada)
+        .filter(
+            Camada.id_usuario == usuario.id_usuario,
+            Camada.estado == "activa",
+            Camada.edad_semanas >= EDAD_PRODUCCION_SEMANAS,
+            Camada.fecha_ingreso <= ayer,
+        )
+        .all()
+    )
+    for camada in camadas:
+        _avisar_produccion(db, usuario, camada, ayer)
+
+
+def _avisar_produccion(
+    db: Session, usuario: Usuario, camada: Camada, fecha: date
+) -> None:
+    """Crea el aviso de producción de una camada para la fecha evaluada.
+
+    Distingue dos casos: no hay registro de recolección (no se puede
+    calcular la postura) o el registro existe y quedó por debajo del
+    umbral. Si el aviso de esa camada y fecha ya existe, no se repite.
+    """
+    if _existe_aviso_produccion(db, usuario, camada, fecha):
+        return
+    aves = _aves_en_fecha(db, camada, fecha)
+    if aves <= 0:
+        return
+    produccion = (
+        db.query(ProduccionDiaria)
+        .filter(
+            ProduccionDiaria.id_camada == camada.id_camada,
+            ProduccionDiaria.fecha_recoleccion == fecha,
+        )
+        .first()
+    )
+    if produccion is None:
+        aviso = Notificacion(
+            id_usuario=usuario.id_usuario,
+            id_camada=camada.id_camada,
+            tipo=TIPO_PRODUCCION_SIN_REGISTRO,
+            titulo="Falta el registro de producción",
+            mensaje=(
+                f"No registraste la recolección de {camada.nombre_camada} "
+                f"del {fecha:%d/%m/%Y}."
+            ),
+            fecha_referencia=fecha,
+        )
+    else:
+        tasa = Decimal(produccion.total_huevos) / Decimal(aves)
+        if tasa >= UMBRAL_POSTURA:
+            return
+        aviso = Notificacion(
+            id_usuario=usuario.id_usuario,
+            id_camada=camada.id_camada,
+            tipo=TIPO_PRODUCCION_BAJA,
+            titulo="Producción baja",
+            mensaje=(
+                f"{camada.nombre_camada}: {produccion.total_huevos} huevos "
+                f"ayer para {aves} aves ({tasa:.0%} de postura). "
+                "Revisa la camada."
+            ),
+            fecha_referencia=fecha,
+        )
+    db.add(aviso)
+    db.commit()
+
+
+def _aves_en_fecha(db: Session, camada: Camada, fecha: date) -> int:
+    """Cuenta las aves que había en la camada al cierre de la fecha.
+
+    La cantidad actual descuenta las mortalidades ya registradas; se
+    suman las que ocurrieron después de la fecha evaluada.
+    """
+    muertes_posteriores = (
+        db.query(func.coalesce(func.sum(EventoSanitario.mortalidad), 0))
+        .filter(
+            EventoSanitario.id_camada == camada.id_camada,
+            EventoSanitario.tipo_evento == "mortalidad",
+            EventoSanitario.fecha_evento > fecha,
+        )
+        .scalar()
+    )
+    return int(camada.cantidad_actual + int(muertes_posteriores or 0))
+
+
+def _existe_aviso_produccion(
+    db: Session, usuario: Usuario, camada: Camada, fecha: date
+) -> bool:
+    """Indica si ya hay un aviso de producción para esa camada y fecha.
+
+    Incluye los eliminados: si el usuario descartó el aviso, no se vuelve
+    a crear para el mismo día.
+    """
+    return (
+        db.query(Notificacion)
+        .filter(
+            Notificacion.id_usuario == usuario.id_usuario,
+            Notificacion.id_camada == camada.id_camada,
+            Notificacion.tipo.in_((TIPO_PRODUCCION_BAJA, TIPO_PRODUCCION_SIN_REGISTRO)),
+            Notificacion.fecha_referencia == fecha,
+        )
+        .first()
+        is not None
+    )
 
 
 def _cerrar_aviso(db: Session, aviso: Notificacion | None) -> None:
