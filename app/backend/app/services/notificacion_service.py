@@ -40,6 +40,28 @@ DIAS_POR_FRECUENCIA = {"semanal": 7, "quincenal": 14, "mensual": 30}
 EPOCH_QUINCENAL = date(2026, 1, 5)
 
 
+def _puede_avisar(usuario: Usuario | None, tipo: str) -> bool:
+    """Indica si el usuario quiere recibir avisos de ese tipo.
+
+    Es el único punto donde se traducen las preferencias del perfil a
+    tipos de notificación, para que todos los generadores apliquen el
+    mismo criterio.
+    """
+    if usuario is None:
+        return False
+    if tipo in TIPOS_STOCK:
+        return usuario.notif_stock_bajo
+    if tipo == TIPO_CAMADA_LIMITE:
+        return usuario.notif_camada_limite
+    if tipo in (TIPO_PRODUCCION_BAJA, TIPO_PRODUCCION_SIN_REGISTRO):
+        return usuario.notif_produccion_baja
+    if tipo == TIPO_RECORDATORIO_SANITARIO:
+        return usuario.notif_vacunacion
+    if tipo == TIPO_RESUMEN_PERIODICO:
+        return usuario.notif_resumen_semanal
+    return True
+
+
 def listar_notificaciones(db: Session, usuario: Usuario) -> list[Notificacion]:
     """Lista las notificaciones del usuario, sin leídas primero.
 
@@ -144,6 +166,8 @@ def _generar_para_camadas_limite(db: Session, usuario: Usuario) -> None:
     Genera una única notificación por camada y tipo; si ya existe, no la
     vuelve a crear. Se ejecuta de forma perezosa al listar.
     """
+    if not _puede_avisar(usuario, TIPO_CAMADA_LIMITE):
+        return
     camadas = (
         db.query(Camada)
         .filter(
@@ -197,6 +221,8 @@ def sincronizar_aviso_stock(db: Session, insumo: Insumo) -> None:
         db: Sesión de base de datos.
         insumo: Insumo cuyo aviso de stock se sincroniza.
     """
+    if not _puede_avisar(db.get(Usuario, insumo.id_usuario), TIPO_STOCK_BAJO):
+        return
     aviso = (
         db.query(Notificacion)
         .filter(
@@ -267,6 +293,8 @@ def descartar_avisos_stock(db: Session, insumo: Insumo) -> None:
 
 def _generar_para_insumos_stock(db: Session, usuario: Usuario) -> None:
     """Sincroniza los avisos de stock de todos los insumos del usuario."""
+    if not _puede_avisar(usuario, TIPO_STOCK_BAJO):
+        return
     insumos = (
         db.query(Insumo)
         .filter(
@@ -286,7 +314,7 @@ def _generar_para_recordatorios(db: Session, usuario: Usuario) -> None:
     global el mensaje resume cuántas camadas faltan por aplicar. Respeta
     la preferencia `notif_vacunacion` y no repite avisos descartados.
     """
-    if not usuario.notif_vacunacion:
+    if not _puede_avisar(usuario, TIPO_RECORDATORIO_SANITARIO):
         return
     # Import local: recordatorio_service importa este módulo a su vez.
     from app.services import recordatorio_service
@@ -410,7 +438,7 @@ def _generar_para_resumen(db: Session, usuario: Usuario) -> None:
     rango del reporte se deduce de la frecuencia: 7, 14 o 30 días que
     terminan en `fecha_referencia`.
     """
-    if not usuario.notif_resumen_semanal:
+    if not _puede_avisar(usuario, TIPO_RESUMEN_PERIODICO):
         return
     hoy = date.today()
     ocurrencia = _ocurrencia_resumen(usuario, hoy)
@@ -479,7 +507,7 @@ def _generar_para_produccion(db: Session, usuario: Usuario) -> None:
     05:00) y evalúa las camadas activas que ya entraron en producción. Un
     solo aviso por camada y por día evaluado.
     """
-    if not usuario.notif_produccion_baja:
+    if not _puede_avisar(usuario, TIPO_PRODUCCION_BAJA):
         return
     ahora = datetime.now()
     if ahora.time() < usuario.notif_produccion_hora:
