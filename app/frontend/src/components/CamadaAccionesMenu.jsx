@@ -10,6 +10,7 @@ import Icon from './Icon';
  * @param {Object} props.camada - Camada sobre la que se actúa.
  * @param {Function} props.onEditar - Abrir la edición de la camada.
  * @param {Function} props.onMortalidad - Abrir el registro de mortalidad.
+ * @param {Function} props.onRecordatorios - Abrir los recordatorios sanitarios.
  * @param {Function} props.onAvanzarSemana - Sumar una semana de vida.
  * @param {Function} props.onSeguirActiva - Posponer la decisión una semana.
  * @param {Function} props.onDescartar - Descartar la camada.
@@ -19,6 +20,7 @@ function CamadaAccionesMenu({
   camada,
   onEditar,
   onMortalidad,
+  onRecordatorios,
   onAvanzarSemana,
   onSeguirActiva,
   onDescartar,
@@ -99,6 +101,14 @@ function CamadaAccionesMenu({
                 type="button"
                 role="menuitem"
                 className="ec-menu__item"
+                onClick={() => ejecutar(() => onRecordatorios(camada))}
+              >
+                Recordatorios sanitarios
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="ec-menu__item"
                 onClick={() => ejecutar(() => onAvanzarSemana(camada))}
               >
                 Avanzar semana
@@ -140,6 +150,7 @@ CamadaAccionesMenu.propTypes = {
   }).isRequired,
   onEditar: PropTypes.func.isRequired,
   onMortalidad: PropTypes.func.isRequired,
+  onRecordatorios: PropTypes.func.isRequired,
   onAvanzarSemana: PropTypes.func.isRequired,
   onSeguirActiva: PropTypes.func.isRequired,
   onDescartar: PropTypes.func.isRequired,

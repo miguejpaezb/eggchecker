@@ -5,6 +5,7 @@ export const HUEVOS_POR_CUBETA = 30;
 export const PRESETS = [
   { valor: 'hoy', label: 'Hoy' },
   { valor: 'semana', label: 'Última semana' },
+  { valor: 'quincena', label: 'Última quincena' },
   { valor: 'mes', label: 'Este mes' },
 ];
 
@@ -20,7 +21,7 @@ function isoLocal(fecha) {
 
 /**
  * Calcula el rango desde/hasta de un preset de período.
- * @param {string} preset - 'hoy', 'semana' o 'mes'.
+ * @param {string} preset - 'hoy', 'semana', 'quincena' o 'mes'.
  * @returns {{desde: string, hasta: string}} Rango en ISO.
  */
 export function rangoPreset(preset) {
@@ -28,6 +29,11 @@ export function rangoPreset(preset) {
   if (preset === 'semana') {
     const inicio = new Date(hoy);
     inicio.setDate(hoy.getDate() - 6);
+    return { desde: isoLocal(inicio), hasta: isoLocal(hoy) };
+  }
+  if (preset === 'quincena') {
+    const inicio = new Date(hoy);
+    inicio.setDate(hoy.getDate() - 13);
     return { desde: isoLocal(inicio), hasta: isoLocal(hoy) };
   }
   if (preset === 'mes') {

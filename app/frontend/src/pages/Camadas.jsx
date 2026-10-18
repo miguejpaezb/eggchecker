@@ -8,6 +8,7 @@ import EditarCamadaModal from '../components/EditarCamadaModal';
 import Icon from '../components/Icon';
 import MortalidadModal from '../components/MortalidadModal';
 import NuevaCamadaModal from '../components/NuevaCamadaModal';
+import RecordatoriosCamadaModal from '../components/recordatorios/RecordatoriosCamadaModal';
 import useCamadas from '../hooks/useCamadas';
 import { obtenerCamada } from '../services/camadaService';
 
@@ -39,6 +40,7 @@ function Camadas() {
   const [seleccionada, setSeleccionada] = useState(null);
   const [camadaEnEdicion, setCamadaEnEdicion] = useState(null);
   const [camadaMortalidad, setCamadaMortalidad] = useState(null);
+  const [camadaRecordatorios, setCamadaRecordatorios] = useState(null);
   const [camadaADescartar, setCamadaADescartar] = useState(null);
   const [descartando, setDescartando] = useState(false);
   const [errorDescartar, setErrorDescartar] = useState('');
@@ -204,6 +206,7 @@ function Camadas() {
               onVerDetalles={verDetalles}
               onEditar={abrirEdicion}
               onMortalidad={abrirMortalidad}
+              onRecordatorios={setCamadaRecordatorios}
               onAvanzarSemana={avanzarSemana}
               onSeguirActiva={seguirActiva}
               onDescartar={pedirDescartar}
@@ -237,6 +240,13 @@ function Camadas() {
         camada={seleccionada}
         onCerrar={cerrarDetalle}
       />
+
+      {camadaRecordatorios !== null && (
+        <RecordatoriosCamadaModal
+          camada={camadaRecordatorios}
+          onCerrar={() => setCamadaRecordatorios(null)}
+        />
+      )}
 
       <ConfirmDialog
         abierto={camadaADescartar !== null}
