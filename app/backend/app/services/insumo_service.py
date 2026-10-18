@@ -250,6 +250,42 @@ def registrar_movimiento(
     """
     insumo = _obtener_insumo_de_usuario(db, usuario, id_insumo)
     _validar_insumo_operable(insumo)
+    movimiento, stock_resultante = preparar_movimiento(db, insumo, datos)
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        # Si el constraint chk_insumo_stock u otro falla, no debe quedar
+        # el movimiento registrado sin su ajuste correspondiente.
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="No se pudo registrar el movimiento: stock inconsistente",
+        ) from exc
+    db.refresh(movimiento)
+    notificacion_service.sincronizar_aviso_stock(db, insumo)
+    return movimiento, stock_resultante
+
+
+def preparar_movimiento(
+    db: Session, insumo: Insumo, datos: MovimientoCreate
+) -> tuple[MovimientoInsumo, Decimal]:
+    """Arma un movimiento y ajusta el stock sin confirmar la transacción.
+
+    Permite que otros procesos (por ejemplo, la aplicación de un
+    recordatorio sanitario) registren el movimiento junto con sus propios
+    cambios en un solo commit.
+
+    Args:
+        db: Sesión de base de datos.
+        insumo: Insumo ya validado como operable.
+        datos: Tipo de movimiento, cantidad, costo y observaciones.
+
+    Returns:
+        tuple[MovimientoInsumo, Decimal]: El movimiento y el stock resultante.
+
+    Raises:
+        HTTPException: 400 si una salida supera el stock actual.
+    """
     if datos.tipo_movimiento == "salida" and insumo.stock_actual < datos.cantidad:
         raise HTTPException(
             status_code=400,
@@ -275,7 +311,7 @@ def registrar_movimiento(
         costo_movimiento = insumo.costo_unitario
 
     movimiento = MovimientoInsumo(
-        id_insumo=id_insumo,
+        id_insumo=insumo.id_insumo,
         tipo_movimiento=datos.tipo_movimiento,
         cantidad=datos.cantidad,
         costo_unitario=costo_movimiento,
@@ -283,18 +319,6 @@ def registrar_movimiento(
     )
     insumo.stock_actual = stock_resultante
     db.add(movimiento)
-    try:
-        db.commit()
-    except IntegrityError as exc:
-        # Si el constraint chk_insumo_stock u otro falla, no debe quedar
-        # el movimiento registrado sin su ajuste correspondiente.
-        db.rollback()
-        raise HTTPException(
-            status_code=400,
-            detail="No se pudo registrar el movimiento: stock inconsistente",
-        ) from exc
-    db.refresh(movimiento)
-    notificacion_service.sincronizar_aviso_stock(db, insumo)
     return movimiento, stock_resultante
 
 

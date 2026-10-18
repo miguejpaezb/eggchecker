@@ -1,9 +1,11 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from app.models.camada import Camada
 from app.models.categoria_insumo import CategoriaInsumo
+from app.models.evento_sanitario import EventoSanitario
 from app.models.insumo import Insumo
+from app.models.movimiento_insumo import MovimientoInsumo
 from app.models.recordatorio_dosis import RecordatorioDosis
 from app.models.recordatorio_sanitario import (
     CATEGORIAS_SANITARIAS,
@@ -14,9 +16,12 @@ from app.models.recordatorio_sanitario import (
     RecordatorioSanitario,
 )
 from app.models.usuario import Usuario
+from app.schemas.inventario import MovimientoCreate
 from app.schemas.recordatorio import RecordatorioRequest
+from app.services import insumo_service, notificacion_service
 from fastapi import HTTPException
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 
@@ -212,6 +217,263 @@ def extender_ocurrencias(db: Session, usuario: Usuario) -> None:
     )
     for regla in reglas:
         _generar_ocurrencias(db, regla)
+
+
+def obtener_dosis_detalle(db: Session, usuario: Usuario, id_dosis: int) -> dict:
+    """Devuelve una dosis con su insumo y stock para registrar la aplicación."""
+    dosis, regla = _obtener_dosis(db, usuario, id_dosis)
+    insumo = db.get(Insumo, regla.id_insumo)
+    camada = db.get(Camada, dosis.id_camada)
+    return {
+        "id_dosis": dosis.id_dosis,
+        "id_recordatorio": regla.id_recordatorio,
+        "id_camada": dosis.id_camada,
+        "nombre_camada": camada.nombre_camada if camada else "",
+        "fecha_programada": dosis.fecha_programada,
+        "numero_dosis": dosis.numero_dosis,
+        "aplicada": dosis.aplicada,
+        "fecha_aplicacion": dosis.fecha_aplicacion,
+        "id_insumo": regla.id_insumo,
+        "nombre_insumo": insumo.nombre_insumo if insumo else "",
+        "unidad_medida": insumo.unidad_medida if insumo else "",
+        "cantidad": regla.cantidad,
+        "stock_actual": insumo.stock_actual if insumo else Decimal("0"),
+        "id_movimiento": dosis.id_movimiento,
+        "id_evento": dosis.id_evento,
+    }
+
+
+def aplicar_dosis(
+    db: Session,
+    usuario: Usuario,
+    id_dosis: int,
+    cantidad: Decimal | None = None,
+) -> dict:
+    """Registra la aplicación de una dosis en un solo commit.
+
+    Descuenta el insumo del inventario, deja el evento en el historial
+    sanitario de la camada y marca la dosis como aplicada.
+
+    Args:
+        db: Sesión de base de datos.
+        usuario: Usuario dueño del recordatorio.
+        id_dosis: Dosis programada a aplicar.
+        cantidad: Cantidad realmente usada; sin ella se usa la del plan.
+
+    Returns:
+        dict: Dosis aplicada con el stock resultante y los ids creados.
+
+    Raises:
+        HTTPException: 404 si la dosis no es del usuario; 409 si ya estaba
+            aplicada; 400 si la camada no está activa o no hay stock.
+    """
+    dosis, regla = _obtener_dosis(db, usuario, id_dosis)
+    _validar_dosis_pendiente(dosis)
+    camada = _validar_camada_activa(db, usuario, dosis.id_camada)
+    insumo = _validar_insumo(db, usuario, regla.id_insumo)
+    usada = cantidad if cantidad is not None else regla.cantidad
+
+    movimiento, evento, stock_resultante = _preparar_aplicacion(
+        db, insumo, camada, regla, usada
+    )
+    db.flush()
+    _marcar_aplicada(dosis, movimiento, evento)
+    _confirmar(db)
+    notificacion_service.sincronizar_aviso_stock(db, insumo)
+    return _serializar_aplicacion(
+        db, dosis, regla, insumo, camada, usada, stock_resultante, movimiento
+    )
+
+
+def aplicar_dosis_lote(
+    db: Session,
+    usuario: Usuario,
+    ids_dosis: list[int],
+    cantidad: Decimal | None = None,
+) -> list[dict]:
+    """Aplica varias dosis en una sola transacción.
+
+    Pensado para el recordatorio global: si una dosis falla (sin stock o
+    ya aplicada) no se registra ninguna.
+
+    Args:
+        db: Sesión de base de datos.
+        usuario: Usuario dueño de los recordatorios.
+        ids_dosis: Dosis a aplicar.
+        cantidad: Cantidad usada por camada; sin ella se usa la del plan.
+
+    Returns:
+        list[dict]: Resultado de cada aplicación.
+
+    Raises:
+        HTTPException: 404 si alguna dosis no es del usuario; 409 si ya
+            estaba aplicada; 400 si la camada no está activa o no hay stock.
+    """
+    preparadas = []
+    for id_dosis in ids_dosis:
+        dosis, regla = _obtener_dosis(db, usuario, id_dosis)
+        _validar_dosis_pendiente(dosis)
+        camada = _validar_camada_activa(db, usuario, dosis.id_camada)
+        insumo = _validar_insumo(db, usuario, regla.id_insumo)
+        usada = cantidad if cantidad is not None else regla.cantidad
+        movimiento, evento, stock_resultante = _preparar_aplicacion(
+            db, insumo, camada, regla, usada
+        )
+        preparadas.append(
+            (
+                dosis,
+                regla,
+                insumo,
+                camada,
+                usada,
+                stock_resultante,
+                movimiento,
+                evento,
+            )
+        )
+    db.flush()
+    for dosis, _, _, _, _, _, movimiento, evento in preparadas:
+        _marcar_aplicada(dosis, movimiento, evento)
+    _confirmar(db)
+    for insumo in {fila[2].id_insumo: fila[2] for fila in preparadas}.values():
+        notificacion_service.sincronizar_aviso_stock(db, insumo)
+    return [
+        _serializar_aplicacion(
+            db, dosis, regla, insumo, camada, usada, stock, movimiento
+        )
+        for dosis, regla, insumo, camada, usada, stock, movimiento, _ in preparadas
+    ]
+
+
+def _preparar_aplicacion(
+    db: Session,
+    insumo: Insumo,
+    camada: Camada,
+    regla: RecordatorioSanitario,
+    cantidad: Decimal,
+) -> tuple[MovimientoInsumo, EventoSanitario, Decimal]:
+    """Arma el movimiento de salida y el evento sanitario sin commitear."""
+    movimiento, stock_resultante = insumo_service.preparar_movimiento(
+        db,
+        insumo,
+        MovimientoCreate(
+            tipo_movimiento="salida",
+            cantidad=cantidad,
+            observaciones=(
+                f"Recordatorio sanitario: {insumo.nombre_insumo} "
+                f"en {camada.nombre_camada}"
+            ),
+        ),
+    )
+    categoria = db.get(CategoriaInsumo, insumo.id_categoria)
+    tipo_evento = "vacunacion"
+    if categoria is not None and categoria.nombre_categ != "medicamento":
+        tipo_evento = "otro"
+    evento = EventoSanitario(
+        id_camada=camada.id_camada,
+        tipo_evento=tipo_evento,
+        fecha_evento=date.today(),
+        descripcion=(
+            f"{insumo.nombre_insumo}: {cantidad} {insumo.unidad_medida} "
+            f"(recordatorio #{regla.id_recordatorio})"
+        ),
+        mortalidad=0,
+    )
+    db.add(evento)
+    return movimiento, evento, stock_resultante
+
+
+def _marcar_aplicada(
+    dosis: RecordatorioDosis,
+    movimiento: MovimientoInsumo,
+    evento: EventoSanitario,
+) -> None:
+    """Marca la dosis como aplicada con su movimiento y evento."""
+    dosis.aplicada = True
+    dosis.fecha_aplicacion = datetime.now()
+    dosis.id_movimiento = movimiento.id_movimiento
+    dosis.id_evento = evento.id_evento
+
+
+def _confirmar(db: Session) -> None:
+    """Confirma la transacción y revierte si el stock quedó inconsistente."""
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="No se pudo registrar la aplicación: stock inconsistente",
+        ) from exc
+
+
+def _serializar_aplicacion(
+    db: Session,
+    dosis: RecordatorioDosis,
+    regla: RecordatorioSanitario,
+    insumo: Insumo,
+    camada: Camada,
+    cantidad: Decimal,
+    stock_resultante: Decimal,
+    movimiento,
+) -> dict:
+    """Arma la respuesta de una dosis aplicada."""
+    db.refresh(dosis)
+    return {
+        "id_dosis": dosis.id_dosis,
+        "id_recordatorio": regla.id_recordatorio,
+        "id_camada": dosis.id_camada,
+        "nombre_camada": camada.nombre_camada,
+        "id_insumo": insumo.id_insumo,
+        "nombre_insumo": insumo.nombre_insumo,
+        "unidad_medida": insumo.unidad_medida,
+        "cantidad": cantidad,
+        "stock_resultante": stock_resultante,
+        "fecha_programada": dosis.fecha_programada,
+        "fecha_aplicacion": dosis.fecha_aplicacion,
+        "id_movimiento": movimiento.id_movimiento,
+        "id_evento": dosis.id_evento,
+    }
+
+
+def _obtener_dosis(
+    db: Session, usuario: Usuario, id_dosis: int
+) -> tuple[RecordatorioDosis, RecordatorioSanitario]:
+    """Busca una dosis y su regla dentro del inventario del usuario."""
+    fila = (
+        db.query(RecordatorioDosis, RecordatorioSanitario)
+        .join(
+            RecordatorioSanitario,
+            RecordatorioSanitario.id_recordatorio == RecordatorioDosis.id_recordatorio,
+        )
+        .filter(
+            RecordatorioDosis.id_dosis == id_dosis,
+            RecordatorioSanitario.id_usuario == usuario.id_usuario,
+        )
+        .first()
+    )
+    if fila is None:
+        raise HTTPException(status_code=404, detail="Dosis no encontrada")
+    return fila[0], fila[1]
+
+
+def _validar_dosis_pendiente(dosis: RecordatorioDosis) -> None:
+    """Rechaza una dosis que ya fue aplicada."""
+    if dosis.aplicada:
+        raise HTTPException(status_code=409, detail="La dosis ya fue aplicada")
+
+
+def _validar_camada_activa(db: Session, usuario: Usuario, id_camada: int) -> Camada:
+    """Devuelve la camada del usuario o lanza error si no aplica."""
+    camada = db.get(Camada, id_camada)
+    if camada is None or camada.id_usuario != usuario.id_usuario:
+        raise HTTPException(status_code=404, detail="Camada no encontrada")
+    if camada.estado != "activa":
+        raise HTTPException(
+            status_code=400,
+            detail="Solo se aplican dosis en camadas activas",
+        )
+    return camada
 
 
 def _generar_ocurrencias(db: Session, regla: RecordatorioSanitario) -> None:

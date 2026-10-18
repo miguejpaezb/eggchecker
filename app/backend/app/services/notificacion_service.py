@@ -9,9 +9,12 @@ from app.models.camada import (
 from app.models.evento_sanitario import EventoSanitario
 from app.models.insumo import Insumo
 from app.models.notificacion import (
+    MOMENTO_HOY,
+    MOMENTO_PREVIO,
     TIPO_CAMADA_LIMITE,
     TIPO_PRODUCCION_BAJA,
     TIPO_PRODUCCION_SIN_REGISTRO,
+    TIPO_RECORDATORIO_SANITARIO,
     TIPO_SIN_STOCK,
     TIPO_STOCK_BAJO,
     TIPO_STOCK_MINIMO,
@@ -19,6 +22,8 @@ from app.models.notificacion import (
     Notificacion,
 )
 from app.models.produccion_diaria import ProduccionDiaria
+from app.models.recordatorio_dosis import RecordatorioDosis
+from app.models.recordatorio_sanitario import RecordatorioSanitario
 from app.models.usuario import Usuario
 from fastapi import HTTPException
 from sqlalchemy import func
@@ -45,6 +50,7 @@ def listar_notificaciones(db: Session, usuario: Usuario) -> list[Notificacion]:
     _generar_para_camadas_limite(db, usuario)
     _generar_para_insumos_stock(db, usuario)
     _generar_para_produccion(db, usuario)
+    _generar_para_recordatorios(db, usuario)
     return (
         db.query(Notificacion)
         .filter(
@@ -90,6 +96,7 @@ def marcar_todas_leidas(db: Session, usuario: Usuario) -> int:
     _generar_para_camadas_limite(db, usuario)
     _generar_para_insumos_stock(db, usuario)
     _generar_para_produccion(db, usuario)
+    _generar_para_recordatorios(db, usuario)
     total = (
         db.query(Notificacion)
         .filter(
@@ -261,6 +268,129 @@ def _generar_para_insumos_stock(db: Session, usuario: Usuario) -> None:
     )
     for insumo in insumos:
         sincronizar_aviso_stock(db, insumo)
+
+
+def _generar_para_recordatorios(db: Session, usuario: Usuario) -> None:
+    """Avisa el día antes y el mismo día de cada aplicación programada.
+
+    Un aviso por recordatorio y fecha, no por camada: en un recordatorio
+    global el mensaje resume cuántas camadas faltan por aplicar. Respeta
+    la preferencia `notif_vacunacion` y no repite avisos descartados.
+    """
+    if not usuario.notif_vacunacion:
+        return
+    # Import local: recordatorio_service importa este módulo a su vez.
+    from app.services import recordatorio_service
+
+    recordatorio_service.extender_ocurrencias(db, usuario)
+    hoy = date.today()
+    manana = hoy + timedelta(days=1)
+    filas = (
+        db.query(RecordatorioDosis, RecordatorioSanitario)
+        .join(
+            RecordatorioSanitario,
+            RecordatorioSanitario.id_recordatorio == RecordatorioDosis.id_recordatorio,
+        )
+        .filter(
+            RecordatorioSanitario.id_usuario == usuario.id_usuario,
+            RecordatorioSanitario.activo.is_(True),
+            RecordatorioDosis.aplicada.is_(False),
+            RecordatorioDosis.fecha_programada.in_((hoy, manana)),
+        )
+        .all()
+    )
+    grupos: dict[tuple[int, date], list[RecordatorioDosis]] = {}
+    for dosis, regla in filas:
+        grupos.setdefault((regla.id_recordatorio, dosis.fecha_programada), []).append(
+            dosis
+        )
+
+    creada = False
+    for (id_recordatorio, fecha), dosis_grupo in grupos.items():
+        momento = MOMENTO_PREVIO if fecha == manana else MOMENTO_HOY
+        if _existe_aviso_recordatorio(db, usuario, id_recordatorio, fecha, momento):
+            continue
+        regla = db.get(RecordatorioSanitario, id_recordatorio)
+        insumo = db.get(Insumo, regla.id_insumo)
+        if insumo is None:
+            continue
+        camadas = [db.get(Camada, dosis.id_camada) for dosis in dosis_grupo]
+        camadas = [camada for camada in camadas if camada is not None]
+        titulo, mensaje = _texto_recordatorio(
+            db, regla, insumo, dosis_grupo, camadas, momento
+        )
+        db.add(
+            Notificacion(
+                id_usuario=usuario.id_usuario,
+                id_camada=regla.id_camada,
+                tipo=TIPO_RECORDATORIO_SANITARIO,
+                titulo=titulo,
+                mensaje=mensaje,
+                fecha_referencia=fecha,
+                momento=momento,
+                id_recordatorio=id_recordatorio,
+            )
+        )
+        creada = True
+    if creada:
+        db.commit()
+
+
+def _texto_recordatorio(
+    db: Session,
+    regla: RecordatorioSanitario,
+    insumo: Insumo,
+    dosis_grupo: list[RecordatorioDosis],
+    camadas: list[Camada],
+    momento: str,
+) -> tuple[str, str]:
+    """Arma el título y el mensaje del aviso de un recordatorio."""
+    cuando = "Mañana" if momento == MOMENTO_PREVIO else "Hoy"
+    cantidad = f"{regla.cantidad} {insumo.unidad_medida}".strip()
+    titulo = f"Recordatorio: {insumo.nombre_insumo}"[:80]
+    if regla.id_camada is not None and camadas and dosis_grupo:
+        total = (
+            db.query(func.count(RecordatorioDosis.id_dosis))
+            .filter(
+                RecordatorioDosis.id_recordatorio == regla.id_recordatorio,
+                RecordatorioDosis.id_camada == camadas[0].id_camada,
+            )
+            .scalar()
+        )
+        dosis = dosis_grupo[0]
+        mensaje = (
+            f"{cuando}: aplicar {cantidad} de {insumo.nombre_insumo} a "
+            f"{camadas[0].nombre_camada} (dosis {dosis.numero_dosis} de {total})."
+        )
+        return titulo, mensaje
+    nombres = ", ".join(camada.nombre_camada for camada in camadas[:3])
+    if len(camadas) > 3:
+        nombres = f"{len(camadas)} camadas"
+    return titulo, (
+        f"{cuando}: aplicar {cantidad} de {insumo.nombre_insumo} a {nombres}."
+    )
+
+
+def _existe_aviso_recordatorio(
+    db: Session,
+    usuario: Usuario,
+    id_recordatorio: int,
+    fecha: date,
+    momento: str,
+) -> bool:
+    """Indica si ya se avisó esa dosis (incluye avisos descartados)."""
+    return (
+        db.query(Notificacion)
+        .filter(
+            Notificacion.id_usuario == usuario.id_usuario,
+            Notificacion.tipo == TIPO_RECORDATORIO_SANITARIO,
+            Notificacion.id_recordatorio == id_recordatorio,
+            Notificacion.fecha_referencia == fecha,
+            Notificacion.momento == momento,
+        )
+        .first()
+        is not None
+    )
 
 
 def _generar_para_produccion(db: Session, usuario: Usuario) -> None:

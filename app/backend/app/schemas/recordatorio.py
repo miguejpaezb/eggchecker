@@ -115,3 +115,58 @@ class DosisResponse(BaseModel):
     fecha_aplicacion: datetime | None
     id_movimiento: int | None
     id_evento: int | None
+
+
+class DosisDetalleResponse(BaseModel):
+    """Dosis con el insumo y el stock, para registrar la aplicación."""
+
+    id_dosis: int
+    id_recordatorio: int
+    id_camada: int
+    nombre_camada: str
+    fecha_programada: date
+    numero_dosis: int
+    aplicada: bool
+    fecha_aplicacion: datetime | None
+    id_insumo: int
+    nombre_insumo: str
+    unidad_medida: str
+    cantidad: Decimal
+    stock_actual: Decimal
+    id_movimiento: int | None
+    id_evento: int | None
+
+
+class DosisAplicarRequest(BaseModel):
+    """Cantidad realmente usada; sin ella se usa la del recordatorio."""
+
+    cantidad: Decimal | None = Field(
+        default=None, gt=0, max_digits=10, decimal_places=2
+    )
+
+
+class DosisLoteRequest(BaseModel):
+    """Varias dosis del mismo día, por ejemplo un recordatorio global."""
+
+    ids_dosis: list[int] = Field(min_length=1, max_length=50)
+    cantidad: Decimal | None = Field(
+        default=None, gt=0, max_digits=10, decimal_places=2
+    )
+
+
+class DosisAplicadaResponse(BaseModel):
+    """Resultado de registrar una aplicación: dosis, stock y evento."""
+
+    id_dosis: int
+    id_recordatorio: int
+    id_camada: int
+    nombre_camada: str
+    id_insumo: int
+    nombre_insumo: str
+    unidad_medida: str
+    cantidad: Decimal
+    stock_resultante: Decimal
+    fecha_programada: date
+    fecha_aplicacion: datetime
+    id_movimiento: int
+    id_evento: int

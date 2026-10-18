@@ -8,6 +8,10 @@ from app.api.deps import get_current_usuario
 from app.core.database import get_db
 from app.models.usuario import Usuario
 from app.schemas.recordatorio import (
+    DosisAplicadaResponse,
+    DosisAplicarRequest,
+    DosisDetalleResponse,
+    DosisLoteRequest,
     DosisResponse,
     RecordatorioRequest,
     RecordatorioResponse,
@@ -61,6 +65,78 @@ def crear_recordatorio(
         RecordatorioResponse: El recordatorio creado.
     """
     return recordatorio_service.crear_recordatorio(db, usuario, datos)
+
+
+@router.get(
+    "/recordatorios/dosis/{id_dosis}",
+    response_model=DosisDetalleResponse,
+)
+def obtener_dosis(
+    id_dosis: int,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> DosisDetalleResponse:
+    """Devuelve una dosis con el insumo y su stock actual.
+
+    Es lo que pinta el modal de registro de la aplicación.
+
+    Args:
+        id_dosis: Identificador de la dosis programada.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        DosisDetalleResponse: Dosis con insumo, cantidad y stock.
+    """
+    return recordatorio_service.obtener_dosis_detalle(db, usuario, id_dosis)
+
+
+@router.post(
+    "/recordatorios/dosis/aplicar-lote",
+    response_model=list[DosisAplicadaResponse],
+)
+def aplicar_dosis_lote(
+    datos: DosisLoteRequest,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> list[DosisAplicadaResponse]:
+    """Aplica varias dosis en una sola transacción.
+
+    Args:
+        datos: Dosis a aplicar y cantidad usada por camada.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        list[DosisAplicadaResponse]: Resultado de cada aplicación.
+    """
+    return recordatorio_service.aplicar_dosis_lote(
+        db, usuario, datos.ids_dosis, datos.cantidad
+    )
+
+
+@router.post(
+    "/recordatorios/dosis/{id_dosis}/aplicar",
+    response_model=DosisAplicadaResponse,
+)
+def aplicar_dosis(
+    id_dosis: int,
+    datos: DosisAplicarRequest,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> DosisAplicadaResponse:
+    """Registra la aplicación de una dosis y descuenta el inventario.
+
+    Args:
+        id_dosis: Identificador de la dosis programada.
+        datos: Cantidad usada (si no llega, se usa la del recordatorio).
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        DosisAplicadaResponse: Dosis aplicada y stock resultante.
+    """
+    return recordatorio_service.aplicar_dosis(db, usuario, id_dosis, datos.cantidad)
 
 
 @router.get(
