@@ -1,6 +1,7 @@
 package com.adso.eggchecker.notifications
 
 import android.Manifest
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -31,6 +32,7 @@ import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.data.repository.PerfilRepository
 import com.adso.eggchecker.domain.model.Notificacion
 import com.adso.eggchecker.domain.model.Perfil
+import com.adso.eggchecker.ui.shell.debeMostrarNotificacion
 
 import java.util.concurrent.TimeUnit
 
@@ -45,31 +47,17 @@ class NotificacionGestor(
     private val estadoStore: NotificacionEstadoStore
 ) {
 
-    /** Crea el canal de notificaciones (Android 8+) si aún no existe. */
-    fun crearCanal() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val manager = context.getSystemService(NotificationManager::class.java)
-            ?: return
-        if (manager.getNotificationChannel(CANAL_ID) != null) return
-        manager.createNotificationChannel(construirCanal(null, vibrar = true))
-    }
-
-    /** Aplica los ajustes locales: canal (sonido/vibración) y trabajo periódico. */
+    /**
+     * Aplica los ajustes locales: canal (sonido/vibración) y trabajo periódico.
+     *
+     * En Android 8+ el sonido de un canal no se puede editar: si cambia el
+     * sonido o la vibración se crea un canal nuevo (con otra generación) y
+     * se borran los anteriores, para que el sistema aplique el sonido de
+     * EggChecker en lugar del predeterminado del teléfono.
+     */
     suspend fun sincronizarAjustes() {
         val ajustes = estadoStore.leerAjustes()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = context.getSystemService(NotificationManager::class.java)
-            val canal = manager?.getNotificationChannel(CANAL_ID)
-            val vibraOk = canal?.shouldVibrate() == ajustes.vibracion
-            val sonidoOk = canal?.sound?.toString() ==
-                uriSonido(ajustes.sonidoUri).toString()
-            if (canal == null || !vibraOk || !sonidoOk) {
-                manager?.deleteNotificationChannel(CANAL_ID)
-                manager?.createNotificationChannel(
-                    construirCanal(ajustes.sonidoUri, ajustes.vibracion)
-                )
-            }
-        }
+        asegurarCanal(ajustes)
         aplicarEstadoTrabajo(ajustes.activas)
     }
 
@@ -88,6 +76,7 @@ class NotificacionGestor(
             cancelarTodas()
             return true
         }
+        val canal = asegurarCanal(ajustes)
         val lista = notificacionRepository.listar().getOrNull() ?: return false
         val perfil = perfilRepository.obtenerPerfil().getOrNull()
         val descartadas = estadoStore.descartadas()
@@ -100,7 +89,7 @@ class NotificacionGestor(
         noLeidas.forEach { aviso ->
             val id = aviso.idNotificacion
             if (id in activas || id in descartadas) return@forEach
-            if (mostrable(aviso.tipo, perfil)) publicar(aviso, ajustes)
+            if (mostrable(aviso.tipo, perfil)) publicar(aviso, ajustes, canal)
         }
         return true
     }
@@ -117,11 +106,14 @@ class NotificacionGestor(
             estadoStore.quitar(id)
             return true
         }
+        val canal = asegurarCanal(ajustes)
         val lista = notificacionRepository.listar().getOrNull() ?: return false
         val perfil = perfilRepository.obtenerPerfil().getOrNull()
         val aviso = lista.find { it.idNotificacion == id && !it.leida }
         estadoStore.quitar(id)
-        if (aviso != null && mostrable(aviso.tipo, perfil)) publicar(aviso, ajustes)
+        if (aviso != null && mostrable(aviso.tipo, perfil)) {
+            publicar(aviso, ajustes, canal)
+        }
         return true
     }
 
@@ -185,7 +177,11 @@ class NotificacionGestor(
         )
     }
 
-    private fun publicar(aviso: Notificacion, ajustes: AjustesNotificacion) {
+    private fun publicar(
+        aviso: Notificacion,
+        ajustes: AjustesNotificacion,
+        canal: String?
+    ) {
         if (!puedeNotificar()) return
 
         val id = aviso.idNotificacion
@@ -220,13 +216,18 @@ class NotificacionGestor(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val builder = NotificationCompat.Builder(context, CANAL_ID)
+        val builder = NotificationCompat.Builder(context, canal ?: CANAL_BASE)
             .setSmallIcon(R.drawable.ic_stat_notificacion)
             .setColor(Color.parseColor("#905E27"))
             .setContentTitle(aviso.titulo)
             .setContentText(aviso.mensaje)
             .setStyle(NotificationCompat.BigTextStyle().bigText(aviso.mensaje))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setShowWhen(true)
+            // Una alerta ya visible se actualiza sin volver a sonar.
+            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
             .setContentIntent(abrir)
             .setDeleteIntent(borrar)
@@ -237,7 +238,7 @@ class NotificacionGestor(
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setSound(uriSonido(ajustes.sonidoUri))
             if (ajustes.vibracion) {
-                builder.setVibrate(longArrayOf(0, 250, 250, 250))
+                builder.setVibrate(PATRON_VIBRACION)
             }
         }
 
@@ -245,20 +246,80 @@ class NotificacionGestor(
             .notify(aviso.idNotificacion, builder.build())
     }
 
+    /**
+     * Garantiza que exista el canal con el sonido y la importancia correctos.
+     *
+     * Android no permite editar el sonido de un canal ya creado, así que la
+     * única forma de forzar el sonido de EggChecker (o el que el usuario elija
+     * en la app) es crear un canal nuevo. El número de generación va en el id
+     * y los canales anteriores se borran.
+     *
+     * @return El id del canal activo, o null antes de Android 8.
+     */
+    private suspend fun asegurarCanal(ajustes: AjustesNotificacion): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
+        val manager = context.getSystemService(NotificationManager::class.java)
+            ?: return null
+
+        val sonido = uriSonido(ajustes.sonidoUri)
+        val firma = "$sonido|${ajustes.vibracion}"
+        var generacion = estadoStore.generacionCanal()
+        var id = idCanal(generacion)
+        val canal = manager.getNotificationChannel(id)
+        val firmaGuardada = estadoStore.firmaCanal()
+
+        if (canal == null || firmaGuardada != firma) {
+            generacion += 1
+            id = idCanal(generacion)
+            manager.createNotificationChannel(
+                construirCanal(id, sonido, ajustes.vibracion)
+            )
+            estadoStore.guardarCanal(generacion, firma)
+            limpiarCanalesViejos(manager, id)
+        }
+        return id
+    }
+
+    /** Borra los canales de versiones anteriores que ya no se usan. */
+    private fun limpiarCanalesViejos(manager: NotificationManager, activo: String) {
+        manager.notificationChannels
+            .map { it.id }
+            .filter { it.startsWith(PREFIJO_CANAL) && it != activo }
+            .forEach { manager.deleteNotificationChannel(it) }
+    }
+
+    private fun idCanal(generacion: Int): String = "${CANAL_BASE}_g$generacion"
+
     private fun construirCanal(
-        sonidoUri: String?,
+        id: String,
+        sonido: Uri,
         vibrar: Boolean
     ): NotificationChannel =
         NotificationChannel(
-            CANAL_ID,
+            id,
             "Alertas de la granja",
-            NotificationManager.IMPORTANCE_DEFAULT
+            // HIGH habilita la ventana emergente (heads-up) al llegar.
+            NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Avisos de producción, inventario y camadas."
-            setSound(uriSonido(sonidoUri), atributosSonido())
+            description = "Avisos de producción, inventario, camadas y " +
+                "recordatorios sanitarios."
+            setSound(sonido, atributosSonido())
             enableVibration(vibrar)
+            if (vibrar) {
+                vibrationPattern = PATRON_VIBRACION
+            }
+            enableLights(true)
+            lightColor = Color.parseColor("#FDC33B")
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            setShowBadge(true)
         }
 
+    /**
+     * URI del sonido de las notificaciones.
+     *
+     * Si el usuario eligió uno en la app se usa ese; si no, el sonido
+     * incluido en el APK (`res/raw/notif_eggchecker_sound.wav`).
+     */
     private fun uriSonido(sonidoGuardado: String?): Uri =
         sonidoGuardado?.let { Uri.parse(it) }
             ?: Uri.parse(
@@ -316,20 +377,20 @@ class NotificacionGestor(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun mostrable(tipo: String, perfil: Perfil?): Boolean {
-        if (perfil == null) return true
-        return when (tipo) {
-            "stock_minimo", "stock_bajo", "sin_stock" -> perfil.notifStockBajo
-            "camada_limite" -> perfil.notifProduccionBaja
-            else -> true
-        }
-    }
+    internal fun mostrable(tipo: String, perfil: Perfil?): Boolean =
+        debeMostrarNotificacion(tipo, perfil)
 
     private fun trabajoRepost(id: Int): String = "notif_repost_$id"
 
     companion object {
-        /** Identificador del canal de notificaciones. */
-        const val CANAL_ID = "alertas_granja_v2"
+        /** Base del id del canal; la generación se agrega al final. */
+        const val CANAL_BASE = "alertas_granja_v4"
+
+        /** Prefijo de todos los canales de la app (para limpiar los viejos). */
+        private const val PREFIJO_CANAL = "alertas_granja"
+
+        /** Patrón de vibración de las alertas. */
+        private val PATRON_VIBRACION = longArrayOf(0, 250, 200, 250)
 
         /** Cada cuántos minutos se revisan notificaciones nuevas. */
         const val MINUTOS_SINCRONIZACION = 15L

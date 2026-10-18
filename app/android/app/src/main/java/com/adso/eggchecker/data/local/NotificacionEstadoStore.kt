@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -39,6 +40,8 @@ class NotificacionEstadoStore(private val context: Context) {
     private val activasKey = booleanPreferencesKey("notificaciones_activas")
     private val vibracionKey = booleanPreferencesKey("vibracion")
     private val sonidoKey = stringPreferencesKey("sonido_uri")
+    private val generacionCanalKey = intPreferencesKey("canal_generacion")
+    private val firmaCanalKey = stringPreferencesKey("canal_firma")
 
     /** Si las notificaciones del dispositivo están activas (por defecto sí). */
     val notificacionesFlow: Flow<Boolean> =
@@ -84,6 +87,22 @@ class NotificacionEstadoStore(private val context: Context) {
             } else {
                 prefs[sonidoKey] = uri
             }
+        }
+    }
+
+    /** Generación del canal: se sube para forzar sonido e importancia. */
+    suspend fun generacionCanal(): Int =
+        context.notificacionDataStore.data.first()[generacionCanalKey] ?: 0
+
+    /** Firma (sonido + vibración) con la que se creó el canal activo. */
+    suspend fun firmaCanal(): String? =
+        context.notificacionDataStore.data.first()[firmaCanalKey]
+
+    /** Guarda la generación y la firma del canal recién creado. */
+    suspend fun guardarCanal(generacion: Int, firma: String) {
+        context.notificacionDataStore.edit { prefs ->
+            prefs[generacionCanalKey] = generacion
+            prefs[firmaCanalKey] = firma
         }
     }
 
