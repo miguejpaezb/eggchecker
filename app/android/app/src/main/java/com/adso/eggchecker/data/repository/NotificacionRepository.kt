@@ -33,8 +33,11 @@ private fun NotificacionDto.toDomain(): Notificacion = Notificacion(
     idNotificacion = idNotificacion,
     idCamada = idCamada,
     idInsumo = idInsumo,
+    idRecordatorio = idRecordatorio,
     tipo = tipo,
     titulo = titulo,
     mensaje = mensaje,
-    leida = leida
+    leida = leida,
+    fechaReferencia = fechaReferencia,
+    momento = momento
 )

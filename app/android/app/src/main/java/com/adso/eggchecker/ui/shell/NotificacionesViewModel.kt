@@ -108,4 +108,11 @@ class NotificacionesViewModel(
                 }
         }
     }
+
+    /** Sincroniza con el sistema tras resolver una acción (aplicar dosis). */
+    fun sincronizarSistema() {
+        viewModelScope.launch {
+            notificacionGestor.sincronizar()
+        }
+    }
 }

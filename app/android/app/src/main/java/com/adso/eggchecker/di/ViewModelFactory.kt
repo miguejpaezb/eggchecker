@@ -14,6 +14,7 @@ import com.adso.eggchecker.ui.dashboard.DashboardViewModel
 import com.adso.eggchecker.ui.inventario.InventarioViewModel
 import com.adso.eggchecker.ui.perfil.PerfilViewModel
 import com.adso.eggchecker.ui.produccion.ProduccionViewModel
+import com.adso.eggchecker.ui.recordatorios.RecordatoriosViewModel
 import com.adso.eggchecker.ui.reportes.ReportesViewModel
 import com.adso.eggchecker.ui.shell.NotificacionesViewModel
 import com.adso.eggchecker.ui.shell.ShellViewModel
@@ -27,7 +28,7 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
     initializer { MainViewModel(authRepository) }
     initializer { LoginViewModel(authRepository) }
     initializer { RegisterViewModel(authRepository) }
-    initializer { ShellViewModel(authRepository, notificacionGestor) }
+    initializer { ShellViewModel(authRepository, notificacionGestor, perfilRepository) }
     initializer {
         NotificacionesViewModel(
             notificacionRepository,
@@ -82,7 +83,8 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
             camadaRepository = camadaRepository,
             pdfStorage = pdfStorage,
             refreshBus = refreshBus,
-            mensajeManager = mensajeManager
+            mensajeManager = mensajeManager,
+            reportesPendienteBus = reportesPendienteBus
         )
     }
     initializer {
@@ -91,6 +93,14 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
             camadaRepository = camadaRepository,
             fotoStorage = fotoAnalisisStorage,
             refreshBus = refreshBus,
+            mensajeManager = mensajeManager
+        )
+    }
+    initializer {
+        RecordatoriosViewModel(
+            recordatorioRepository = recordatorioRepository,
+            insumoRepository = insumoRepository,
+            categoriaRepository = categoriaRepository,
             mensajeManager = mensajeManager
         )
     }

@@ -29,6 +29,7 @@ fun CamadaAccionesMenu(
     camada: Camada,
     onEditar: (Camada) -> Unit,
     onMortalidad: (Camada) -> Unit,
+    onRecordatorios: (Camada) -> Unit,
     onAvanzarSemana: (Camada) -> Unit,
     onSeguirActiva: (Camada) -> Unit,
     onDescartar: (Camada) -> Unit
@@ -55,6 +56,10 @@ fun CamadaAccionesMenu(
                 ItemMenu("Registrar mortalidad", Dark) {
                     abierto = false
                     onMortalidad(camada)
+                }
+                ItemMenu("Recordatorios sanitarios", Dark) {
+                    abierto = false
+                    onRecordatorios(camada)
                 }
                 ItemMenu("Avanzar semana", Dark) {
                     abierto = false

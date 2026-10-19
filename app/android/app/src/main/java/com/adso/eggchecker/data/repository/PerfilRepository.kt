@@ -6,6 +6,7 @@ import com.adso.eggchecker.data.remote.dto.CambiarContrasenaDto
 import com.adso.eggchecker.data.remote.dto.NotificacionesUpdateDto
 import com.adso.eggchecker.data.remote.dto.PerfilUpdateDto
 import com.adso.eggchecker.domain.model.Perfil
+import com.adso.eggchecker.domain.model.PreferenciasNotificaciones
 
 /** Acceso al perfil del usuario autenticado (modo online). */
 class PerfilRepository(
@@ -37,17 +38,18 @@ class PerfilRepository(
 
     /** Guarda las preferencias de alertas del usuario. */
     suspend fun actualizarNotificaciones(
-        produccionBaja: Boolean,
-        stockBajo: Boolean,
-        vacunacion: Boolean,
-        resumenSemanal: Boolean
+        preferencias: PreferenciasNotificaciones
     ): Result<Perfil> = apiCall {
         api.actualizarNotificaciones(
             NotificacionesUpdateDto(
-                notifProduccionBaja = produccionBaja,
-                notifStockBajo = stockBajo,
-                notifVacunacion = vacunacion,
-                notifResumenSemanal = resumenSemanal
+                notifProduccionBaja = preferencias.produccionBaja,
+                notifStockBajo = preferencias.stockBajo,
+                notifVacunacion = preferencias.vacunacion,
+                notifResumenSemanal = preferencias.resumenSemanal,
+                notifCamadaLimite = preferencias.camadaLimite,
+                notifProduccionHora = preferencias.produccionHora,
+                notifResumenFrecuencia = preferencias.resumenFrecuencia,
+                notifResumenDia = preferencias.resumenDia
             )
         )
     }.map { it.toPerfil() }

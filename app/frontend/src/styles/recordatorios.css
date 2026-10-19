@@ -1,0 +1,230 @@
+/* ─── Chip del momento del recordatorio ──────────────────── */
+.ec-notif-card__momento {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background-color: rgba(253, 195, 59, 0.35);
+  color: var(--ec-brown);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.ec-notif-card__momento--previo {
+  background-color: rgba(124, 138, 62, 0.18);
+  color: var(--ec-green);
+}
+
+/* ─── Gestión de recordatorios ───────────────────────────── */
+.ec-recordatorios__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ec-recordatorio-card {
+  border: 1px solid var(--ec-border);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  background-color: #fff;
+}
+
+.ec-recordatorio-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ec-recordatorio-card__titulo {
+  margin: 0;
+  font-family: var(--ec-font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ec-dark);
+}
+
+.ec-recordatorio-card__detalle {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+.ec-recordatorio-card__badge {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background-color: rgba(253, 195, 59, 0.35);
+  color: var(--ec-brown);
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ec-recordatorio-card__meta {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ec-placeholder);
+}
+
+.ec-recordatorio-card__acciones {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+.ec-recordatorio-card__accion {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ec-brown);
+  cursor: pointer;
+}
+
+.ec-recordatorio-card__accion--peligro {
+  color: #b91c1c;
+}
+
+.ec-recordatorios__historial {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ec-recordatorios__dosis {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--ec-dark);
+}
+
+.ec-recordatorios__dosis--aplicada {
+  color: var(--ec-placeholder);
+}
+
+.ec-recordatorios__dosis--pendiente {
+  color: var(--ec-brown);
+  font-weight: 700;
+}
+
+/* ─── Formulario del recordatorio ────────────────────────── */
+.ec-rec-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.ec-rec-form__dias,
+.ec-rec-form__fechas {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ec-rec-form__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.ec-chip {
+  border: 1px solid var(--ec-border);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--ec-placeholder);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ec-chip--activo {
+  background-color: var(--ec-brown);
+  border-color: var(--ec-brown);
+  color: var(--ec-yellow);
+}
+
+.ec-rec-form__fecha-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.ec-rec-form__fecha-fila .ec-form__input {
+  flex: 1;
+}
+
+.ec-rec-form__activo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ec-dark);
+  cursor: pointer;
+}
+
+/* ─── Modal de aplicación de dosis ───────────────────────── */
+.ec-aplicar__insumo {
+  margin: 0;
+  font-family: var(--ec-font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ec-dark);
+}
+
+.ec-aplicar__meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+.ec-aplicar__stock {
+  margin: 0.15rem 0 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ec-brown);
+}
+
+.ec-aplicar__camadas {
+  border: 1px solid var(--ec-border);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  margin: 0.75rem 0 0;
+}
+
+.ec-aplicar__camada {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+
+.ec-aplicar__camada-nombre {
+  flex: 1;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ec-dark);
+}
+
+.ec-aplicar__camada-dosis {
+  font-size: 0.74rem;
+  color: var(--ec-placeholder);
+}
+
+.ec-aplicar__total {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ec-brown);
+}

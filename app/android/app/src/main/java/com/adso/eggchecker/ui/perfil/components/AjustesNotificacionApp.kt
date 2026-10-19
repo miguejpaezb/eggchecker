@@ -50,6 +50,7 @@ fun AjustesNotificacionApp(
     onCambiarSonido: (String?) -> Unit,
     onReproducirSonido: () -> Unit
 ) {
+    val context = LocalContext.current
     val selector = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { resultado ->
@@ -60,6 +61,13 @@ fun AjustesNotificacionApp(
                     RingtoneManager.EXTRA_RINGTONE_PICKED_URI
                 )
             if (uri != null) {
+                // Conserva el permiso para poder usar el sonido tras reiniciar.
+                runCatching {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
                 onCambiarSonido(uri.toString())
             }
         }
@@ -91,8 +99,9 @@ fun AjustesNotificacionApp(
         SubtituloSeccion("Notificaciones del dispositivo")
         Text(
             text = "Ajustes solo de esta app; no se guardan en tu cuenta. " +
-                "Si desinstalas la app o inicias sesión en otro teléfono, " +
-                "vuelven al valor por defecto.",
+                "Las alertas usan el sonido de EggChecker y aparecen en " +
+                "pantalla. Si cambias el sonido desde los ajustes del " +
+                "teléfono, Android puede mantener esa elección.",
             fontSize = 13.sp,
             color = TextMuted,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -126,7 +135,7 @@ fun AjustesNotificacionApp(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OpcionSonido(
-                texto = "Predeterminado",
+                texto = "EggChecker",
                 seleccionado = sonidoPersonalizado == null,
                 habilitado = notificacionesActivas,
                 modifier = Modifier.weight(1f)

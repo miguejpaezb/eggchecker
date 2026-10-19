@@ -8,8 +8,10 @@ import {
   marcarLeida,
   marcarTodasLeidas,
 } from '../services/notificacionService';
+import { rangoResumen } from '../utils/notificaciones';
 import Icon from './Icon';
 import NotificacionesPanel from './NotificacionesPanel';
+import AplicarDosisModal from './recordatorios/AplicarDosisModal';
 
 const INTERVALO_NOTIFICACIONES = 60000;
 
@@ -19,6 +21,7 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
   const [notificaciones, setNotificaciones] = useState([]);
   const [cargandoNotif, setCargandoNotif] = useState(false);
   const [errorNotif, setErrorNotif] = useState('');
+  const [solicitudAplicar, setSolicitudAplicar] = useState(null);
   const perfilRef = useRef(null);
   const notifRef = useRef(null);
 
@@ -117,6 +120,33 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
 
   const manejarVer = (aviso) => {
     setMenuActivo(null);
+
+    if (
+      aviso.tipo === 'recordatorio_sanitario' &&
+      aviso.id_recordatorio &&
+      aviso.fecha_referencia
+    ) {
+      setSolicitudAplicar({
+        idRecordatorio: aviso.id_recordatorio,
+        fecha: aviso.fecha_referencia,
+      });
+      return;
+    }
+
+    if (aviso.tipo === 'resumen_periodico') {
+      // Ver el resumen resuelve el aviso: se elimina de la lista.
+      eliminarNotificacion(aviso.id_notificacion)
+        .then(cargarNotificaciones)
+        .catch(() => {});
+      navigate('/reportes', {
+        state: rangoResumen(
+          perfil?.notif_resumen_frecuencia,
+          aviso.fecha_referencia
+        ),
+      });
+      return;
+    }
+
     if (aviso.id_insumo) {
       navigate('/inventario', {
         state: { insumoId: aviso.id_insumo, abrirStock: true },
@@ -132,110 +162,119 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
   const hayNoLeidas = notificaciones.some((aviso) => !aviso.leida);
 
   return (
-    <header className="ec-topbar">
-      <div className="ec-topbar__left">
-        <button
-          type="button"
-          className="ec-topbar__menu-btn"
-          aria-label="Abrir menú"
-          aria-expanded={menuAbierto}
-          onClick={onAbrirMenu}
-        >
-          <svg
-            className="ec-topbar__menu-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div className="ec-topbar__brand">
-          <img
-            src="/assets/img/logo-eggchecker.png"
-            alt="isotipo EggChecker"
-            className="ec-topbar__logo"
-          />
-          <h2 className="ec-topbar__title">EggChecker</h2>
-        </div>
-      </div>
-      <div className="ec-topbar__actions">
-        <div className="ec-topbar__notif" ref={notifRef}>
+    <>
+      <header className="ec-topbar">
+        <div className="ec-topbar__left">
           <button
             type="button"
-            className="ec-topbar__icon-btn"
-            aria-label="Notificaciones"
-            aria-haspopup="true"
-            aria-expanded={menuActivo === 'notificaciones'}
-            onClick={manejarNotificaciones}
+            className="ec-topbar__menu-btn"
+            aria-label="Abrir menú"
+            aria-expanded={menuAbierto}
+            onClick={onAbrirMenu}
           >
-            <img
-              src="/assets/icons/notifications-icon.svg"
-              alt=""
+            <svg
+              className="ec-topbar__menu-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               aria-hidden="true"
-              className="ec-topbar__icon"
-            />
-            {hayNoLeidas && <span className="ec-topbar__dot" />}
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
           </button>
-          {menuActivo === 'notificaciones' && (
-            <NotificacionesPanel
-              notificaciones={notificaciones}
-              cargando={cargandoNotif}
-              error={errorNotif}
-              onMarcarLeida={manejarMarcarLeida}
-              onMarcarTodas={manejarMarcarTodas}
-              onEliminar={manejarEliminar}
-              onVer={manejarVer}
+          <div className="ec-topbar__brand">
+            <img
+              src="/assets/img/logo-eggchecker.png"
+              alt="isotipo EggChecker"
+              className="ec-topbar__logo"
             />
-          )}
+            <h2 className="ec-topbar__title">EggChecker</h2>
+          </div>
         </div>
-        <div className="ec-topbar__profile" ref={perfilRef}>
-          <button
-            type="button"
-            className="ec-topbar__avatar-btn"
-            aria-label="Perfil de usuario"
-            aria-haspopup="true"
-            aria-expanded={menuActivo === 'perfil'}
-            onClick={alternarPerfil}
-          >
-            <span className="ec-topbar__avatar">
-              <Icon
-                src="/assets/icons/user-icon.svg"
-                className="ec-topbar__avatar-icon"
+        <div className="ec-topbar__actions">
+          <div className="ec-topbar__notif" ref={notifRef}>
+            <button
+              type="button"
+              className="ec-topbar__icon-btn"
+              aria-label="Notificaciones"
+              aria-haspopup="true"
+              aria-expanded={menuActivo === 'notificaciones'}
+              onClick={manejarNotificaciones}
+            >
+              <img
+                src="/assets/icons/notifications-icon.svg"
+                alt=""
+                aria-hidden="true"
+                className="ec-topbar__icon"
               />
-            </span>
-          </button>
-          {menuActivo === 'perfil' && (
-            <div className="ec-profile-menu">
-              <div className="ec-profile-menu__avatar">
+              {hayNoLeidas && <span className="ec-topbar__dot" />}
+            </button>
+            {menuActivo === 'notificaciones' && (
+              <NotificacionesPanel
+                notificaciones={notificaciones}
+                cargando={cargandoNotif}
+                error={errorNotif}
+                onMarcarLeida={manejarMarcarLeida}
+                onMarcarTodas={manejarMarcarTodas}
+                onEliminar={manejarEliminar}
+                onVer={manejarVer}
+              />
+            )}
+          </div>
+          <div className="ec-topbar__profile" ref={perfilRef}>
+            <button
+              type="button"
+              className="ec-topbar__avatar-btn"
+              aria-label="Perfil de usuario"
+              aria-haspopup="true"
+              aria-expanded={menuActivo === 'perfil'}
+              onClick={alternarPerfil}
+            >
+              <span className="ec-topbar__avatar">
                 <Icon
                   src="/assets/icons/user-icon.svg"
-                  className="ec-profile-menu__avatar-icon"
+                  className="ec-topbar__avatar-icon"
                 />
+              </span>
+            </button>
+            {menuActivo === 'perfil' && (
+              <div className="ec-profile-menu">
+                <div className="ec-profile-menu__avatar">
+                  <Icon
+                    src="/assets/icons/user-icon.svg"
+                    className="ec-profile-menu__avatar-icon"
+                  />
+                </div>
+                <p className="ec-profile-menu__name">{nombre}</p>
+                <p className="ec-profile-menu__plan">{planTexto}</p>
+                <button
+                  type="button"
+                  className="ec-profile-menu__logout"
+                  onClick={onLogout}
+                >
+                  <Icon
+                    src="/assets/icons/icon_logout.svg"
+                    className="ec-profile-menu__logout-icon"
+                  />
+                  Cerrar Sesión
+                </button>
               </div>
-              <p className="ec-profile-menu__name">{nombre}</p>
-              <p className="ec-profile-menu__plan">{planTexto}</p>
-              <button
-                type="button"
-                className="ec-profile-menu__logout"
-                onClick={onLogout}
-              >
-                <Icon
-                  src="/assets/icons/icon_logout.svg"
-                  className="ec-profile-menu__logout-icon"
-                />
-                Cerrar Sesión
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <AplicarDosisModal
+        abierto={solicitudAplicar !== null}
+        solicitud={solicitudAplicar}
+        onCerrar={() => setSolicitudAplicar(null)}
+        onAplicado={cargarNotificaciones}
+      />
+    </>
   );
 }
 
@@ -243,6 +282,7 @@ Topbar.propTypes = {
   perfil: PropTypes.shape({
     nombre_completo: PropTypes.string,
     plan_suscripcion: PropTypes.string,
+    notif_resumen_frecuencia: PropTypes.string,
   }),
   menuAbierto: PropTypes.bool,
   onAbrirMenu: PropTypes.func.isRequired,

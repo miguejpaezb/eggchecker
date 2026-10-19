@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { listarCamadas } from '../services/camadaService';
 import { descargarPdf, obtenerConsolidado } from '../services/reporteService';
@@ -9,15 +10,35 @@ import { diasDelRango, rangoPreset } from '../utils/reportes';
  * @returns {Object} Estado y acciones del módulo de reportes.
  */
 function useReportes() {
-  const [preset, setPreset] = useState('mes');
-  const [desde, setDesde] = useState(() => rangoPreset('mes').desde);
-  const [hasta, setHasta] = useState(() => rangoPreset('mes').hasta);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Un aviso de resumen puede abrir la página con el período ya calculado.
+  const rangoRecibido =
+    location.state?.desde && location.state?.hasta ? location.state : null;
+  const rangoInicial = rangoRecibido || rangoPreset('mes');
+
+  const [preset, setPreset] = useState(rangoRecibido ? 'personalizado' : 'mes');
+  const [desde, setDesde] = useState(rangoInicial.desde);
+  const [hasta, setHasta] = useState(rangoInicial.hasta);
   const [camada, setCamada] = useState('');
   const [camadas, setCamadas] = useState([]);
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!rangoRecibido) {
+      return undefined;
+    }
+    // Aplica el rango del aviso (también si ya estamos en Reportes) y
+    // limpia el estado de navegación para no reutilizarlo al recargar.
+    setPreset('personalizado');
+    setDesde(rangoRecibido.desde);
+    setHasta(rangoRecibido.hasta);
+    navigate(location.pathname, { replace: true, state: null });
+    return undefined;
+  }, [rangoRecibido, location.pathname, navigate]);
 
   useEffect(() => {
     let activo = true;

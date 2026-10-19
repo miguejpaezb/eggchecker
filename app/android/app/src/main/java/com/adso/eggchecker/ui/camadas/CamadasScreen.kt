@@ -48,11 +48,14 @@ import com.adso.eggchecker.ui.theme.Border
 import com.adso.eggchecker.ui.theme.Brown
 import com.adso.eggchecker.ui.theme.SuperficieTarjeta
 import com.adso.eggchecker.ui.theme.TextMuted
+import com.adso.eggchecker.ui.recordatorios.RecordatoriosViewModel
+import com.adso.eggchecker.ui.recordatorios.components.RecordatoriosCamadaModal
 
 /** Pantalla de gestión de camadas (modo online, fiel al web móvil). */
 @Composable
 fun CamadasScreen(
     viewModel: CamadasViewModel,
+    recordatoriosViewModel: RecordatoriosViewModel,
     camadaPendienteBus: CamadaPendienteBus
 ) {
     val estado by viewModel.estado.collectAsState()
@@ -61,6 +64,7 @@ fun CamadasScreen(
     var enEdicion by remember { mutableStateOf<Camada?>(null) }
     var enMortalidad by remember { mutableStateOf<Camada?>(null) }
     var enDetalle by remember { mutableStateOf<Camada?>(null) }
+    var enRecordatorios by remember { mutableStateOf<Camada?>(null) }
     var aDescartar by remember { mutableStateOf<Camada?>(null) }
     var descartando by remember { mutableStateOf(false) }
 
@@ -130,6 +134,7 @@ fun CamadasScreen(
                     onVerDetalles = { enDetalle = it },
                     onEditar = { enEdicion = it },
                     onMortalidad = { enMortalidad = it },
+                    onRecordatorios = { enRecordatorios = it },
                     onAvanzarSemana = { viewModel.avanzarSemana(it.idCamada) },
                     onSeguirActiva = { viewModel.seguirActiva(it.idCamada) },
                     onDescartar = { aDescartar = it }
@@ -189,6 +194,12 @@ fun CamadasScreen(
         onCargar = { id, onResultado ->
             viewModel.cargarDetalle(id, onResultado)
         }
+    )
+
+    RecordatoriosCamadaModal(
+        camada = enRecordatorios,
+        viewModel = recordatoriosViewModel,
+        onCerrar = { enRecordatorios = null }
     )
 
     ConfirmDialog(

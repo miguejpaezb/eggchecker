@@ -1,10 +1,13 @@
 package com.adso.eggchecker.ui.perfil.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,37 +22,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.adso.eggchecker.domain.model.Perfil
+import com.adso.eggchecker.domain.model.PreferenciasNotificaciones
+import com.adso.eggchecker.ui.components.SelectorPill
+import com.adso.eggchecker.ui.perfil.DIAS_SEMANA_CORTOS
+import com.adso.eggchecker.ui.perfil.FRECUENCIAS_RESUMEN
+import com.adso.eggchecker.ui.perfil.horaCorta
+import com.adso.eggchecker.ui.perfil.nombreDia
+import com.adso.eggchecker.ui.theme.Border
+import com.adso.eggchecker.ui.theme.Brown
 import com.adso.eggchecker.ui.theme.Dark
 import com.adso.eggchecker.ui.theme.TextMuted
 
-/** Opción de alerta configurable. */
-private data class OpcionAlerta(
-    val titulo: String,
-    val descripcion: String
-)
-
-private val OPCIONES = listOf(
-    OpcionAlerta(
-        titulo = "Alertas de producción baja",
-        descripcion = "Te avisa si la recolección de huevos cae por debajo " +
-            "del promedio."
-    ),
-    OpcionAlerta(
-        titulo = "Nivel bajo de alimento",
-        descripcion = "Aviso preventivo para reabastecer el inventario de cuido."
-    ),
-    OpcionAlerta(
-        titulo = "Recordatorio de Vacunación",
-        descripcion = "Recibe un recordatorio 3 días antes de cada plan sanitario."
-    ),
-    OpcionAlerta(
-        titulo = "Resumen Semanal",
-        descripcion = "Un reporte general de la granja enviado a tu correo " +
-            "todos los domingos."
-    )
-)
-
-/** Sección de notificaciones: preferencias de alertas y ajustes de la app. */
+/**
+ * Sección de notificaciones: preferencias de alertas y ajustes de la app.
+ *
+ * @param perfil Perfil con las preferencias guardadas.
+ * @param onGuardar Guarda las preferencias y avisa del resultado.
+ */
 @Composable
 fun NotificacionesSeccion(
     perfil: Perfil,
@@ -57,37 +46,22 @@ fun NotificacionesSeccion(
     vibracion: Boolean,
     sonidoPersonalizado: String?,
     onGuardar: (
-        produccionBaja: Boolean,
-        stockBajo: Boolean,
-        vacunacion: Boolean,
-        resumenSemanal: Boolean,
-        onExito: () -> Unit,
-        onError: () -> Unit
+        PreferenciasNotificaciones,
+        () -> Unit,
+        () -> Unit
     ) -> Unit,
     onCambiarNotificaciones: (Boolean) -> Unit,
     onCambiarVibracion: (Boolean) -> Unit,
     onCambiarSonido: (String?) -> Unit,
     onReproducirSonido: () -> Unit
 ) {
-    var produccionBaja by remember { mutableStateOf(perfil.notifProduccionBaja) }
-    var stockBajo by remember { mutableStateOf(perfil.notifStockBajo) }
-    var vacunacion by remember { mutableStateOf(perfil.notifVacunacion) }
-    var resumenSemanal by remember { mutableStateOf(perfil.notifResumenSemanal) }
+    var preferencias by remember { mutableStateOf(preferenciasDe(perfil)) }
     var enviando by remember { mutableStateOf(false) }
+    var horaAbierta by remember { mutableStateOf(false) }
 
     LaunchedEffect(perfil) {
-        produccionBaja = perfil.notifProduccionBaja
-        stockBajo = perfil.notifStockBajo
-        vacunacion = perfil.notifVacunacion
-        resumenSemanal = perfil.notifResumenSemanal
+        preferencias = preferenciasDe(perfil)
     }
-
-    val valores = listOf(
-        produccionBaja to { v: Boolean -> produccionBaja = v },
-        stockBajo to { v: Boolean -> stockBajo = v },
-        vacunacion to { v: Boolean -> vacunacion = v },
-        resumenSemanal to { v: Boolean -> resumenSemanal = v }
-    )
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         TarjetaPerfil {
@@ -99,53 +73,116 @@ fun NotificacionesSeccion(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            OPCIONES.forEachIndexed { indice, opcion ->
-                val (activo, cambiar) = valores[indice]
+            FilaSwitch(
+                titulo = "Producción baja",
+                descripcion = "Avisa si la recolección de ayer quedó por debajo " +
+                    "del 85% de las aves activas.",
+                activo = preferencias.produccionBaja,
+                habilitado = !enviando,
+                onCambiar = {
+                    preferencias = preferencias.copy(produccionBaja = it)
+                }
+            )
+            FilaDetalle(
+                etiqueta = "Hora del análisis",
+                valor = preferencias.produccionHora,
+                habilitado = !enviando && preferencias.produccionBaja,
+                onClick = { horaAbierta = true }
+            )
+
+            FilaSwitch(
+                titulo = "Camada al límite",
+                descripcion = "Avisa cuando una camada supera las 72 semanas " +
+                    "de vida productiva.",
+                activo = preferencias.camadaLimite,
+                habilitado = !enviando,
+                onCambiar = {
+                    preferencias = preferencias.copy(camadaLimite = it)
+                }
+            )
+
+            FilaSwitch(
+                titulo = "Nivel bajo de alimento",
+                descripcion = "Aviso preventivo para reabastecer el inventario.",
+                activo = preferencias.stockBajo,
+                habilitado = !enviando,
+                onCambiar = {
+                    preferencias = preferencias.copy(stockBajo = it)
+                }
+            )
+
+            FilaSwitch(
+                titulo = "Recordatorios sanitarios",
+                descripcion = "Vacunas y vitaminas: te avisa el día antes y el " +
+                    "mismo día de cada aplicación.",
+                activo = preferencias.vacunacion,
+                habilitado = !enviando,
+                onCambiar = {
+                    preferencias = preferencias.copy(vacunacion = it)
+                }
+            )
+
+            FilaSwitch(
+                titulo = "Resumen de reportes",
+                descripcion = "Un recordatorio para revisar el reporte del período.",
+                activo = preferencias.resumenSemanal,
+                habilitado = !enviando,
+                onCambiar = {
+                    preferencias = preferencias.copy(resumenSemanal = it)
+                }
+            )
+
+            if (preferencias.resumenSemanal) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 10.dp),
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = opcion.titulo,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = Dark
-                        )
-                        Text(
-                            text = opcion.descripcion,
-                            fontSize = 13.sp,
-                            color = TextMuted,
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
-                    }
-                    SwitchApp(
-                        activo = activo,
-                        onCambiar = cambiar,
-                        habilitado = !enviando,
-                        modifier = Modifier.padding(start = 12.dp)
+                    SelectorPill(
+                        etiqueta = "FRECUENCIA",
+                        valorTexto = (
+                            FRECUENCIAS_RESUMEN.firstOrNull {
+                                it.first == preferencias.resumenFrecuencia
+                            } ?: FRECUENCIAS_RESUMEN.first()
+                            ).second,
+                        opciones = FRECUENCIAS_RESUMEN,
+                        onSeleccionar = {
+                            preferencias = preferencias.copy(resumenFrecuencia = it)
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                    SelectorPill(
+                        etiqueta = "DÍA",
+                        valorTexto = nombreDia(preferencias.resumenDia),
+                        opciones = DIAS_SEMANA_CORTOS.mapIndexed { indice, nombre ->
+                            indice.toString() to nombre
+                        },
+                        onSeleccionar = {
+                            preferencias = preferencias.copy(
+                                resumenDia = it.toIntOrNull() ?: 0
+                            )
+                        },
+                        modifier = Modifier.weight(1f)
                     )
                 }
+                Text(
+                    text = "El reporte cubre 7, 14 o 30 días según la frecuencia.",
+                    fontSize = 12.sp,
+                    color = TextMuted,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
 
             AccionesFormulario(
                 textoGuardar = "Guardar Cambios",
                 enviando = enviando,
-                onCancelar = {
-                    produccionBaja = perfil.notifProduccionBaja
-                    stockBajo = perfil.notifStockBajo
-                    vacunacion = perfil.notifVacunacion
-                    resumenSemanal = perfil.notifResumenSemanal
-                },
+                onCancelar = { preferencias = preferenciasDe(perfil) },
                 onGuardar = {
                     enviando = true
                     onGuardar(
-                        produccionBaja,
-                        stockBajo,
-                        vacunacion,
-                        resumenSemanal,
+                        preferencias,
                         { enviando = false },
                         { enviando = false }
                     )
@@ -162,5 +199,103 @@ fun NotificacionesSeccion(
             onCambiarSonido = onCambiarSonido,
             onReproducirSonido = onReproducirSonido
         )
+    }
+
+    HoraPickerModal(
+        abierto = horaAbierta,
+        hora = preferencias.produccionHora,
+        onCerrar = { horaAbierta = false },
+        onGuardar = { nuevaHora ->
+            preferencias = preferencias.copy(produccionHora = nuevaHora)
+            horaAbierta = false
+        }
+    )
+}
+
+/** Construye las preferencias editables a partir del perfil guardado. */
+private fun preferenciasDe(perfil: Perfil): PreferenciasNotificaciones =
+    PreferenciasNotificaciones(
+        produccionBaja = perfil.notifProduccionBaja,
+        camadaLimite = perfil.notifCamadaLimite,
+        stockBajo = perfil.notifStockBajo,
+        vacunacion = perfil.notifVacunacion,
+        resumenSemanal = perfil.notifResumenSemanal,
+        produccionHora = horaCorta(perfil.notifProduccionHora),
+        resumenFrecuencia = perfil.notifResumenFrecuencia,
+        resumenDia = perfil.notifResumenDia
+    )
+
+/** Fila con título, descripción y switch. */
+@Composable
+private fun FilaSwitch(
+    titulo: String,
+    descripcion: String,
+    activo: Boolean,
+    habilitado: Boolean,
+    onCambiar: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = titulo,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = Dark
+            )
+            Text(
+                text = descripcion,
+                fontSize = 13.sp,
+                color = TextMuted,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+        SwitchApp(
+            activo = activo,
+            onCambiar = onCambiar,
+            habilitado = habilitado,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+    }
+}
+
+/** Fila con una etiqueta y un valor tocable (ej. la hora). */
+@Composable
+private fun FilaDetalle(
+    etiqueta: String,
+    valor: String,
+    habilitado: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border),
+        color = androidx.compose.ui.graphics.Color.Transparent,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .clickable(enabled = habilitado, onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = etiqueta,
+                fontSize = 13.sp,
+                color = if (habilitado) TextMuted else TextMuted.copy(alpha = 0.5f)
+            )
+            Text(
+                text = "$valor ▾",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (habilitado) Brown else Brown.copy(alpha = 0.4f)
+            )
+        }
     }
 }

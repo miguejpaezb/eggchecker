@@ -14,6 +14,7 @@ import CamadaAccionesMenu from './CamadaAccionesMenu';
  * @param {Function} props.onVerDetalles - Acción al pulsar "Ver Detalles".
  * @param {Function} props.onEditar - Abrir la edición de la camada.
  * @param {Function} props.onMortalidad - Abrir el registro de mortalidad.
+ * @param {Function} props.onRecordatorios - Abrir los recordatorios sanitarios.
  * @param {Function} props.onAvanzarSemana - Sumar una semana de vida.
  * @param {Function} props.onSeguirActiva - Posponer la decisión una semana.
  * @param {Function} props.onDescartar - Descartar la camada.
@@ -24,6 +25,7 @@ function CamadaCard({
   onVerDetalles,
   onEditar,
   onMortalidad,
+  onRecordatorios,
   onAvanzarSemana,
   onSeguirActiva,
   onDescartar,
@@ -87,6 +89,7 @@ function CamadaCard({
             camada={camada}
             onEditar={onEditar}
             onMortalidad={onMortalidad}
+            onRecordatorios={onRecordatorios}
             onAvanzarSemana={onAvanzarSemana}
             onSeguirActiva={onSeguirActiva}
             onDescartar={onDescartar}
@@ -111,6 +114,7 @@ CamadaCard.propTypes = {
   onVerDetalles: PropTypes.func.isRequired,
   onEditar: PropTypes.func.isRequired,
   onMortalidad: PropTypes.func.isRequired,
+  onRecordatorios: PropTypes.func.isRequired,
   onAvanzarSemana: PropTypes.func.isRequired,
   onSeguirActiva: PropTypes.func.isRequired,
   onDescartar: PropTypes.func.isRequired,

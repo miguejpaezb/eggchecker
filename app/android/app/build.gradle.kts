@@ -57,7 +57,7 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"https://api.eggchecker.click/api/\""
+                "\"https://app.eggchecker.click/api/\""
             )
         }
     }

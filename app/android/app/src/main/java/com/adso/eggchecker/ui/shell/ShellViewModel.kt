@@ -5,18 +5,23 @@ import androidx.lifecycle.viewModelScope
 
 import com.adso.eggchecker.data.remote.ApiException
 import com.adso.eggchecker.data.repository.AuthRepository
+import com.adso.eggchecker.data.repository.PerfilRepository
+import com.adso.eggchecker.domain.model.Perfil
 import com.adso.eggchecker.domain.model.Usuario
 import com.adso.eggchecker.notifications.NotificacionGestor
 
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** Perfil del usuario y acciones del shell principal (topbar/drawer). */
 class ShellViewModel(
     private val authRepository: AuthRepository,
-    private val notificacionGestor: NotificacionGestor
+    private val notificacionGestor: NotificacionGestor,
+    private val perfilRepository: PerfilRepository
 ) : ViewModel() {
 
     /** Perfil del usuario leído desde Room. */
@@ -26,6 +31,11 @@ class ShellViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = null
         )
+
+    private val _perfil = MutableStateFlow<Perfil?>(null)
+
+    /** Perfil con las preferencias (frecuencia del resumen, etc.). */
+    val perfil: StateFlow<Perfil?> = _perfil.asStateFlow()
 
     init {
         viewModelScope.launch { refrescar() }
@@ -37,6 +47,10 @@ class ShellViewModel(
         val resultado = authRepository.sincronizarPerfil()
         if ((resultado.exceptionOrNull() as? ApiException)?.codigo == 401) {
             authRepository.cerrarSesion()
+            return
+        }
+        perfilRepository.obtenerPerfil().onSuccess { actualizado ->
+            _perfil.value = actualizado
         }
     }
 

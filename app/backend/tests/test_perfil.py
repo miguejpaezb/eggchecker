@@ -84,10 +84,14 @@ def test_perfil_incluye_granja_historico_y_preferencias(cliente) -> None:
     assert "nombre_granja" in cuerpo
     assert cuerpo["total_huevos_producidos"] == 0
     assert cuerpo["total_aves_gestionadas"] == 0
+    assert cuerpo["notif_camada_limite"] is True
     assert cuerpo["notif_produccion_baja"] is True
+    assert cuerpo["notif_produccion_hora"] == "05:00:00"
     assert cuerpo["notif_stock_bajo"] is True
     assert cuerpo["notif_vacunacion"] is False
     assert cuerpo["notif_resumen_semanal"] is True
+    assert cuerpo["notif_resumen_frecuencia"] == "semanal"
+    assert cuerpo["notif_resumen_dia"] == 0
 
 
 def test_perfil_historico_suma_camadas_y_produccion(cliente) -> None:
@@ -267,6 +271,99 @@ def test_actualizar_notificaciones_persiste(cliente) -> None:
     assert perfil["notif_stock_bajo"] is True
     assert perfil["notif_vacunacion"] is True
     assert perfil["notif_resumen_semanal"] is False
+    # Los clientes anteriores no envían los campos nuevos y se conservan.
+    assert perfil["notif_camada_limite"] is True
+    assert perfil["notif_produccion_hora"] == "05:00:00"
+    assert perfil["notif_resumen_frecuencia"] == "semanal"
+    assert perfil["notif_resumen_dia"] == 0
+
+
+def test_actualizar_preferencias_nuevas_persiste(cliente) -> None:
+    """Se guardan la alerta de camada, la hora y la frecuencia del resumen."""
+    client, _ = cliente
+    token = _registrar_y_token(client)
+
+    respuesta = client.put(
+        "/api/usuarios/me/notificaciones",
+        headers=_cabecera(token),
+        json={
+            "notif_produccion_baja": True,
+            "notif_stock_bajo": True,
+            "notif_vacunacion": False,
+            "notif_resumen_semanal": True,
+            "notif_camada_limite": False,
+            "notif_produccion_hora": "04:30",
+            "notif_resumen_frecuencia": "quincenal",
+            "notif_resumen_dia": 3,
+        },
+    )
+
+    assert respuesta.status_code == 200
+    cuerpo = respuesta.json()
+    assert cuerpo["notif_camada_limite"] is False
+    assert cuerpo["notif_produccion_hora"] == "04:30:00"
+    assert cuerpo["notif_resumen_frecuencia"] == "quincenal"
+    assert cuerpo["notif_resumen_dia"] == 3
+
+
+def test_actualizar_preferencias_rechaza_frecuencia_invalida(cliente) -> None:
+    """Una frecuencia fuera del catálogo responde 422."""
+    client, _ = cliente
+    token = _registrar_y_token(client)
+
+    respuesta = client.put(
+        "/api/usuarios/me/notificaciones",
+        headers=_cabecera(token),
+        json={
+            "notif_produccion_baja": True,
+            "notif_stock_bajo": True,
+            "notif_vacunacion": False,
+            "notif_resumen_semanal": True,
+            "notif_resumen_frecuencia": "diario",
+        },
+    )
+
+    assert respuesta.status_code == 422
+
+
+def test_actualizar_preferencias_rechaza_dia_fuera_de_rango(cliente) -> None:
+    """Un día de la semana mayor a 6 responde 422."""
+    client, _ = cliente
+    token = _registrar_y_token(client)
+
+    respuesta = client.put(
+        "/api/usuarios/me/notificaciones",
+        headers=_cabecera(token),
+        json={
+            "notif_produccion_baja": True,
+            "notif_stock_bajo": True,
+            "notif_vacunacion": False,
+            "notif_resumen_semanal": True,
+            "notif_resumen_dia": 7,
+        },
+    )
+
+    assert respuesta.status_code == 422
+
+
+def test_actualizar_preferencias_rechaza_hora_con_zona(cliente) -> None:
+    """La hora del análisis no admite zona horaria."""
+    client, _ = cliente
+    token = _registrar_y_token(client)
+
+    respuesta = client.put(
+        "/api/usuarios/me/notificaciones",
+        headers=_cabecera(token),
+        json={
+            "notif_produccion_baja": True,
+            "notif_stock_bajo": True,
+            "notif_vacunacion": False,
+            "notif_resumen_semanal": True,
+            "notif_produccion_hora": "04:30:00+05:00",
+        },
+    )
+
+    assert respuesta.status_code == 422
 
 
 def test_cambiar_contrasena_con_actual_incorrecta_devuelve_401(cliente) -> None:

@@ -32,13 +32,21 @@ CREATE TABLE usuario (
   plan_suscripcion   TEXT         NOT NULL DEFAULT 'gratuito',
   fecha_registro     TEXT         NOT NULL,
   activo             INTEGER      NOT NULL DEFAULT 1,
+  notif_camada_limite    INTEGER  NOT NULL DEFAULT 1,
   notif_produccion_baja  INTEGER  NOT NULL DEFAULT 1,
+  notif_produccion_hora  TEXT     NOT NULL DEFAULT '05:00',
   notif_stock_bajo       INTEGER  NOT NULL DEFAULT 1,
   notif_vacunacion       INTEGER  NOT NULL DEFAULT 0,
   notif_resumen_semanal  INTEGER  NOT NULL DEFAULT 1,
+  notif_resumen_frecuencia TEXT   NOT NULL DEFAULT 'semanal',
+  notif_resumen_dia      INTEGER  NOT NULL DEFAULT 0,
   CONSTRAINT uq_usuario_correo UNIQUE (correo_electronico),
   CONSTRAINT chk_usuario_plan
-    CHECK (plan_suscripcion IN ('gratuito','premium'))
+    CHECK (plan_suscripcion IN ('gratuito','premium')),
+  CONSTRAINT chk_usuario_resumen_frecuencia
+    CHECK (notif_resumen_frecuencia IN ('semanal','quincenal','mensual')),
+  CONSTRAINT chk_usuario_resumen_dia
+    CHECK (notif_resumen_dia BETWEEN 0 AND 6)
 );
 
 
@@ -452,6 +460,89 @@ CREATE INDEX idx_analisis_fecha   ON analisis_ia (fecha_analisis DESC);
 
 
 -- ─────────────────────────────────────────────────────────────
+-- Table recordatorio_sanitario
+-- Regla de vacunación o suministro de vitaminas (id_camada NULL = global).
+-- FK: id_usuario → usuario, id_camada → camada, id_insumo → insumo
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE recordatorio_sanitario (
+  id_recordatorio INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  id_usuario      INTEGER NOT NULL,
+  id_camada       INTEGER NULL,
+  id_insumo       INTEGER NOT NULL,
+  modo            TEXT    NOT NULL,
+  intervalo_dias  INTEGER NULL,
+  dias_semana     TEXT    NULL,
+  fechas_especificas TEXT NULL,
+  fecha_inicio    TEXT    NOT NULL,
+  fecha_fin       TEXT    NULL,
+  cantidad        DECIMAL(10,2) NOT NULL,
+  activo          INTEGER NOT NULL DEFAULT 1,
+  fecha_creacion  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_recordatorio_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_recordatorio_camada
+    FOREIGN KEY (id_camada) REFERENCES camada (id_camada)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_recordatorio_insumo
+    FOREIGN KEY (id_insumo) REFERENCES insumo (id_insumo)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT chk_recordatorio_modo
+    CHECK (modo IN ('cada_dias','dias_semana','fechas')),
+  CONSTRAINT chk_recordatorio_cantidad CHECK (cantidad > 0),
+  CONSTRAINT chk_recordatorio_intervalo
+    CHECK (intervalo_dias IS NULL OR intervalo_dias > 0),
+  CONSTRAINT chk_recordatorio_fechas
+    CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
+  CONSTRAINT chk_recordatorio_activo CHECK (activo IN (0,1))
+);
+
+CREATE INDEX idx_recordatorio_usuario ON recordatorio_sanitario (id_usuario);
+CREATE INDEX idx_recordatorio_camada  ON recordatorio_sanitario (id_camada);
+CREATE INDEX idx_recordatorio_insumo  ON recordatorio_sanitario (id_insumo);
+
+
+-- ─────────────────────────────────────────────────────────────
+-- Table recordatorio_dosis
+-- Aplicación programada de un recordatorio en una camada concreta.
+-- FK: id_recordatorio → recordatorio_sanitario, id_camada → camada,
+--     id_movimiento → movimiento_insumo, id_evento → evento_sanitario
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE recordatorio_dosis (
+  id_dosis         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  id_recordatorio  INTEGER NOT NULL,
+  id_camada        INTEGER NOT NULL,
+  fecha_programada TEXT    NOT NULL,
+  numero_dosis     INTEGER NOT NULL,
+  aplicada         INTEGER NOT NULL DEFAULT 0,
+  fecha_aplicacion TEXT    NULL,
+  id_movimiento    INTEGER NULL,
+  id_evento        INTEGER NULL,
+  CONSTRAINT fk_dosis_recordatorio
+    FOREIGN KEY (id_recordatorio) REFERENCES recordatorio_sanitario (id_recordatorio)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_dosis_camada
+    FOREIGN KEY (id_camada) REFERENCES camada (id_camada)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_dosis_movimiento
+    FOREIGN KEY (id_movimiento) REFERENCES movimiento_insumo (id_movimiento)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_dosis_evento
+    FOREIGN KEY (id_evento) REFERENCES evento_sanitario (id_evento)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT uq_dosis_recordatorio_camada_fecha
+    UNIQUE (id_recordatorio, id_camada, fecha_programada),
+  CONSTRAINT chk_dosis_aplicada CHECK (aplicada IN (0,1)),
+  CONSTRAINT chk_dosis_numero CHECK (numero_dosis > 0)
+);
+
+CREATE INDEX idx_dosis_camada ON recordatorio_dosis (id_camada, fecha_programada);
+CREATE INDEX idx_dosis_fecha  ON recordatorio_dosis (fecha_programada, aplicada);
+
+
+-- ─────────────────────────────────────────────────────────────
 -- Table notificacion
 -- Avisos al avicultor (ej. camada que supera las 72 semanas).
 -- FK: id_usuario → usuario, id_camada → camada
@@ -462,12 +553,15 @@ CREATE TABLE notificacion (
   id_usuario      INTEGER NOT NULL,
   id_camada       INTEGER NULL,
   id_insumo       INTEGER NULL,
+  id_recordatorio INTEGER NULL,
   tipo            TEXT    NOT NULL,
   titulo          TEXT    NOT NULL,
   mensaje         TEXT    NOT NULL,
   leida           INTEGER NOT NULL DEFAULT 0,
   eliminada       INTEGER NOT NULL DEFAULT 0,
   stock_referencia DECIMAL(10,2) NULL,
+  fecha_referencia TEXT   NULL,
+  momento          TEXT   NULL,
   fecha_creacion  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_notificacion_usuario
     FOREIGN KEY (id_usuario)
@@ -481,15 +575,22 @@ CREATE TABLE notificacion (
     FOREIGN KEY (id_insumo)
     REFERENCES insumo (id_insumo)
     ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_notificacion_id_recordatorio
+    FOREIGN KEY (id_recordatorio)
+    REFERENCES recordatorio_sanitario (id_recordatorio)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT chk_notificacion_leida
     CHECK (leida IN (0,1)),
   CONSTRAINT chk_notificacion_eliminada
     CHECK (eliminada IN (0,1)),
-  CONSTRAINT uq_notificacion_usuario_camada_tipo
-    UNIQUE (id_usuario, id_camada, tipo)
+  CONSTRAINT chk_notificacion_momento
+    CHECK (momento IS NULL OR momento IN ('previo','hoy'))
 );
 
 CREATE INDEX idx_notificacion_usuario ON notificacion (id_usuario, leida);
+CREATE INDEX idx_notificacion_usuario_tipo_fecha
+  ON notificacion (id_usuario, tipo, fecha_referencia);
+CREATE INDEX idx_notificacion_recordatorio ON notificacion (id_recordatorio);
 
 
 -- ─────────────────────────────────────────────────────────────

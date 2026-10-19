@@ -46,7 +46,11 @@ def cliente(tmp_path: Path):
 
 
 def _registrar_usuario(cliente, correo: str) -> dict:
-    """Registra un usuario y devuelve su header de autorización."""
+    """Registra un usuario y devuelve su header de autorización.
+
+    Apaga el recordatorio de reportes (activo por defecto) para que estas
+    pruebas solo cuenten los avisos de camada y de stock.
+    """
     respuesta = cliente.post(
         "/api/auth/registro",
         json={
@@ -57,7 +61,18 @@ def _registrar_usuario(cliente, correo: str) -> dict:
     )
     assert respuesta.status_code == 201
     id_usuario = respuesta.json()["id_usuario"]
-    return {"Authorization": f"Bearer {crear_token_acceso(sub=str(id_usuario))}"}
+    headers = {"Authorization": f"Bearer {crear_token_acceso(sub=str(id_usuario))}"}
+    cliente.put(
+        "/api/usuarios/me/notificaciones",
+        headers=headers,
+        json={
+            "notif_produccion_baja": True,
+            "notif_stock_bajo": True,
+            "notif_vacunacion": False,
+            "notif_resumen_semanal": False,
+        },
+    )
+    return headers
 
 
 def _camada_en_limite(cliente, headers, nombre: str = "Camada Prueba") -> dict:

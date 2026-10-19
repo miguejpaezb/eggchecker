@@ -10,6 +10,8 @@ from app.models.notificacion import Notificacion
 from app.models.pedido import Pedido
 from app.models.produccion_detalle import ProduccionDetalle
 from app.models.produccion_diaria import ProduccionDiaria
+from app.models.recordatorio_dosis import RecordatorioDosis
+from app.models.recordatorio_sanitario import RecordatorioSanitario
 from app.models.stock_produccion import StockProduccion
 from app.models.tipo_huevo import TipoHuevo
 from app.models.token_recuperacion import TokenRecuperacion
@@ -28,6 +30,8 @@ __all__ = [
     "Pedido",
     "ProduccionDetalle",
     "ProduccionDiaria",
+    "RecordatorioDosis",
+    "RecordatorioSanitario",
     "StockProduccion",
     "TipoHuevo",
     "TokenRecuperacion",

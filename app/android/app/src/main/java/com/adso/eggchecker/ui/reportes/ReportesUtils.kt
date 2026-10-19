@@ -41,6 +41,11 @@ fun rangoPreset(preset: String): Pair<String, String> {
             calendario.set(Calendar.DAY_OF_MONTH, 1)
             FORMATO_ISO.format(calendario.time)
         }
+        "quincena" -> {
+            val calendario = Calendar.getInstance()
+            calendario.add(Calendar.DAY_OF_YEAR, -13)
+            FORMATO_ISO.format(calendario.time)
+        }
         else -> hasta
     }
     return desde to hasta

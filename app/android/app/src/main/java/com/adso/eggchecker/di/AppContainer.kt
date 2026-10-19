@@ -16,6 +16,7 @@ import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.repository.NotificacionRepository
 import com.adso.eggchecker.data.repository.PerfilRepository
 import com.adso.eggchecker.data.repository.ProduccionRepository
+import com.adso.eggchecker.data.repository.RecordatorioRepository
 import com.adso.eggchecker.data.repository.ReporteRepository
 import com.adso.eggchecker.data.repository.VentaRepository
 import com.adso.eggchecker.data.storage.FotoAnalisisStorage
@@ -24,6 +25,8 @@ import com.adso.eggchecker.data.sync.AbrirNotificacionesBus
 import com.adso.eggchecker.data.sync.CamadaPendienteBus
 import com.adso.eggchecker.data.sync.InventarioPendienteBus
 import com.adso.eggchecker.data.sync.RefreshBus
+import com.adso.eggchecker.data.sync.RecordatorioAplicarBus
+import com.adso.eggchecker.data.sync.ReportesPendienteBus
 import com.adso.eggchecker.data.sync.VentaPendienteBus
 import com.adso.eggchecker.notifications.NotificacionGestor
 import com.adso.eggchecker.ui.mensajes.MensajeManager
@@ -50,6 +53,9 @@ class AppContainer(context: Context) {
 
     /** Repositorio de notificaciones del usuario. */
     val notificacionRepository = NotificacionRepository(api)
+
+    /** Repositorio de recordatorios sanitarios del usuario. */
+    val recordatorioRepository = RecordatorioRepository(api)
 
     /** Repositorio de camadas del usuario. */
     val camadaRepository = CamadaRepository(api)
@@ -110,6 +116,12 @@ class AppContainer(context: Context) {
 
     /** Aviso para abrir el detalle de una camada. */
     val camadaPendienteBus = CamadaPendienteBus()
+
+    /** Aviso para abrir el modal de aplicación de una dosis. */
+    val recordatorioAplicarBus = RecordatorioAplicarBus()
+
+    /** Aviso para abrir Reportes con un rango precargado. */
+    val reportesPendienteBus = ReportesPendienteBus()
 
     /** Canal global de mensajes flotantes (toasts). */
     val mensajeManager = MensajeManager()

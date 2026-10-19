@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 
 import Icon from './Icon';
+import { etiquetaMomento } from '../utils/notificaciones';
 
 /**
  * Panel desplegable de notificaciones anclado a la campanita del topbar.
@@ -73,6 +74,13 @@ function NotificacionesPanel({
                   &times;
                 </button>
               </div>
+              {aviso.momento && (
+                <span
+                  className={`ec-notif-card__momento ec-notif-card__momento--${aviso.momento}`}
+                >
+                  {etiquetaMomento(aviso.momento)}
+                </span>
+              )}
               <p className="ec-notif-card__mensaje">{aviso.mensaje}</p>
               <div className="ec-notif-card__acciones">
                 <button
@@ -107,6 +115,10 @@ NotificacionesPanel.propTypes = {
     PropTypes.shape({
       id_notificacion: PropTypes.number.isRequired,
       id_camada: PropTypes.number,
+      id_insumo: PropTypes.number,
+      id_recordatorio: PropTypes.number,
+      fecha_referencia: PropTypes.string,
+      momento: PropTypes.string,
       titulo: PropTypes.string.isRequired,
       mensaje: PropTypes.string.isRequired,
       leida: PropTypes.bool.isRequired,

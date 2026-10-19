@@ -14,6 +14,11 @@ import com.adso.eggchecker.data.remote.dto.ClienteDto
 import com.adso.eggchecker.data.remote.dto.ClienteEliminarDto
 import com.adso.eggchecker.data.remote.dto.ClienteUpdateDto
 import com.adso.eggchecker.data.remote.dto.DashboardDto
+import com.adso.eggchecker.data.remote.dto.DosisAplicadaDto
+import com.adso.eggchecker.data.remote.dto.DosisAplicarDto
+import com.adso.eggchecker.data.remote.dto.DosisDetalleDto
+import com.adso.eggchecker.data.remote.dto.DosisDto
+import com.adso.eggchecker.data.remote.dto.DosisLoteDto
 import com.adso.eggchecker.data.remote.dto.EstadoIADto
 import com.adso.eggchecker.data.remote.dto.InsumoCreateDto
 import com.adso.eggchecker.data.remote.dto.InsumoDto
@@ -35,6 +40,8 @@ import com.adso.eggchecker.data.remote.dto.ProduccionConDetalleDto
 import com.adso.eggchecker.data.remote.dto.ProduccionCreateDto
 import com.adso.eggchecker.data.remote.dto.ProduccionDto
 import com.adso.eggchecker.data.remote.dto.RecuperarRequestDto
+import com.adso.eggchecker.data.remote.dto.RecordatorioCreateDto
+import com.adso.eggchecker.data.remote.dto.RecordatorioDto
 import com.adso.eggchecker.data.remote.dto.RegistroRequestDto
 import com.adso.eggchecker.data.remote.dto.ReporteConsolidadoDto
 import com.adso.eggchecker.data.remote.dto.RetroalimentacionDto
@@ -115,6 +122,62 @@ interface ApiService {
     /** Elimina una notificación del usuario. */
     @DELETE("notificaciones/{id}")
     suspend fun eliminarNotificacion(@Path("id") idNotificacion: Int)
+
+    /** Lista los recordatorios sanitarios activos del usuario. */
+    @GET("recordatorios")
+    suspend fun listarRecordatorios(
+        @Query("id_camada") idCamada: Int?,
+        @Query("incluir_globales") incluirGlobales: Boolean
+    ): List<RecordatorioDto>
+
+    /** Consulta un recordatorio con su próxima dosis. */
+    @GET("recordatorios/{id}")
+    suspend fun obtenerRecordatorio(
+        @Path("id") idRecordatorio: Int
+    ): RecordatorioDto
+
+    /** Crea un recordatorio sanitario (sin id_camada es global). */
+    @POST("recordatorios")
+    suspend fun crearRecordatorio(
+        @Body body: RecordatorioCreateDto
+    ): RecordatorioDto
+
+    /** Reemplaza un recordatorio y recalcula sus dosis futuras. */
+    @PUT("recordatorios/{id}")
+    suspend fun actualizarRecordatorio(
+        @Path("id") idRecordatorio: Int,
+        @Body body: RecordatorioCreateDto
+    ): RecordatorioDto
+
+    /** Desactiva un recordatorio y descarta sus dosis pendientes. */
+    @DELETE("recordatorios/{id}")
+    suspend fun eliminarRecordatorio(@Path("id") idRecordatorio: Int)
+
+    /** Dosis programadas de un recordatorio, opcionalmente de un rango. */
+    @GET("recordatorios/{id}/dosis")
+    suspend fun listarDosis(
+        @Path("id") idRecordatorio: Int,
+        @Query("desde") desde: String?,
+        @Query("hasta") hasta: String?,
+        @Query("solo_pendientes") soloPendientes: Boolean
+    ): List<DosisDto>
+
+    /** Detalle de una dosis con el insumo y su stock. */
+    @GET("recordatorios/dosis/{id}")
+    suspend fun obtenerDosis(@Path("id") idDosis: Int): DosisDetalleDto
+
+    /** Registra la aplicación de una dosis (descuenta inventario). */
+    @POST("recordatorios/dosis/{id}/aplicar")
+    suspend fun aplicarDosis(
+        @Path("id") idDosis: Int,
+        @Body body: DosisAplicarDto
+    ): DosisAplicadaDto
+
+    /** Aplica varias dosis en una sola transacción. */
+    @POST("recordatorios/dosis/aplicar-lote")
+    suspend fun aplicarDosisLote(
+        @Body body: DosisLoteDto
+    ): List<DosisAplicadaDto>
 
     /** Lista las camadas del usuario, opcionalmente filtradas por estado. */
     @GET("camadas")
