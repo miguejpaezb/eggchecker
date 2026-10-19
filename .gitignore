@@ -6,6 +6,7 @@
 # Se comparte por Google Drive y WhatsApp, no por el repositorio
 supporting_documentation/
 AGENTS.md
+.opencode/
 
 # ─── Entorno y dependencias de Python ────────────────────────
 .venv/
@@ -89,3 +90,7 @@ temp/
 *.xlsx
 *.pptx
 !supporting_documentation/**/.gitkeep
+
+# ─── Videos de tutorial generados por la skill /brag ─────────
+brag-output/
+brag-output-*/
