@@ -405,6 +405,10 @@ fun ShellScreen(
                                     )
                                 }
                                 aviso.tipo == "resumen_periodico" -> {
+                                    // Ver el resumen resuelve el aviso.
+                                    notificacionesViewModel.eliminar(
+                                        aviso.idNotificacion
+                                    )
                                     val dias = when (
                                         perfil?.notifResumenFrecuencia
                                     ) {
@@ -500,6 +504,7 @@ fun ShellScreen(
                     onAplicado = {
                         recordatorioAplicarBus.consumir()
                         notificacionesViewModel.cargar()
+                        notificacionesViewModel.sincronizarSistema()
                         scope.launch { viewModel.refrescar() }
                         refreshBus.solicitar()
                     }

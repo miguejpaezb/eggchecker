@@ -32,6 +32,7 @@ import com.adso.eggchecker.ui.components.TipoBoton
 import com.adso.eggchecker.ui.recordatorios.RecordatoriosViewModel
 import com.adso.eggchecker.ui.recordatorios.fechaCorta
 import com.adso.eggchecker.ui.recordatorios.formatoCantidad
+import com.adso.eggchecker.ui.recordatorios.hoyIsoRecordatorio
 import com.adso.eggchecker.ui.recordatorios.textoCantidad
 import com.adso.eggchecker.ui.recordatorios.textoDosis
 import com.adso.eggchecker.ui.theme.Brown
@@ -84,6 +85,10 @@ fun AplicarDosisModal(
 
     val cantidadNumerica = cantidad.replace(',', '.').toDoubleOrNull()
     val total = (cantidadNumerica ?: 0.0) * seleccion.size
+    // Solo se puede aplicar el mismo día o después; el aviso "Mañana" se
+    // puede leer pero no registrar todavía.
+    val esFutura = solicitud != null &&
+        solicitud.fecha > hoyIsoRecordatorio()
 
     ModalApp(
         abierto = solicitud != null,
@@ -117,6 +122,30 @@ fun AplicarDosisModal(
             }
             else -> {
                 val actual = regla ?: return@ModalApp
+                if (esFutura) {
+                    Text(
+                        text = "Esta aplicación está programada para el " +
+                            "${fechaCorta(solicitud?.fecha)}. Todavía no " +
+                            "puedes registrarla; el día de la aplicación " +
+                            "aparecerá el botón para hacerlo.",
+                        color = TextMuted,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(vertical = 12.dp)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        BotonApp(
+                            texto = "Cerrar",
+                            onClick = onCerrar,
+                            tipo = TipoBoton.GHOST
+                        )
+                    }
+                    return@ModalApp
+                }
                 Text(
                     text = actual.nombreInsumo,
                     fontWeight = FontWeight.Bold,
