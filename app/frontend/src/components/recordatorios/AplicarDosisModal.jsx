@@ -10,6 +10,7 @@ import {
 import {
   formatearFecha,
   formatoCantidad,
+  hoyIso,
   textoCantidad,
 } from '../../utils/recordatorios';
 import ConfirmDialog from '../ConfirmDialog';
@@ -87,6 +88,9 @@ function AplicarDosisModal({ abierto, solicitud, onCerrar, onAplicado }) {
   const numeroCantidad = Number(cantidad);
   const cantidadValida = Number.isFinite(numeroCantidad) && numeroCantidad > 0;
   const total = cantidadValida ? numeroCantidad * seleccion.length : 0;
+  // Solo se puede aplicar el mismo día o después; el aviso "Mañana" queda
+  // disponible para leer pero bloquea el registro.
+  const esFutura = solicitud ? solicitud.fecha > hoyIso() : false;
 
   const alternar = (idDosis) => {
     setSeleccion((previas) =>
@@ -136,7 +140,8 @@ function AplicarDosisModal({ abierto, solicitud, onCerrar, onAplicado }) {
     onCerrar();
   };
 
-  const sinPendientes = !cargando && !errorCarga && dosis.length === 0;
+  const sinPendientes =
+    !cargando && !errorCarga && dosis.length === 0 && !esFutura;
 
   return (
     <>
@@ -168,7 +173,26 @@ function AplicarDosisModal({ abierto, solicitud, onCerrar, onAplicado }) {
           </>
         )}
 
-        {!cargando && !errorCarga && !sinPendientes && regla && (
+        {!cargando && !errorCarga && esFutura && (
+          <>
+            <p className="ec-form__hint">
+              Esta aplicación está programada para el{' '}
+              {formatearFecha(solicitud?.fecha)}. Todavía no puedes registrarla;
+              el día de la aplicación aparecerá el botón para hacerlo.
+            </p>
+            <div className="ec-form__actions">
+              <button
+                type="button"
+                className="ec-btn ec-btn--ghost"
+                onClick={cerrando}
+              >
+                Cerrar
+              </button>
+            </div>
+          </>
+        )}
+
+        {!cargando && !errorCarga && !sinPendientes && !esFutura && regla && (
           <>
             <p className="ec-aplicar__insumo">{regla.nombre_insumo}</p>
             <p className="ec-aplicar__meta">

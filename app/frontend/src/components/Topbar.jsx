@@ -134,6 +134,10 @@ function Topbar({ perfil, menuAbierto, onAbrirMenu, onLogout }) {
     }
 
     if (aviso.tipo === 'resumen_periodico') {
+      // Ver el resumen resuelve el aviso: se elimina de la lista.
+      eliminarNotificacion(aviso.id_notificacion)
+        .then(cargarNotificaciones)
+        .catch(() => {});
       navigate('/reportes', {
         state: rangoResumen(
           perfil?.notif_resumen_frecuencia,
