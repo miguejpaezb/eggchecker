@@ -38,3 +38,23 @@ data class CamadaUpdateDto(
 data class MortalidadRequestDto(
     @SerializedName("cantidad") val cantidad: Int
 )
+
+/** Datos para POST /camadas/{id}/alimentacion. */
+data class AlimentacionCreateDto(
+    @SerializedName("id_insumo") val idInsumo: Int,
+    @SerializedName("cantidad") val cantidad: Double,
+    @SerializedName("observaciones") val observaciones: String? = null
+)
+
+/** Registro de alimentación devuelto por la API. */
+data class AlimentacionDto(
+    @SerializedName("id_alimentacion") val idAlimentacion: Int,
+    @SerializedName("id_camada") val idCamada: Int,
+    @SerializedName("nombre_camada") val nombreCamada: String,
+    @SerializedName("id_insumo") val idInsumo: Int,
+    @SerializedName("nombre_insumo") val nombreInsumo: String,
+    @SerializedName("unidad_medida") val unidadMedida: String,
+    @SerializedName("cantidad") val cantidad: String,
+    @SerializedName("fecha_hora") val fechaHora: String,
+    @SerializedName("observaciones") val observaciones: String? = null
+)

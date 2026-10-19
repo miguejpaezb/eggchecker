@@ -1,6 +1,8 @@
 package com.adso.eggchecker.data.remote
 
 import com.adso.eggchecker.data.remote.dto.AnalisisDto
+import com.adso.eggchecker.data.remote.dto.AlimentacionCreateDto
+import com.adso.eggchecker.data.remote.dto.AlimentacionDto
 import com.adso.eggchecker.data.remote.dto.CamadaCreateDto
 import com.adso.eggchecker.data.remote.dto.CamadaDto
 import com.adso.eggchecker.data.remote.dto.CamadaUpdateDto
@@ -216,6 +218,13 @@ interface ApiService {
     /** Descarta una camada (estado retirada, irreversible). */
     @POST("camadas/{id}/descartar")
     suspend fun descartarCamada(@Path("id") idCamada: Int): CamadaDto
+
+    /** Registra el alimento consumido por una camada. */
+    @POST("camadas/{id}/alimentacion")
+    suspend fun registrarAlimentacion(
+        @Path("id") idCamada: Int,
+        @Body body: AlimentacionCreateDto
+    ): AlimentacionDto
 
     /** Lista la producción del usuario, opcionalmente filtrada. */
     @GET("produccion")

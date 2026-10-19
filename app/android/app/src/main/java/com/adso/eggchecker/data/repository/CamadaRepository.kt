@@ -2,10 +2,13 @@ package com.adso.eggchecker.data.repository
 
 import com.adso.eggchecker.data.remote.ApiService
 import com.adso.eggchecker.data.remote.apiCall
+import com.adso.eggchecker.data.remote.dto.AlimentacionCreateDto
+import com.adso.eggchecker.data.remote.dto.AlimentacionDto
 import com.adso.eggchecker.data.remote.dto.CamadaCreateDto
 import com.adso.eggchecker.data.remote.dto.CamadaDto
 import com.adso.eggchecker.data.remote.dto.CamadaUpdateDto
 import com.adso.eggchecker.data.remote.dto.MortalidadRequestDto
+import com.adso.eggchecker.domain.model.Alimentacion
 import com.adso.eggchecker.domain.model.Camada
 
 /** Acceso a las camadas del usuario autenticado (modo online). */
@@ -70,6 +73,21 @@ class CamadaRepository(
     /** Descarta la camada (estado retirada). */
     suspend fun descartar(idCamada: Int): Result<Camada> =
         apiCall { api.descartarCamada(idCamada) }.map { it.toDomain() }
+
+    /** Registra el alimento consumido por una camada. */
+    suspend fun alimentar(
+        idCamada: Int,
+        idInsumo: Int,
+        cantidad: Double
+    ): Result<Alimentacion> = apiCall {
+        api.registrarAlimentacion(
+            idCamada,
+            AlimentacionCreateDto(
+                idInsumo = idInsumo,
+                cantidad = cantidad
+            )
+        )
+    }.map { it.toDomain() }
 }
 
 private fun CamadaDto.toDomain(): Camada = Camada(
@@ -87,4 +105,16 @@ private fun CamadaDto.toDomain(): Camada = Camada(
     puedeEditarInicial = puedeEditarInicial,
     edadDias = edadDias,
     fechaRetiroEstimada = fechaRetiroEstimada
+)
+
+private fun AlimentacionDto.toDomain(): Alimentacion = Alimentacion(
+    idAlimentacion = idAlimentacion,
+    idCamada = idCamada,
+    nombreCamada = nombreCamada,
+    idInsumo = idInsumo,
+    nombreInsumo = nombreInsumo,
+    unidadMedida = unidadMedida,
+    cantidad = cantidad.toDoubleOrNull() ?: 0.0,
+    fechaHora = fechaHora,
+    observaciones = observaciones
 )
