@@ -1259,6 +1259,7 @@ def cargar_demo(db_path: Path, conservar: bool = False) -> dict:
                 "recordatorio_sanitario",
                 "recordatorio_dosis",
                 "notificacion",
+                "alimentacion_camada",
                 "analisis_ia",
             )
         }

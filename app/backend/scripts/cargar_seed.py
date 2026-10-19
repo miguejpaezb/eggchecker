@@ -1,6 +1,6 @@
 """Carga el esquema y los datos de prueba de EggChecker en SQLite.
 
-Script de bootstrap para desarrollo y QA: crea las 18 tablas (con sus
+Script de bootstrap para desarrollo y QA: crea las 19 tablas (con sus
 índices y vistas) y las llena con datos de prueba. La recarga es
 idempotente: si la base ya tiene tablas, las elimina y vuelve a
 crearlas desde cero.
@@ -37,6 +37,7 @@ _TABLAS = (
     "recordatorio_sanitario",
     "recordatorio_dosis",
     "notificacion",
+    "alimentacion_camada",
 )
 
 _BASE_DIR = Path(__file__).resolve().parents[1]
