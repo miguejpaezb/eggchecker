@@ -38,6 +38,7 @@ import com.adso.eggchecker.data.sync.CamadaPendienteBus
 import com.adso.eggchecker.domain.model.Camada
 import com.adso.eggchecker.ui.camadas.components.CamadaCard
 import com.adso.eggchecker.ui.camadas.components.CamadaDetalleModal
+import com.adso.eggchecker.ui.camadas.components.AlimentarModal
 import com.adso.eggchecker.ui.camadas.components.EditarCamadaModal
 import com.adso.eggchecker.ui.camadas.components.MortalidadModal
 import com.adso.eggchecker.ui.camadas.components.NuevaCamadaModal
@@ -62,6 +63,7 @@ fun CamadasScreen(
 
     var nuevaAbierta by remember { mutableStateOf(false) }
     var enEdicion by remember { mutableStateOf<Camada?>(null) }
+    var enAlimentacion by remember { mutableStateOf<Camada?>(null) }
     var enMortalidad by remember { mutableStateOf<Camada?>(null) }
     var enDetalle by remember { mutableStateOf<Camada?>(null) }
     var enRecordatorios by remember { mutableStateOf<Camada?>(null) }
@@ -133,6 +135,10 @@ fun CamadasScreen(
                     camada = camada,
                     onVerDetalles = { enDetalle = it },
                     onEditar = { enEdicion = it },
+                    onAlimentar = {
+                        viewModel.cargarAlimentos()
+                        enAlimentacion = it
+                    },
                     onMortalidad = { enMortalidad = it },
                     onRecordatorios = { enRecordatorios = it },
                     onAvanzarSemana = { viewModel.avanzarSemana(it.idCamada) },
@@ -180,6 +186,22 @@ fun CamadasScreen(
         onRegistrar = { id, cantidad, onResultado ->
             viewModel.mortalidad(
                 idCamada = id,
+                cantidad = cantidad,
+                onExito = { onResultado(true) },
+                onError = { onResultado(false) }
+            )
+        }
+    )
+
+    AlimentarModal(
+        abierto = enAlimentacion != null,
+        camada = enAlimentacion,
+        alimentos = estado.alimentos,
+        onCerrar = { enAlimentacion = null },
+        onAlimentar = { id, idInsumo, cantidad, onResultado ->
+            viewModel.alimentar(
+                idCamada = id,
+                idInsumo = idInsumo,
                 cantidad = cantidad,
                 onExito = { onResultado(true) },
                 onError = { onResultado(false) }

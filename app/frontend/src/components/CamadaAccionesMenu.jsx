@@ -9,6 +9,7 @@ import Icon from './Icon';
  * @param {Object} props - Propiedades del componente.
  * @param {Object} props.camada - Camada sobre la que se actúa.
  * @param {Function} props.onEditar - Abrir la edición de la camada.
+ * @param {Function} props.onAlimentar - Abrir el registro de alimentación.
  * @param {Function} props.onMortalidad - Abrir el registro de mortalidad.
  * @param {Function} props.onRecordatorios - Abrir los recordatorios sanitarios.
  * @param {Function} props.onAvanzarSemana - Sumar una semana de vida.
@@ -19,6 +20,7 @@ import Icon from './Icon';
 function CamadaAccionesMenu({
   camada,
   onEditar,
+  onAlimentar,
   onMortalidad,
   onRecordatorios,
   onAvanzarSemana,
@@ -93,6 +95,14 @@ function CamadaAccionesMenu({
                 type="button"
                 role="menuitem"
                 className="ec-menu__item"
+                onClick={() => ejecutar(() => onAlimentar(camada))}
+              >
+                Alimentar
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="ec-menu__item"
                 onClick={() => ejecutar(() => onMortalidad(camada))}
               >
                 Registrar mortalidad
@@ -149,6 +159,7 @@ CamadaAccionesMenu.propTypes = {
     requiere_decision: PropTypes.bool,
   }).isRequired,
   onEditar: PropTypes.func.isRequired,
+  onAlimentar: PropTypes.func.isRequired,
   onMortalidad: PropTypes.func.isRequired,
   onRecordatorios: PropTypes.func.isRequired,
   onAvanzarSemana: PropTypes.func.isRequired,

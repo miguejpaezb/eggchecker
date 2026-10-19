@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.adso.eggchecker.data.repository.CamadaRepository
+import com.adso.eggchecker.data.repository.CategoriaRepository
+import com.adso.eggchecker.data.repository.InsumoRepository
 import com.adso.eggchecker.data.sync.RefreshBus
 import com.adso.eggchecker.domain.model.Camada
+import com.adso.eggchecker.domain.model.Insumo
 import com.adso.eggchecker.ui.mensajes.MensajeManager
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +20,7 @@ import kotlinx.coroutines.launch
 /** Estado del listado de camadas. */
 data class CamadasUiState(
     val camadas: List<Camada> = emptyList(),
+    val alimentos: List<Insumo> = emptyList(),
     val filtro: String = "activa",
     val cargando: Boolean = true,
     val error: String? = null
@@ -25,6 +29,8 @@ data class CamadasUiState(
 /** Carga y gestiona las camadas del usuario (modo online). */
 class CamadasViewModel(
     private val camadaRepository: CamadaRepository,
+    private val insumoRepository: InsumoRepository,
+    private val categoriaRepository: CategoriaRepository,
     private val refreshBus: RefreshBus,
     private val mensajeManager: MensajeManager
 ) : ViewModel() {
@@ -36,6 +42,7 @@ class CamadasViewModel(
 
     init {
         cargar()
+        cargarAlimentos()
         viewModelScope.launch {
             refreshBus.eventos.collect { cargar() }
         }
@@ -67,6 +74,52 @@ class CamadasViewModel(
                                 ?: "No se pudieron cargar las camadas"
                         )
                     }
+                }
+        }
+    }
+
+    /** Carga los insumos de categoría alimento con stock disponible. */
+    fun cargarAlimentos() {
+        viewModelScope.launch {
+            val insumos = insumoRepository.listar().getOrDefault(emptyList())
+            val categorias = categoriaRepository.listar()
+                .getOrDefault(emptyList())
+            val idAlimento = categorias
+                .firstOrNull { it.nombreCateg == "alimento" }
+                ?.idCategoria
+            _estado.update {
+                it.copy(
+                    alimentos = insumos.filter { insumo ->
+                        insumo.idCategoria == idAlimento &&
+                            insumo.activo &&
+                            !insumo.descontinuado &&
+                            insumo.stockActual > 0.0
+                    }
+                )
+            }
+        }
+    }
+
+    /** Registra el alimento consumido por una camada. */
+    fun alimentar(
+        idCamada: Int,
+        idInsumo: Int,
+        cantidad: Double,
+        onExito: () -> Unit,
+        onError: () -> Unit
+    ) {
+        viewModelScope.launch {
+            camadaRepository.alimentar(idCamada, idInsumo, cantidad)
+                .onSuccess {
+                    mensajeManager.exito("Alimentación registrada")
+                    onExito()
+                    cargarAlimentos()
+                }
+                .onFailure {
+                    mensajeManager.error(
+                        it.message ?: "No se pudo registrar la alimentación"
+                    )
+                    onError()
                 }
         }
     }

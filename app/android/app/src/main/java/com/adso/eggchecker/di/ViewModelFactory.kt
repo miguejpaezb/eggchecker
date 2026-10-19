@@ -37,7 +37,13 @@ fun AppContainer.viewModelFactory(): ViewModelProvider.Factory = viewModelFactor
         )
     }
     initializer {
-        CamadasViewModel(camadaRepository, refreshBus, mensajeManager)
+        CamadasViewModel(
+            camadaRepository = camadaRepository,
+            insumoRepository = insumoRepository,
+            categoriaRepository = categoriaRepository,
+            refreshBus = refreshBus,
+            mensajeManager = mensajeManager
+        )
     }
     initializer {
         DashboardViewModel(

@@ -592,3 +592,9 @@
     background-color: #991b1b;
   }
 }
+
+/* ─── Registro de alimentación ───────────────────────────── */
+.ec-alimentar__stock {
+  font-weight: 700;
+  color: var(--ec-brown);
+}

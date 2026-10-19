@@ -101,3 +101,17 @@ export function descartarCamada(idCamada) {
     headers: conAutenticacion(),
   });
 }
+
+/**
+ * Registra el alimento consumido por una camada y descuenta su stock.
+ * @param {number} idCamada - Camada alimentada.
+ * @param {Object} datos - id_insumo, cantidad y observaciones opcional.
+ * @returns {Promise<Object>} Registro creado con fecha y hora.
+ */
+export function registrarAlimentacion(idCamada, datos) {
+  return peticion(`/camadas/${idCamada}/alimentacion`, {
+    method: 'POST',
+    headers: conAutenticacion(),
+    body: JSON.stringify(datos),
+  });
+}

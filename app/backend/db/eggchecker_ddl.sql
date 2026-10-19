@@ -594,6 +594,34 @@ CREATE INDEX idx_notificacion_recordatorio ON notificacion (id_recordatorio);
 
 
 -- ─────────────────────────────────────────────────────────────
+-- Table alimentacion_camada
+-- Alimento consumido por una camada, con fecha y hora. Cada fila se
+-- acompaña de un movimiento de salida que descuenta el stock.
+-- FK: id_camada → camada, id_insumo → insumo
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE alimentacion_camada (
+  id_alimentacion INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  id_camada       INTEGER NOT NULL,
+  id_insumo       INTEGER NOT NULL,
+  cantidad        DECIMAL(10,2) NOT NULL,
+  fecha_hora      TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  observaciones   TEXT    NULL,
+  CONSTRAINT fk_alimentacion_camada
+    FOREIGN KEY (id_camada) REFERENCES camada (id_camada)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_alimentacion_insumo
+    FOREIGN KEY (id_insumo) REFERENCES insumo (id_insumo)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT chk_alimentacion_cantidad CHECK (cantidad > 0)
+);
+
+CREATE INDEX idx_alimentacion_camada ON alimentacion_camada (id_camada);
+CREATE INDEX idx_alimentacion_insumo ON alimentacion_camada (id_insumo);
+CREATE INDEX idx_alimentacion_fecha  ON alimentacion_camada (fecha_hora);
+
+
+-- ─────────────────────────────────────────────────────────────
 -- VISTAS
 -- ─────────────────────────────────────────────────────────────
 

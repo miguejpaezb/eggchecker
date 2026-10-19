@@ -20,3 +20,16 @@ data class Camada(
     /** La camada está en etapa activa. */
     val esActiva: Boolean get() = estado == "activa"
 }
+
+/** Registro del alimento consumido por una camada. */
+data class Alimentacion(
+    val idAlimentacion: Int,
+    val idCamada: Int,
+    val nombreCamada: String,
+    val idInsumo: Int,
+    val nombreInsumo: String,
+    val unidadMedida: String,
+    val cantidad: Double,
+    val fechaHora: String,
+    val observaciones: String?
+)

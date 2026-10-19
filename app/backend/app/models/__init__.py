@@ -1,3 +1,4 @@
+from app.models.alimentacion_camada import AlimentacionCamada
 from app.models.analisis_ia import AnalisisIA
 from app.models.camada import Camada
 from app.models.categoria_insumo import CategoriaInsumo
@@ -18,6 +19,7 @@ from app.models.token_recuperacion import TokenRecuperacion
 from app.models.usuario import Usuario
 
 __all__ = [
+    "AlimentacionCamada",
     "AnalisisIA",
     "Camada",
     "CategoriaInsumo",

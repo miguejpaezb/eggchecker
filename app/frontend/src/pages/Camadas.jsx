@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import CamadaCard from '../components/CamadaCard';
 import CamadaDetalleModal from '../components/CamadaDetalleModal';
+import AlimentarModal from '../components/AlimentarModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditarCamadaModal from '../components/EditarCamadaModal';
 import Icon from '../components/Icon';
@@ -10,7 +11,10 @@ import MortalidadModal from '../components/MortalidadModal';
 import NuevaCamadaModal from '../components/NuevaCamadaModal';
 import RecordatoriosCamadaModal from '../components/recordatorios/RecordatoriosCamadaModal';
 import useCamadas from '../hooks/useCamadas';
-import { obtenerCamada } from '../services/camadaService';
+import {
+  obtenerCamada,
+  registrarAlimentacion,
+} from '../services/camadaService';
 
 const FILTROS = [
   { valor: 'activa', label: 'Activas' },
@@ -40,6 +44,7 @@ function Camadas() {
   const [seleccionada, setSeleccionada] = useState(null);
   const [camadaEnEdicion, setCamadaEnEdicion] = useState(null);
   const [camadaMortalidad, setCamadaMortalidad] = useState(null);
+  const [camadaAlimentar, setCamadaAlimentar] = useState(null);
   const [camadaRecordatorios, setCamadaRecordatorios] = useState(null);
   const [camadaADescartar, setCamadaADescartar] = useState(null);
   const [descartando, setDescartando] = useState(false);
@@ -205,6 +210,7 @@ function Camadas() {
               camada={camada}
               onVerDetalles={verDetalles}
               onEditar={abrirEdicion}
+              onAlimentar={setCamadaAlimentar}
               onMortalidad={abrirMortalidad}
               onRecordatorios={setCamadaRecordatorios}
               onAvanzarSemana={avanzarSemana}
@@ -233,6 +239,13 @@ function Camadas() {
         camada={camadaMortalidad}
         onCerrar={cerrarMortalidad}
         onRegistrar={agregarMortalidad}
+      />
+
+      <AlimentarModal
+        abierto={camadaAlimentar !== null}
+        camada={camadaAlimentar}
+        onCerrar={() => setCamadaAlimentar(null)}
+        onRegistrar={registrarAlimentacion}
       />
 
       <CamadaDetalleModal

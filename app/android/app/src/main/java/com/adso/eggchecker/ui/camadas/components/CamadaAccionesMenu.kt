@@ -28,6 +28,7 @@ import com.adso.eggchecker.ui.theme.TextMuted
 fun CamadaAccionesMenu(
     camada: Camada,
     onEditar: (Camada) -> Unit,
+    onAlimentar: (Camada) -> Unit,
     onMortalidad: (Camada) -> Unit,
     onRecordatorios: (Camada) -> Unit,
     onAvanzarSemana: (Camada) -> Unit,
@@ -52,6 +53,10 @@ fun CamadaAccionesMenu(
                 ItemMenu("Editar camada", Dark) {
                     abierto = false
                     onEditar(camada)
+                }
+                ItemMenu("Alimentar", Dark) {
+                    abierto = false
+                    onAlimentar(camada)
                 }
                 ItemMenu("Registrar mortalidad", Dark) {
                     abierto = false

@@ -423,6 +423,44 @@ def _insertar_sanidad(conn: sqlite3.Connection, camadas: dict, insumos: dict) ->
 
 
 # ─────────────────────────────────────────────────────────────────────
+# Alimentación de las camadas
+# ─────────────────────────────────────────────────────────────────────
+
+
+def _insertar_alimentacion(
+    conn: sqlite3.Connection, camadas: dict, insumos: dict
+) -> None:
+    """Registra la alimentación de los últimos siete días con su salida."""
+    concentrado = insumos["Concentrado Ponedora 18%"]
+    maiz = insumos["Maíz molido"]
+    for dias in range(7):
+        for nombre, camada in camadas.items():
+            for insumo, cantidad in ((concentrado, 6), (maiz, 2)):
+                _salida_insumo(
+                    conn,
+                    insumo,
+                    cantidad,
+                    dias,
+                    f"Alimentación camada — {nombre}",
+                )
+                conn.execute(
+                    """
+                    INSERT INTO alimentacion_camada (
+                        id_camada, id_insumo, cantidad, fecha_hora,
+                        observaciones
+                    ) VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        camada["id"],
+                        insumo["id"],
+                        cantidad,
+                        _sello(dias, 7),
+                        "Alimentación de la mañana",
+                    ),
+                )
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Producción y ventas
 # ─────────────────────────────────────────────────────────────────────
 
@@ -1215,6 +1253,7 @@ def cargar_demo(db_path: Path, conservar: bool = False) -> dict:
         camadas = _insertar_camadas(conn, id_usuario)
         insumos = _insertar_insumos(conn, id_usuario, categorias)
         _insertar_sanidad(conn, camadas, insumos)
+        _insertar_alimentacion(conn, camadas, insumos)
         clientes = _insertar_clientes(conn, id_usuario)
 
         producido, vendido, pedidos, ayer_sur = _insertar_produccion_y_ventas(
@@ -1259,6 +1298,7 @@ def cargar_demo(db_path: Path, conservar: bool = False) -> dict:
                 "recordatorio_sanitario",
                 "recordatorio_dosis",
                 "notificacion",
+                "alimentacion_camada",
                 "analisis_ia",
             )
         }

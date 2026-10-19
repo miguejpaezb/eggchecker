@@ -5,6 +5,7 @@ from app.api.deps import get_current_usuario
 from app.core.database import get_db
 from app.models.camada import Camada
 from app.models.usuario import Usuario
+from app.schemas.alimentacion import AlimentacionCreate, AlimentacionResponse
 from app.schemas.camada import (
     CamadaCreate,
     CamadaDetalleResponse,
@@ -12,7 +13,7 @@ from app.schemas.camada import (
     CamadaUpdate,
     MortalidadRequest,
 )
-from app.services import camada_service
+from app.services import alimentacion_service, camada_service
 
 router = APIRouter(tags=["camadas"])
 
@@ -219,3 +220,50 @@ def consultar_edad_camada(
         "fecha_ingreso": camada.fecha_ingreso,
         "fecha_retiro_estimada": camada_service.calcular_fecha_retiro(camada),
     }
+
+
+@router.post(
+    "/camadas/{id_camada}/alimentacion",
+    response_model=AlimentacionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def registrar_alimentacion(
+    id_camada: int,
+    datos: AlimentacionCreate,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> AlimentacionResponse:
+    """Registra el alimento consumido por una camada.
+
+    Args:
+        id_camada: Camada alimentada.
+        datos: Insumo de categoría alimento, cantidad y observaciones.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        AlimentacionResponse: El registro creado con fecha y hora.
+    """
+    return alimentacion_service.registrar_alimentacion(db, usuario, id_camada, datos)
+
+
+@router.get(
+    "/camadas/{id_camada}/alimentacion",
+    response_model=list[AlimentacionResponse],
+)
+def listar_alimentacion(
+    id_camada: int,
+    usuario: Usuario = Depends(get_current_usuario),
+    db: Session = Depends(get_db),
+) -> list[AlimentacionResponse]:
+    """Lista el historial de alimentación de una camada.
+
+    Args:
+        id_camada: Camada consultada.
+        usuario: Usuario autenticado mediante JWT.
+        db: Sesión de base de datos.
+
+    Returns:
+        list[AlimentacionResponse]: Registros del más reciente al más antiguo.
+    """
+    return alimentacion_service.listar_alimentacion(db, usuario, id_camada)
