@@ -76,6 +76,7 @@ def listar_notificaciones(db: Session, usuario: Usuario) -> list[Notificacion]:
     Returns:
         list[Notificacion]: Notificaciones ordenadas (no leídas primero).
     """
+    _expirar_resumen(db, usuario)
     _generar_para_camadas_limite(db, usuario)
     _generar_para_insumos_stock(db, usuario)
     _generar_para_produccion(db, usuario)
@@ -123,6 +124,7 @@ def marcar_todas_leidas(db: Session, usuario: Usuario) -> int:
     Returns:
         int: Cantidad de notificaciones actualizadas.
     """
+    _expirar_resumen(db, usuario)
     _generar_para_camadas_limite(db, usuario)
     _generar_para_insumos_stock(db, usuario)
     _generar_para_produccion(db, usuario)
@@ -408,6 +410,68 @@ def _texto_recordatorio(
     )
 
 
+def actualizar_aviso_recordatorio(
+    db: Session, id_usuario: int, id_recordatorio: int, fecha: date
+) -> None:
+    """Cierra el aviso de un recordatorio o lo actualiza con lo pendiente.
+
+    Si ya no quedan dosis por aplicar de esa fecha el aviso se elimina,
+    igual que el de stock al recuperarse. Si el recordatorio es global y
+    quedan camadas, el mensaje se reescribe con las pendientes. No hace
+    commit: lo confirma quien registra la aplicación.
+
+    Args:
+        db: Sesión de base de datos.
+        id_usuario: Dueño del recordatorio.
+        id_recordatorio: Recordatorio aplicado.
+        fecha: Fecha programada de la aplicación.
+    """
+    avisos = (
+        db.query(Notificacion)
+        .filter(
+            Notificacion.id_usuario == id_usuario,
+            Notificacion.tipo == TIPO_RECORDATORIO_SANITARIO,
+            Notificacion.id_recordatorio == id_recordatorio,
+            Notificacion.fecha_referencia == fecha,
+            Notificacion.eliminada == 0,
+        )
+        .all()
+    )
+    if not avisos:
+        return
+
+    pendientes = (
+        db.query(RecordatorioDosis)
+        .filter(
+            RecordatorioDosis.id_recordatorio == id_recordatorio,
+            RecordatorioDosis.fecha_programada == fecha,
+            RecordatorioDosis.aplicada.is_(False),
+        )
+        .all()
+    )
+    if not pendientes:
+        for aviso in avisos:
+            aviso.eliminada = 1
+        return
+
+    regla = db.get(RecordatorioSanitario, id_recordatorio)
+    insumo = db.get(Insumo, regla.id_insumo) if regla is not None else None
+    if regla is None or insumo is None:
+        return
+    camadas = [
+        camada
+        for camada in (db.get(Camada, dosis.id_camada) for dosis in pendientes)
+        if camada is not None
+    ]
+    for aviso in avisos:
+        _, mensaje = _texto_recordatorio(
+            db, regla, insumo, pendientes, camadas, aviso.momento
+        )
+        aviso.mensaje = mensaje
+        # Vuelve a quedar pendiente de atender para las camadas que faltan.
+        aviso.leida = 0
+
+
 def _existe_aviso_recordatorio(
     db: Session,
     usuario: Usuario,
@@ -498,6 +562,27 @@ def _existe_aviso_resumen(db: Session, usuario: Usuario, fecha: date) -> bool:
         .first()
         is not None
     )
+
+
+def _expirar_resumen(db: Session, usuario: Usuario) -> None:
+    """Elimina los recordatorios de reportes con más de 24 horas.
+
+    Se aplica de forma perezosa al listar: si el avicultor ignora el aviso
+    o solo lo marca como leído, desaparece al día siguiente.
+    """
+    limite = datetime.now() - timedelta(hours=24)
+    total = (
+        db.query(Notificacion)
+        .filter(
+            Notificacion.id_usuario == usuario.id_usuario,
+            Notificacion.tipo == TIPO_RESUMEN_PERIODICO,
+            Notificacion.eliminada == 0,
+            Notificacion.fecha_creacion <= limite,
+        )
+        .update({Notificacion.eliminada: 1})
+    )
+    if total:
+        db.commit()
 
 
 def _generar_para_produccion(db: Session, usuario: Usuario) -> None:

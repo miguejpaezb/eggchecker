@@ -265,10 +265,12 @@ def aplicar_dosis(
 
     Raises:
         HTTPException: 404 si la dosis no es del usuario; 409 si ya estaba
-            aplicada; 400 si la camada no está activa o no hay stock.
+            aplicada; 400 si todavía no es la fecha de aplicación, si la
+            camada no está activa o si no hay stock.
     """
     dosis, regla = _obtener_dosis(db, usuario, id_dosis)
     _validar_dosis_pendiente(dosis)
+    _validar_fecha_aplicacion(dosis)
     camada = _validar_camada_activa(db, usuario, dosis.id_camada)
     insumo = _validar_insumo(db, usuario, regla.id_insumo)
     usada = cantidad if cantidad is not None else regla.cantidad
@@ -278,6 +280,10 @@ def aplicar_dosis(
     )
     db.flush()
     _marcar_aplicada(dosis, movimiento, evento)
+    db.flush()
+    notificacion_service.actualizar_aviso_recordatorio(
+        db, usuario.id_usuario, regla.id_recordatorio, dosis.fecha_programada
+    )
     _confirmar(db)
     notificacion_service.sincronizar_aviso_stock(db, insumo)
     return _serializar_aplicacion(
@@ -307,12 +313,14 @@ def aplicar_dosis_lote(
 
     Raises:
         HTTPException: 404 si alguna dosis no es del usuario; 409 si ya
-            estaba aplicada; 400 si la camada no está activa o no hay stock.
+            estaba aplicada; 400 si todavía no es la fecha de aplicación,
+            si la camada no está activa o si no hay stock.
     """
     preparadas = []
     for id_dosis in ids_dosis:
         dosis, regla = _obtener_dosis(db, usuario, id_dosis)
         _validar_dosis_pendiente(dosis)
+        _validar_fecha_aplicacion(dosis)
         camada = _validar_camada_activa(db, usuario, dosis.id_camada)
         insumo = _validar_insumo(db, usuario, regla.id_insumo)
         usada = cantidad if cantidad is not None else regla.cantidad
@@ -334,6 +342,15 @@ def aplicar_dosis_lote(
     db.flush()
     for dosis, _, _, _, _, _, movimiento, evento in preparadas:
         _marcar_aplicada(dosis, movimiento, evento)
+    db.flush()
+    afectadas = {
+        (regla.id_recordatorio, dosis.fecha_programada)
+        for dosis, regla, _, _, _, _, _, _ in preparadas
+    }
+    for id_recordatorio, fecha in afectadas:
+        notificacion_service.actualizar_aviso_recordatorio(
+            db, usuario.id_usuario, id_recordatorio, fecha
+        )
     _confirmar(db)
     for insumo in {fila[2].id_insumo: fila[2] for fila in preparadas}.values():
         notificacion_service.sincronizar_aviso_stock(db, insumo)
@@ -461,6 +478,19 @@ def _validar_dosis_pendiente(dosis: RecordatorioDosis) -> None:
     """Rechaza una dosis que ya fue aplicada."""
     if dosis.aplicada:
         raise HTTPException(status_code=409, detail="La dosis ya fue aplicada")
+
+
+def _validar_fecha_aplicacion(dosis: RecordatorioDosis) -> None:
+    """Rechaza aplicar una dosis antes de su fecha programada.
+
+    Se permite el mismo día o después: si la aplicación se atrasó, el
+    avicultor todavía puede registrarla.
+    """
+    if dosis.fecha_programada > date.today():
+        raise HTTPException(
+            status_code=400,
+            detail="Todavía no es la fecha de aplicación",
+        )
 
 
 def _validar_camada_activa(db: Session, usuario: Usuario, id_camada: int) -> Camada:

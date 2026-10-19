@@ -914,7 +914,7 @@ def _insertar_notificaciones(
                 "Puedes abrirlo cuando quieras."
             ),
             "leida": 1,
-            "fecha_creacion": f"{lunes.isoformat()} 05:00:00",
+            "fecha_creacion": _sello(0, 5),
         }
     )
 

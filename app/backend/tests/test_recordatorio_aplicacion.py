@@ -196,9 +196,10 @@ def test_avisa_el_dia_antes_y_el_mismo_dia(cliente) -> None:
     assert "Newcastle" in por_momento["hoy"]["titulo"]
     assert "(dosis 1 de 2)" in por_momento["hoy"]["mensaje"]
     assert "(dosis 2 de 2)" in por_momento["previo"]["mensaje"]
-    assert por_momento["hoy"]["id_recordatorio"] == por_momento["previo"][
-        "id_recordatorio"
-    ]
+    assert (
+        por_momento["hoy"]["id_recordatorio"]
+        == por_momento["previo"]["id_recordatorio"]
+    )
 
 
 def test_preferencia_apagada_no_avisa(cliente) -> None:
@@ -268,9 +269,7 @@ def test_aplicar_descuenta_stock_y_crea_evento(cliente) -> None:
     assert cuerpo["id_movimiento"] and cuerpo["id_evento"]
     assert cuerpo["nombre_insumo"] == "Newcastle"
 
-    insumo = client.get(
-        f"/api/insumos/{regla['id_insumo']}", headers=headers
-    ).json()
+    insumo = client.get(f"/api/insumos/{regla['id_insumo']}", headers=headers).json()
     assert Decimal(insumo["stock_actual"]) == Decimal("15.00")
 
     actualizada = _dosis(client, headers, regla["id_recordatorio"])[0]
@@ -288,9 +287,7 @@ def test_vitamina_registra_evento_como_otro(cliente) -> None:
     client, db_path = cliente
     headers = _registrar_usuario(client, "apl6@test.com")
     camada = _crear_camada(client, headers)
-    insumo = _crear_insumo(
-        client, headers, categoria="vitamina", nombre="Vitamina B"
-    )
+    insumo = _crear_insumo(client, headers, categoria="vitamina", nombre="Vitamina B")
     regla = _crear_recordatorio(
         client,
         headers,
@@ -389,7 +386,9 @@ def test_aplicar_lote_descuenta_cada_camada(cliente) -> None:
     _crear_camada(client, headers, "Camada Norte")
     _crear_camada(client, headers, "Camada Sur")
     regla = _crear_recordatorio(client, headers, fecha_fin=HOY.isoformat())
-    ids = [item["id_dosis"] for item in _dosis(client, headers, regla["id_recordatorio"])]
+    ids = [
+        item["id_dosis"] for item in _dosis(client, headers, regla["id_recordatorio"])
+    ]
     assert len(ids) == 2
 
     respuesta = client.post(
@@ -428,7 +427,9 @@ def test_lote_sin_stock_no_aplica_ninguna(cliente) -> None:
         fecha_fin=HOY.isoformat(),
         cantidad=3,
     )
-    ids = [item["id_dosis"] for item in _dosis(client, headers, regla["id_recordatorio"])]
+    ids = [
+        item["id_dosis"] for item in _dosis(client, headers, regla["id_recordatorio"])
+    ]
 
     respuesta = client.post(
         "/api/recordatorios/dosis/aplicar-lote",
@@ -493,3 +494,142 @@ def test_dosis_de_otro_usuario_devuelve_404(cliente) -> None:
 
     assert detalle.status_code == 404
     assert aplicar.status_code == 404
+
+
+def test_no_aplica_una_dosis_futura(cliente) -> None:
+    """Una dosis de mañana no se puede aplicar todavía."""
+    client, _ = cliente
+    headers = _registrar_usuario(client, "apl15@test.com")
+    _activar_recordatorios(client, headers)
+    camada = _crear_camada(client, headers)
+    regla = _crear_recordatorio(
+        client,
+        headers,
+        id_camada=camada["id_camada"],
+        fecha_inicio=MANANA.isoformat(),
+        fecha_fin=MANANA.isoformat(),
+    )
+    dosis = _dosis(client, headers, regla["id_recordatorio"])
+    assert len(dosis) == 1
+
+    respuesta = client.post(
+        f"/api/recordatorios/dosis/{dosis[0]['id_dosis']}/aplicar",
+        json={},
+        headers=headers,
+    )
+
+    assert respuesta.status_code == 400
+    assert "fecha de aplicación" in respuesta.json()["detail"]
+
+
+def test_aplicar_hoy_elimina_el_aviso(cliente) -> None:
+    """Al aplicar la dosis del día el aviso desaparece del listado."""
+    client, _ = cliente
+    headers = _registrar_usuario(client, "apl16@test.com")
+    _activar_recordatorios(client, headers)
+    camada = _crear_camada(client, headers)
+    regla = _crear_recordatorio(
+        client, headers, id_camada=camada["id_camada"], fecha_fin=HOY.isoformat()
+    )
+    assert len(_avisos_recordatorio(client, headers)) == 1
+    dosis = _dosis(client, headers, regla["id_recordatorio"])[0]
+
+    respuesta = client.post(
+        f"/api/recordatorios/dosis/{dosis['id_dosis']}/aplicar",
+        json={},
+        headers=headers,
+    )
+
+    assert respuesta.status_code == 200
+    assert _avisos_recordatorio(client, headers) == []
+
+
+def test_aplicar_una_dosis_vencida_elimina_el_aviso(cliente) -> None:
+    """Una dosis que era ayer se puede aplicar hoy y se cierra su aviso."""
+    client, db_path = cliente
+    headers = _registrar_usuario(client, "apl17@test.com")
+    _activar_recordatorios(client, headers)
+    camada = _crear_camada(client, headers)
+    regla = _crear_recordatorio(
+        client, headers, id_camada=camada["id_camada"], fecha_fin=HOY.isoformat()
+    )
+    dosis = _dosis(client, headers, regla["id_recordatorio"])[0]
+
+    # Simula que la aplicación era ayer y que el aviso ya existía.
+    engine = create_engine(f"sqlite:///{db_path}")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE recordatorio_dosis "
+                "SET fecha_programada = date('now', '-1 day') "
+                "WHERE id_dosis = :id"
+            ),
+            {"id": dosis["id_dosis"]},
+        )
+        conn.execute(
+            text("""
+                INSERT INTO notificacion (
+                    id_usuario, id_camada, id_recordatorio, tipo, titulo,
+                    mensaje, leida, eliminada, fecha_referencia, momento,
+                    fecha_creacion
+                )
+                SELECT r.id_usuario, d.id_camada, r.id_recordatorio,
+                       'recordatorio_sanitario', 'Recordatorio: Newcastle',
+                       'Hoy: aplicar ayer', 0, 0, date('now', '-1 day'), 'hoy',
+                       datetime('now')
+                FROM recordatorio_sanitario r
+                JOIN recordatorio_dosis d
+                  ON d.id_recordatorio = r.id_recordatorio
+                WHERE r.id_recordatorio = :id
+                LIMIT 1
+                """),
+            {"id": regla["id_recordatorio"]},
+        )
+    engine.dispose()
+
+    respuesta = client.post(
+        f"/api/recordatorios/dosis/{dosis['id_dosis']}/aplicar",
+        json={},
+        headers=headers,
+    )
+
+    assert respuesta.status_code == 200
+    assert _avisos_recordatorio(client, headers) == []
+
+
+def test_global_parcial_actualiza_el_mensaje(cliente) -> None:
+    """Si faltan camadas el aviso sigue y se reescribe con las pendientes."""
+    client, _ = cliente
+    headers = _registrar_usuario(client, "apl18@test.com")
+    _activar_recordatorios(client, headers)
+    _crear_camada(client, headers, "Camada Norte")
+    _crear_camada(client, headers, "Camada Sur")
+    regla = _crear_recordatorio(client, headers, fecha_fin=HOY.isoformat())
+
+    assert len(_avisos_recordatorio(client, headers)) == 1
+    dosis = _dosis(client, headers, regla["id_recordatorio"])
+    assert len(dosis) == 2
+    primera = dosis[0]
+    restante = next(item for item in dosis if item["id_dosis"] != primera["id_dosis"])
+
+    aplicar = client.post(
+        f"/api/recordatorios/dosis/{primera['id_dosis']}/aplicar",
+        json={},
+        headers=headers,
+    )
+
+    assert aplicar.status_code == 200
+    avisos = _avisos_recordatorio(client, headers)
+    assert len(avisos) == 1
+    assert primera["nombre_camada"] not in avisos[0]["mensaje"]
+    assert restante["nombre_camada"] in avisos[0]["mensaje"]
+    assert avisos[0]["leida"] is False
+
+    segunda = client.post(
+        f"/api/recordatorios/dosis/{restante['id_dosis']}/aplicar",
+        json={},
+        headers=headers,
+    )
+
+    assert segunda.status_code == 200
+    assert _avisos_recordatorio(client, headers) == []

@@ -1,12 +1,13 @@
 """Pruebas del recordatorio periódico para revisar los reportes."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pytest
 from app.core.database import get_db
 from app.core.security import crear_token_acceso
 from app.main import create_app
+from app.services import notificacion_service
 from fastapi.testclient import TestClient
 from scripts.cargar_seed import cargar_seed
 from sqlalchemy import create_engine
@@ -186,3 +187,21 @@ def test_mensual_cae_en_el_primer_dia_del_mes(cliente) -> None:
     assert fecha <= HOY
     desde = fecha - timedelta(days=29)
     assert f"{desde:%d/%m}" in aviso["mensaje"]
+
+
+def test_resumen_ignorado_expira_a_las_24_horas(cliente, monkeypatch) -> None:
+    """Un resumen que el usuario ignora desaparece al día siguiente."""
+    headers = _registrar_usuario(cliente, "res8@test.com")
+    _configurar(cliente, headers)
+    assert len(_avisos_resumen(cliente, headers)) == 1
+
+    clase_real = datetime
+
+    class RelojDeManana(clase_real):
+        @classmethod
+        def now(cls, tz=None):
+            return clase_real.now(tz) + timedelta(hours=25)
+
+    monkeypatch.setattr(notificacion_service, "datetime", RelojDeManana)
+
+    assert _avisos_resumen(cliente, headers) == []
